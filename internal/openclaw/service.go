@@ -782,6 +782,10 @@ WantedBy=default.target
 	if err := os.MkdirAll(filepath.Dir(unitPath), 0755); err != nil {
 		return fmt.Errorf("create systemd user dir: %w", err)
 	}
+	// Backup existing unit file
+	if _, err := os.Stat(unitPath); err == nil {
+		_ = copyFile(unitPath, unitPath+".bak")
+	}
 	if err := os.WriteFile(unitPath, []byte(unit), 0644); err != nil {
 		return fmt.Errorf("write unit file: %w", err)
 	}
@@ -809,12 +813,14 @@ func (s *Service) daemonUninstallSystemd() error {
 
 // ── launchd ──
 
+const launchdLabel = "ai.openclaw.gateway"
+
 func launchdPlistPath() string {
 	home, _ := os.UserHomeDir()
 	if home == "" {
 		return ""
 	}
-	return filepath.Join(home, "Library", "LaunchAgents", "ai.openclaw.gateway.plist")
+	return filepath.Join(home, "Library", "LaunchAgents", launchdLabel+".plist")
 }
 
 func (s *Service) daemonStatusLaunchd() DaemonStatusResult {
@@ -828,8 +834,8 @@ func (s *Service) daemonStatusLaunchd() DaemonStatusResult {
 		res.Installed = true
 		res.Enabled = true // launchd plist with RunAtLoad implies enabled
 	}
-	out, err := runOutput("launchctl", "list")
-	if err == nil && strings.Contains(out, "ai.openclaw.gateway") {
+	domain := launchdGuiDomain()
+	if _, err := runOutput("launchctl", "print", domain+"/"+launchdLabel); err == nil {
 		res.Active = true
 	}
 	if res.Installed {
@@ -878,7 +884,7 @@ func (s *Service) daemonInstallLaunchd() error {
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>ai.openclaw.gateway</string>
+  <string>%s</string>
   <key>ProgramArguments</key>
   <array>
     <string>%s</string>
@@ -899,17 +905,34 @@ func (s *Service) daemonInstallLaunchd() error {
   <string>%s</string>
 </dict>
 </plist>
-`, absCmd, bind, port, logPath, errPath)
+`, launchdLabel, absCmd, bind, port, logPath, errPath)
 
 	os.MkdirAll(filepath.Dir(plistPath), 0755)
 	os.MkdirAll(filepath.Dir(logPath), 0755)
 
+	// Backup existing plist
+	if _, err := os.Stat(plistPath); err == nil {
+		_ = copyFile(plistPath, plistPath+".bak")
+	}
+
+	domain := launchdGuiDomain()
+
+	// Unload any existing service before writing new plist
+	_ = runCommand("launchctl", "bootout", domain, plistPath)
+	_ = runCommand("launchctl", "unload", plistPath)
+
 	if err := os.WriteFile(plistPath, []byte(content), 0644); err != nil {
 		return fmt.Errorf("write plist: %w", err)
 	}
-	if err := runCommand("launchctl", "load", plistPath); err != nil {
-		return fmt.Errorf("launchctl load: %w", err)
+
+	// Clear any cached disabled state
+	_ = runCommand("launchctl", "enable", domain+"/"+launchdLabel)
+
+	// Bootstrap and kickstart the service
+	if err := runCommand("launchctl", "bootstrap", domain, plistPath); err != nil {
+		return fmt.Errorf("launchctl bootstrap: %w", err)
 	}
+	_ = runCommand("launchctl", "kickstart", "-k", domain+"/"+launchdLabel)
 	return nil
 }
 
@@ -918,35 +941,56 @@ func (s *Service) daemonUninstallLaunchd() error {
 	if plistPath == "" {
 		return errors.New("cannot determine plist path")
 	}
+	domain := launchdGuiDomain()
+	_ = runCommand("launchctl", "bootout", domain+"/"+launchdLabel)
 	_ = runCommand("launchctl", "unload", plistPath)
-	if err := os.Remove(plistPath); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("remove plist: %w", err)
+	if _, err := os.Stat(plistPath); err == nil {
+		// Move to Trash instead of deleting
+		home, _ := os.UserHomeDir()
+		if home != "" {
+			trashDir := filepath.Join(home, ".Trash")
+			os.MkdirAll(trashDir, 0755)
+			dest := filepath.Join(trashDir, launchdLabel+".plist")
+			if err := os.Rename(plistPath, dest); err == nil {
+				return nil
+			}
+		}
+		// Fallback: delete directly
+		_ = os.Remove(plistPath)
 	}
 	return nil
 }
 
-// ── Windows (sc.exe) ──
+// ── Windows (Scheduled Task) ──
 
-const windowsServiceName = "OpenClawGateway"
+const windowsTaskName = "OpenClaw Gateway"
+
+func windowsTaskScriptPath() string {
+	stateDir := ResolveStateDir()
+	if stateDir == "" {
+		return ""
+	}
+	return filepath.Join(stateDir, "gateway.cmd")
+}
 
 func (s *Service) daemonStatusWindows() DaemonStatusResult {
 	res := DaemonStatusResult{Platform: "windows"}
-	out, err := runOutput("sc", "query", windowsServiceName)
+	out, err := runOutput("schtasks", "/Query", "/TN", windowsTaskName, "/V", "/FO", "LIST")
 	if err != nil {
-		res.Detail = "service not installed"
+		res.Detail = "scheduled task not installed"
 		return res
 	}
 	res.Installed = true
-	if strings.Contains(strings.ToUpper(out), "RUNNING") {
+	upper := strings.ToUpper(out)
+	if strings.Contains(upper, "RUNNING") {
 		res.Active = true
 	}
-	cfgOut, err := runOutput("sc", "qc", windowsServiceName)
-	if err == nil && strings.Contains(strings.ToUpper(cfgOut), "AUTO_START") {
+	if strings.Contains(upper, "READY") || strings.Contains(upper, "RUNNING") {
 		res.Enabled = true
 	}
-	res.Detail = "Windows service installed"
+	res.Detail = "scheduled task installed"
 	if res.Enabled {
-		res.Detail += ", auto-start"
+		res.Detail += ", enabled"
 	}
 	if res.Active {
 		res.Detail += ", running"
@@ -955,6 +999,11 @@ func (s *Service) daemonStatusWindows() DaemonStatusResult {
 }
 
 func (s *Service) daemonInstallWindows() error {
+	scriptPath := windowsTaskScriptPath()
+	if scriptPath == "" {
+		return errors.New("cannot determine state directory")
+	}
+
 	cmdName := ResolveOpenClawCmd()
 	if cmdName == "" {
 		return errors.New("openclaw command not found")
@@ -975,23 +1024,51 @@ func (s *Service) daemonInstallWindows() error {
 		}
 	}
 
-	binPath := fmt.Sprintf(`"%s" gateway run --bind %s --port %s`, absCmd, bind, port)
-
-	if err := runCommand("sc", "create", windowsServiceName,
-		"binPath=", binPath,
-		"DisplayName=", "OpenClaw Gateway",
-		"start=", "auto"); err != nil {
-		return fmt.Errorf("sc create: %w", err)
+	// Backup existing script
+	if _, err := os.Stat(scriptPath); err == nil {
+		_ = copyFile(scriptPath, scriptPath+".bak")
 	}
-	_ = runCommand("sc", "failure", windowsServiceName,
-		"reset=", "60", "actions=", "restart/5000/restart/10000/restart/30000")
+
+	// Generate gateway.cmd wrapper script
+	script := fmt.Sprintf("@echo off\r\nrem OpenClaw Gateway\r\ncd /d \"%s\"\r\n\"%s\" gateway run --bind %s --port %s\r\n",
+		filepath.Dir(absCmd), absCmd, bind, port)
+
+	os.MkdirAll(filepath.Dir(scriptPath), 0755)
+	if err := os.WriteFile(scriptPath, []byte(script), 0644); err != nil {
+		return fmt.Errorf("write task script: %w", err)
+	}
+
+	// Remove existing task if present
+	_ = runCommand("schtasks", "/Delete", "/F", "/TN", windowsTaskName)
+
+	// Create scheduled task: run on logon, limited privileges
+	if err := runCommand("schtasks", "/Create", "/F",
+		"/SC", "ONLOGON",
+		"/RL", "LIMITED",
+		"/TN", windowsTaskName,
+		"/TR", fmt.Sprintf(`"%s"`, scriptPath)); err != nil {
+		return fmt.Errorf("schtasks create: %w", err)
+	}
+
+	// Start the task immediately
+	_ = runCommand("schtasks", "/Run", "/TN", windowsTaskName)
 	return nil
 }
 
 func (s *Service) daemonUninstallWindows() error {
-	_ = runCommand("sc", "stop", windowsServiceName)
-	if err := runCommand("sc", "delete", windowsServiceName); err != nil {
-		return fmt.Errorf("sc delete: %w", err)
+	_ = runCommand("schtasks", "/End", "/TN", windowsTaskName)
+	_ = runCommand("schtasks", "/Delete", "/F", "/TN", windowsTaskName)
+	// Remove task script
+	if scriptPath := windowsTaskScriptPath(); scriptPath != "" {
+		_ = os.Remove(scriptPath)
 	}
 	return nil
+}
+
+func copyFile(src, dst string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(dst, data, 0644)
 }
