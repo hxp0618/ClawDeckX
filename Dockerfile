@@ -4,6 +4,7 @@ WORKDIR /app/web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
 COPY web/ ./
+COPY templates/ /app/templates/
 ARG BUILD_NUMBER=0
 RUN echo "${BUILD_NUMBER}" > ../build.txt
 RUN npm run build
