@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { SectionProps } from '../sectionTypes';
-import { ConfigSection, ConfigCard, TextField, PasswordField, SelectField, ArrayField, EmptyState } from '../fields';
+import { ConfigSection, ConfigCard, TextField, PasswordField, SelectField, ArrayField, KeyValueField, EmptyState } from '../fields';
 import NumberStepper from '../../../components/NumberStepper';
 import { post } from '../../../services/request';
 import { getTranslation } from '../../../locales';
