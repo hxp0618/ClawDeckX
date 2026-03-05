@@ -15,7 +15,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-COPY --from=frontend /app/web/dist ./web/dist
+COPY --from=frontend /app/internal/web/dist ./internal/web/dist
 ARG VERSION=0.0.1
 ARG BUILD_NUMBER=0
 RUN CGO_ENABLED=0 GOOS=linux go build \
