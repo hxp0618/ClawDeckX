@@ -595,6 +595,7 @@
   "optLow": "低 (Low)",
   "optMedium": "中 (Medium)",
   "optHigh": "高 (High)",
+  "optAdaptive": "自適應 (Adaptive)",
   "optXHigh": "超高 (XHigh)",
   "optAsk": "詢問 (Ask)",
   "optInstant": "即時 (Instant)",

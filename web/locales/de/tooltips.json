@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "Standard-Arbeitsverzeichnis für Agents. Stammverzeichnis für KI-Dateioperationen",
   "agents.defaults.timeoutSeconds": "Agent-Anfrage-Timeout in Sekunden. Max. Wartezeit für einen einzelnen KI-Aufruf. 0 = kein Timeout",
   "agents.defaults.mediaMaxMb": "Max. Mediendateigröße (MB), die Agents verarbeiten können",
-  "agents.defaults.thinkingDefault": "KI-Denktiefe-Voreinstellung. off = kein Denken; minimal/low/medium/high/xhigh = zunehmend tiefer. Tieferes Denken verbraucht mehr Tokens, liefert aber bessere Antworten",
+  "agents.defaults.thinkingDefault": "KI-Denktiefe-Voreinstellung. off = kein Denken; adaptive = automatische Anpassung je nach Aufgabenkomplexität (empfohlen für Claude 4.6+); minimal/low/medium/high/xhigh = zunehmend tiefer. Tieferes Denken verbraucht mehr Tokens, liefert aber bessere Antworten",
   "agents.defaults.verboseDefault": "KI-Antwort-Ausführlichkeit. off = knapp; on = detailliert; full = am ausführlichsten (inkl. Begründung)",
   "agents.defaults.elevatedDefault": "Standard für erweiterte Operationen. off = verweigern; on = erlauben; ask = jedes Mal fragen; full = voll erlauben",
   "agents.defaults.compaction.mode": "Kontextkomprimierungsmodus. default = Standardstrategie; safeguard = konservativ; aggressive = aggressiv (spart Tokens); off = keine Komprimierung",

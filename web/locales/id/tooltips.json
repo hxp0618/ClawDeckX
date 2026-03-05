@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "Direktori workspace default untuk agen. Direktori root untuk operasi file AI",
   "agents.defaults.timeoutSeconds": "Batas waktu permintaan agen dalam detik. Waktu tunggu maks untuk satu panggilan AI. 0 = tanpa batas waktu",
   "agents.defaults.mediaMaxMb": "Ukuran file media maks (MB) yang dapat diproses agen",
-  "agents.defaults.thinkingDefault": "Preset kedalaman berpikir AI. off = tanpa berpikir; minimal/low/medium/high/xhigh = semakin mendalam. Berpikir lebih dalam menggunakan lebih banyak token tapi memberikan jawaban lebih baik",
+  "agents.defaults.thinkingDefault": "Preset kedalaman berpikir AI. off = tanpa berpikir; adaptive = penyesuaian otomatis berdasarkan kompleksitas tugas (direkomendasikan untuk Claude 4.6+); minimal/low/medium/high/xhigh = semakin mendalam. Berpikir lebih dalam menggunakan lebih banyak token tapi memberikan jawaban lebih baik",
   "agents.defaults.verboseDefault": "Verbositas balasan AI. off = ringkas; on = detail; full = paling detail (termasuk penalaran)",
   "agents.defaults.elevatedDefault": "Default operasi elevated. off = tolak; on = izinkan; ask = tanya setiap kali; full = izinkan sepenuhnya",
   "agents.defaults.compaction.mode": "Mode kompresi konteks. default = strategi default; safeguard = konservatif; aggressive = agresif (hemat token); off = tanpa kompresi",

@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "مجلد مساحة العمل الافتراضي للوكلاء. المجلد الجذري لعمليات ملفات الذكاء الاصطناعي",
   "agents.defaults.timeoutSeconds": "مهلة طلب الوكيل بالثواني. أقصى وقت انتظار لاستدعاء واحد للذكاء الاصطناعي. 0 = بدون مهلة",
   "agents.defaults.mediaMaxMb": "أقصى حجم ملف وسائط (ميجابايت) يمكن للوكلاء معالجته",
-  "agents.defaults.thinkingDefault": "إعداد عمق تفكير الذكاء الاصطناعي. off = بدون تفكير؛ minimal/low/medium/high/xhigh = أعمق تدريجياً. التفكير الأعمق يستهلك رموزاً أكثر لكن يعطي إجابات أفضل",
+  "agents.defaults.thinkingDefault": "إعداد عمق تفكير الذكاء الاصطناعي. off = بدون تفكير؛ adaptive = ضبط تلقائي حسب تعقيد المهمة (موصى به لـ Claude 4.6+)؛ minimal/low/medium/high/xhigh = أعمق تدريجياً. التفكير الأعمق يستهلك رموزاً أكثر لكن يعطي إجابات أفضل",
   "agents.defaults.verboseDefault": "تفصيل رد الذكاء الاصطناعي. off = مختصر؛ on = مفصّل؛ full = الأكثر تفصيلاً (يتضمن الاستدلال)",
   "agents.defaults.elevatedDefault": "افتراضي العمليات المرتفعة. off = رفض؛ on = سماح؛ ask = سؤال كل مرة؛ full = سماح كامل",
   "agents.defaults.compaction.mode": "وضع ضغط السياق. default = الاستراتيجية الافتراضية؛ safeguard = محافظ؛ aggressive = عدواني (يوفر الرموز)؛ off = بدون ضغط",

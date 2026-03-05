@@ -13,7 +13,7 @@ export const AgentsSection: React.FC<SectionProps> = ({ config, setField, getFie
   const sd = (p: string[], v: any) => setField(['agents', 'defaults', ...p], v);
 
   const THINKING_OPTIONS = useMemo(() => [
-    { value: 'off', label: es.optOff }, { value: 'minimal', label: es.optMinimal }, { value: 'low', label: es.optLow },
+    { value: 'off', label: es.optOff }, { value: 'adaptive', label: es.optAdaptive }, { value: 'minimal', label: es.optMinimal }, { value: 'low', label: es.optLow },
     { value: 'medium', label: es.optMedium }, { value: 'high', label: es.optHigh }, { value: 'xhigh', label: es.optXHigh },
   ], [es]);
   const VERBOSE_OPTIONS = useMemo(() => [{ value: 'off', label: es.optOff }, { value: 'on', label: es.optOn }, { value: 'full', label: es.optFull }], [es]);

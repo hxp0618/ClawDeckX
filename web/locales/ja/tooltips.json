@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "エージェントのデフォルト作業ディレクトリ。AIのファイル操作のルートディレクトリ",
   "agents.defaults.timeoutSeconds": "エージェントリクエストタイムアウト（秒）。0 = タイムアウトなし",
   "agents.defaults.mediaMaxMb": "エージェントが処理可能な最大メディアファイルサイズ（MB）",
-  "agents.defaults.thinkingDefault": "AI思考深度プリセット。off = 思考なし；minimal/low/medium/high/xhigh = 段階的に深化",
+  "agents.defaults.thinkingDefault": "AI思考深度プリセット。off = 思考なし；adaptive = タスクの複雑さに応じて自動調整（Claude 4.6+推奨）；minimal/low/medium/high/xhigh = 段階的に深化",
   "agents.defaults.verboseDefault": "AI返信の詳細度。off = 簡潔；on = 詳細；full = 最も詳細（推論過程を含む）",
   "agents.defaults.elevatedDefault": "特権操作のデフォルト。off = 禁止；on = 許可；ask = 毎回確認；full = 完全許可",
   "agents.defaults.compaction.mode": "コンテキスト圧縮モード。default = デフォルト；safeguard = 保守的；aggressive = 積極的（トークン節約）；off = 圧縮なし",

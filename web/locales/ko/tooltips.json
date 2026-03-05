@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "에이전트의 기본 워크스페이스 디렉터리. AI 파일 작업의 루트 디렉터리입니다",
   "agents.defaults.timeoutSeconds": "에이전트 요청 타임아웃 (초). 단일 AI 호출의 최대 대기 시간. 0 = 타임아웃 없음",
   "agents.defaults.mediaMaxMb": "에이전트가 처리할 수 있는 최대 미디어 파일 크기 (MB)",
-  "agents.defaults.thinkingDefault": "AI 사고 깊이 프리셋. off = 사고 안 함; minimal/low/medium/high/xhigh = 점진적으로 깊어짐. 깊은 사고는 더 많은 토큰을 사용하지만 더 나은 답변을 제공합니다",
+  "agents.defaults.thinkingDefault": "AI 사고 깊이 프리셋. off = 사고 안 함; adaptive = 작업 복잡도에 따라 자동 조절 (Claude 4.6+ 권장); minimal/low/medium/high/xhigh = 점진적으로 깊어짐. 깊은 사고는 더 많은 토큰을 사용하지만 더 나은 답변을 제공합니다",
   "agents.defaults.verboseDefault": "AI 응답 상세도. off = 간결; on = 상세; full = 가장 상세 (추론 과정 포함)",
   "agents.defaults.elevatedDefault": "고급 작업 기본값. off = 거부; on = 허용; ask = 매번 확인; full = 완전 허용",
   "agents.defaults.compaction.mode": "컨텍스트 압축 모드. default = 기본 전략; safeguard = 보수적; aggressive = 적극적 (토큰 절약); off = 압축 없음",

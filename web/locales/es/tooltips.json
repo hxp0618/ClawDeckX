@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "Directorio de espacio de trabajo predeterminado para agentes. Directorio raíz para operaciones de archivo de la IA",
   "agents.defaults.timeoutSeconds": "Tiempo límite de solicitud de agente en segundos. Tiempo máx. de espera para una llamada IA. 0 = sin límite",
   "agents.defaults.mediaMaxMb": "Tamaño máx. de archivo multimedia (MB) que los agentes pueden procesar",
-  "agents.defaults.thinkingDefault": "Preajuste de profundidad de pensamiento IA. off = sin pensamiento; minimal/low/medium/high/xhigh = progresivamente más profundo. Pensamiento más profundo usa más tokens pero da mejores respuestas",
+  "agents.defaults.thinkingDefault": "Preajuste de profundidad de pensamiento IA. off = sin pensamiento; adaptive = ajuste automático según complejidad de tarea (recomendado para Claude 4.6+); minimal/low/medium/high/xhigh = progresivamente más profundo. Pensamiento más profundo usa más tokens pero da mejores respuestas",
   "agents.defaults.verboseDefault": "Verbosidad de respuesta IA. off = conciso; on = detallado; full = más detallado (incluye razonamiento)",
   "agents.defaults.elevatedDefault": "Predeterminado de operaciones elevadas. off = denegar; on = permitir; ask = preguntar cada vez; full = permitir completamente",
   "agents.defaults.compaction.mode": "Modo de compactación de contexto. default = estrategia predeterminada; safeguard = conservador; aggressive = agresivo (ahorra tokens); off = sin compactación",

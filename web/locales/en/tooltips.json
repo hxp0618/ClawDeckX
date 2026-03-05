@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "Default workspace directory for agents. Root directory for AI file operations",
   "agents.defaults.timeoutSeconds": "Agent request timeout in seconds. Max wait time for a single AI call. 0 = no timeout",
   "agents.defaults.mediaMaxMb": "Max media file size (MB) that agents can process",
-  "agents.defaults.thinkingDefault": "AI thinking depth preset. off = no thinking; minimal/low/medium/high/xhigh = progressively deeper. Deeper thinking uses more tokens but gives better answers",
+  "agents.defaults.thinkingDefault": "AI thinking depth preset. off = no thinking; adaptive = auto-adjust depth based on task complexity (recommended for Claude 4.6+); minimal/low/medium/high/xhigh = progressively deeper. Deeper thinking uses more tokens but gives better answers",
   "agents.defaults.verboseDefault": "AI reply verbosity. off = concise; on = detailed; full = most detailed (includes reasoning)",
   "agents.defaults.elevatedDefault": "Elevated operation default. off = deny; on = allow; ask = ask each time; full = fully allow",
   "agents.defaults.compaction.mode": "Context compaction mode. default = default strategy; safeguard = conservative; aggressive = aggressive (saves tokens); off = no compaction",

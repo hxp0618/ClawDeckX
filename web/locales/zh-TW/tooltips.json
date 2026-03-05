@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "代理的預設工作目录。AI 執行文件操作时的根目录",
   "agents.defaults.timeoutSeconds": "代理請求逾時时间（秒）。单次 AI 调用的最长等待时间。0 = 无逾時",
   "agents.defaults.mediaMaxMb": "代理可处理的最大媒体文件大小（MB）",
-  "agents.defaults.thinkingDefault": "AI 思考深度预设。off = 不思考；minimal/low/medium/high/xhigh = 逐级加深。更深的思考消耗更多 token 但回答更准确",
+  "agents.defaults.thinkingDefault": "AI 思考深度預設。off = 不思考；adaptive = 根據任務複雜度自動調整（推薦 Claude 4.6+）；minimal/low/medium/high/xhigh = 逐級加深。更深的思考消耗更多 token 但回答更準確",
   "agents.defaults.verboseDefault": "AI 回复详细程度。off = 简洁；on = 详细；full = 最详细（含推理过程）",
   "agents.defaults.elevatedDefault": "提权操作預設行为。off = 禁止；on = 允许；ask = 每次询问；full = 完全允许",
   "agents.defaults.compaction.mode": "上下文压缩模式。default = 預設策略；safeguard = 保守压缩；aggressive = 激进压缩（节省 token）；off = 不压缩",

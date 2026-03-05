@@ -97,7 +97,7 @@
   "agents.defaults.workspace": "एजेंटों के लिए डिफ़ॉल्ट कार्यक्षेत्र डायरेक्टरी। AI फाइल ऑपरेशन का रूट डायरेक्टरी",
   "agents.defaults.timeoutSeconds": "एजेंट अनुरोध टाइमआउट सेकंड में। एकल AI कॉल के लिए अधिकतम प्रतीक्षा। 0 = कोई टाइमआउट नहीं",
   "agents.defaults.mediaMaxMb": "एजेंट द्वारा प्रोसेस की जा सकने वाली अधिकतम मीडिया फाइल आकार (MB)",
-  "agents.defaults.thinkingDefault": "AI सोच गहराई प्रीसेट। off = कोई सोच नहीं; minimal/low/medium/high/xhigh = क्रमिक गहरा। गहरी सोच अधिक टोकन उपयोग करती है लेकिन बेहतर उत्तर देती है",
+  "agents.defaults.thinkingDefault": "AI सोच गहराई प्रीसेट। off = कोई सोच नहीं; adaptive = कार्य जटिलता के अनुसार स्वचालित समायोजन (Claude 4.6+ के लिए अनुशंसित); minimal/low/medium/high/xhigh = क्रमिक गहरा। गहरी सोच अधिक टोकन उपयोग करती है लेकिन बेहतर उत्तर देती है",
   "agents.defaults.verboseDefault": "AI उत्तर विस्तृतता। off = संक्षिप्त; on = विस्तृत; full = सबसे विस्तृत (तर्क शामिल)",
   "agents.defaults.elevatedDefault": "एलिवेटेड ऑपरेशन डिफ़ॉल्ट। off = अस्वीकार; on = अनुमति; ask = हर बार पूछें; full = पूर्ण अनुमति",
   "agents.defaults.compaction.mode": "संदर्भ संकुचन मोड। default = डिफ़ॉल्ट रणनीति; safeguard = रूढ़िवादी; aggressive = आक्रामक (टोकन बचाता है); off = कोई संकुचन नहीं",

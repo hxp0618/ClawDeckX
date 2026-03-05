@@ -595,6 +595,7 @@
   "optLow": "Low",
   "optMedium": "Medium",
   "optHigh": "High",
+  "optAdaptive": "Adaptive",
   "optXHigh": "XHigh",
   "optAsk": "Ask",
   "optInstant": "Instant",
