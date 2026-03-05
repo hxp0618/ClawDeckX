@@ -1013,6 +1013,7 @@
   "currency": "मुद्रा",
   "cronStorePath": "स्टोर पथ",
   "cronWakeMode": "वेक मोड",
+  "cronLightContext": "हल्का संदर्भ",
   "cronMaxConcurrent": "अधिकतम समवर्ती",
   "optNow": "Now",
   "optNextHeartbeat": "Next Heartbeat",

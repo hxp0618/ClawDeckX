@@ -1013,6 +1013,7 @@
   "currency": "العملة",
   "cronStorePath": "مسار التخزين",
   "cronWakeMode": "وضع الاستيقاظ",
+  "cronLightContext": "سياق خفيف",
   "cronMaxConcurrent": "أقصى تزامن",
   "optNow": "الآن",
   "optNextHeartbeat": "النبضة التالية",

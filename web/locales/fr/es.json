@@ -1013,6 +1013,7 @@
   "currency": "Devise",
   "cronStorePath": "Chemin de stockage",
   "cronWakeMode": "Mode de réveil",
+  "cronLightContext": "Contexte léger",
   "cronMaxConcurrent": "Concurrence max",
   "optNow": "Maintenant",
   "optNextHeartbeat": "Prochain heartbeat",

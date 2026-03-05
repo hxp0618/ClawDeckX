@@ -1013,6 +1013,7 @@
   "currency": "통화",
   "cronStorePath": "저장 경로",
   "cronWakeMode": "기상 모드",
+  "cronLightContext": "라이트 컨텍스트",
   "cronMaxConcurrent": "최대 동시 실행",
   "optNow": "지금",
   "optNextHeartbeat": "다음 하트비트",

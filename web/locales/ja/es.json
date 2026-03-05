@@ -1013,6 +1013,7 @@
   "currency": "通貨",
   "cronStorePath": "ストアパス",
   "cronWakeMode": "ウェイクモード",
+  "cronLightContext": "ライトコンテキスト",
   "cronMaxConcurrent": "最大同時実行数",
   "optNow": "即時",
   "optNextHeartbeat": "次のハートビート",

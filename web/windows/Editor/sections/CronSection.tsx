@@ -22,6 +22,7 @@ export const CronSection: React.FC<SectionProps> = ({ setField, getField, langua
         <TextField label={es.cronStorePath} tooltip={tip('cron.store')} value={g(['store']) || ''} onChange={v => s(['store'], v)} placeholder={es.phCronStorePath} />
         <NumberField label={es.maxConcurrent} tooltip={tip('cron.maxConcurrentRuns')} value={g(['maxConcurrentRuns'])} onChange={v => s(['maxConcurrentRuns'], v)} min={1} />
         <SelectField label={es.cronWakeMode} tooltip={tip('cron.wakeMode')} value={g(['wakeMode']) || 'now'} onChange={v => s(['wakeMode'], v)} options={WAKE_OPTIONS} />
+        <SwitchField label={es.cronLightContext || 'Light Context'} tooltip={tip('cron.lightContext')} value={g(['lightContext']) === true} onChange={v => s(['lightContext'], v)} />
       </ConfigSection>
     </div>
   );

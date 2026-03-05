@@ -1013,6 +1013,7 @@
   "currency": "Валюта",
   "cronStorePath": "Путь хранилища",
   "cronWakeMode": "Режим пробуждения",
+  "cronLightContext": "Легкий контекст",
   "cronMaxConcurrent": "Макс. параллельных",
   "optNow": "Сейчас",
   "optNextHeartbeat": "Следующий heartbeat",

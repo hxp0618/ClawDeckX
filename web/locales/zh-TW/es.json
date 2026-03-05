@@ -1013,6 +1013,7 @@
   "currency": "貨幣",
   "cronStorePath": "儲存路徑",
   "cronWakeMode": "喚醒模式",
+  "cronLightContext": "輕量上下文",
   "cronMaxConcurrent": "最大併發",
   "optNow": "立即 (Now)",
   "optNextHeartbeat": "下次心跳 (Next Heartbeat)",

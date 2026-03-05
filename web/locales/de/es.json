@@ -1013,6 +1013,7 @@
   "currency": "Währung",
   "cronStorePath": "Speicherpfad",
   "cronWakeMode": "Aufwachmodus",
+  "cronLightContext": "Leichter Kontext",
   "cronMaxConcurrent": "Max. Gleichzeitig",
   "optNow": "Jetzt",
   "optNextHeartbeat": "Nächster Heartbeat",

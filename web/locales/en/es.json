@@ -1013,6 +1013,7 @@
   "currency": "Currency",
   "cronStorePath": "Store Path",
   "cronWakeMode": "Wake Mode",
+  "cronLightContext": "Light Context",
   "cronMaxConcurrent": "Max Concurrent",
   "optNow": "Now",
   "optNextHeartbeat": "Next Heartbeat",
