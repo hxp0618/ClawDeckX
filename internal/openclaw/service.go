@@ -665,7 +665,7 @@ func (s *Service) DaemonStatus() DaemonStatusResult {
 // It first cleans up any legacy service registrations before installing.
 func (s *Service) DaemonInstall() error {
 	if s.IsRemote() {
-		return errors.New("cannot install daemon on remote gateway")
+		return errors.New(i18n.T(i18n.MsgErrDaemonRemoteInstall))
 	}
 	s.cleanupLegacyServices()
 	switch runtime.GOOS {
@@ -676,7 +676,7 @@ func (s *Service) DaemonInstall() error {
 	case "windows":
 		return s.daemonInstallWindows()
 	default:
-		return errors.New("unsupported OS for daemon install")
+		return errors.New(i18n.T(i18n.MsgErrDaemonUnsupportedOS))
 	}
 }
 
@@ -687,7 +687,7 @@ func (s *Service) cleanupLegacyServices() {
 		// Clean up old system-level systemd unit if it exists
 		const legacySystemdPath = "/etc/systemd/system/openclaw-gateway.service"
 		if _, err := os.Stat(legacySystemdPath); err == nil {
-			output.Debugf("Found legacy system-level systemd unit at %s, cleaning up\n", legacySystemdPath)
+			output.Debugf(i18n.T(i18n.MsgDaemonLegacySystemd)+"\n", legacySystemdPath)
 			_ = runCommand("sudo", "systemctl", "stop", "openclaw-gateway")
 			_ = runCommand("sudo", "systemctl", "disable", "openclaw-gateway")
 			_ = runCommand("sudo", "rm", "-f", legacySystemdPath)
@@ -697,7 +697,7 @@ func (s *Service) cleanupLegacyServices() {
 		// Clean up old sc.exe Windows service if it exists
 		const legacyServiceName = "OpenClawGateway"
 		if out, err := runOutput("sc", "query", legacyServiceName); err == nil && strings.Contains(strings.ToUpper(out), legacyServiceName) {
-			output.Debugf("Found legacy Windows service %s, cleaning up\n", legacyServiceName)
+			output.Debugf(i18n.T(i18n.MsgDaemonLegacyWinService)+"\n", legacyServiceName)
 			_ = runCommand("sc", "stop", legacyServiceName)
 			_ = runCommand("sc", "delete", legacyServiceName)
 		}
@@ -707,7 +707,7 @@ func (s *Service) cleanupLegacyServices() {
 // DaemonUninstall removes the OS-level service registration.
 func (s *Service) DaemonUninstall() error {
 	if s.IsRemote() {
-		return errors.New("cannot uninstall daemon on remote gateway")
+		return errors.New(i18n.T(i18n.MsgErrDaemonRemoteUninstall))
 	}
 	switch runtime.GOOS {
 	case "linux":
@@ -717,7 +717,7 @@ func (s *Service) DaemonUninstall() error {
 	case "windows":
 		return s.daemonUninstallWindows()
 	default:
-		return errors.New("unsupported OS for daemon uninstall")
+		return errors.New(i18n.T(i18n.MsgErrDaemonUnsupportedOS))
 	}
 }
 
@@ -737,7 +737,7 @@ func (s *Service) daemonStatusSystemd() DaemonStatusResult {
 	unitPath := systemdUserUnitPath()
 	res := DaemonStatusResult{Platform: "systemd", UnitFile: unitPath}
 	if unitPath == "" {
-		res.Detail = "cannot determine user home"
+		res.Detail = i18n.T(i18n.MsgDaemonStatusSystemdNoHome)
 		return res
 	}
 	if _, err := os.Stat(unitPath); err == nil {
@@ -750,15 +750,15 @@ func (s *Service) daemonStatusSystemd() DaemonStatusResult {
 		res.Active = true
 	}
 	if res.Installed {
-		res.Detail = "systemd unit installed"
+		res.Detail = i18n.T(i18n.MsgDaemonStatusSystemdInstalled)
 		if res.Enabled {
-			res.Detail += ", enabled (auto-start)"
+			res.Detail += i18n.T(i18n.MsgDaemonStatusAutoStart)
 		}
 		if res.Active {
-			res.Detail += ", active"
+			res.Detail += i18n.T(i18n.MsgDaemonStatusActive)
 		}
 	} else {
-		res.Detail = "systemd unit not installed"
+		res.Detail = i18n.T(i18n.MsgDaemonStatusSystemdNotInst)
 	}
 	return res
 }
@@ -837,20 +837,20 @@ func ReadLastGatewayError() string {
 func (s *Service) daemonInstallSystemd() error {
 	unitPath := systemdUserUnitPath()
 	if unitPath == "" {
-		return errors.New("cannot determine user home directory")
+		return errors.New(i18n.T(i18n.MsgErrDaemonNoHomeDir))
 	}
 
 	// Check if systemd user services are available
 	if !systemdUserAvailable() {
 		if isWSL2() {
-			return errors.New("systemd user services unavailable in WSL2. Fix: edit /etc/wsl.conf and add [boot]\nsystemd=true, then run 'wsl --shutdown' from PowerShell and reopen your distro")
+			return errors.New(i18n.T(i18n.MsgErrDaemonSystemdWSL2))
 		}
-		return errors.New("systemd user services unavailable. If running in a container, use foreground mode instead")
+		return errors.New(i18n.T(i18n.MsgErrDaemonSystemdUnavailable))
 	}
 
 	cmdName := ResolveOpenClawCmd()
 	if cmdName == "" {
-		return errors.New("openclaw command not found")
+		return errors.New(i18n.T(i18n.MsgErrDaemonCmdNotFound))
 	}
 	absCmd, _ := exec.LookPath(cmdName)
 	if absCmd == "" {
@@ -885,27 +885,27 @@ WantedBy=default.target
 `, absCmd, bind, port, filepath.Dir(absCmd))
 
 	if err := os.MkdirAll(filepath.Dir(unitPath), 0755); err != nil {
-		return fmt.Errorf("create systemd user dir: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonCreateDir), err)
 	}
 	// Backup existing unit file
 	if _, err := os.Stat(unitPath); err == nil {
 		_ = copyFile(unitPath, unitPath+".bak")
 	}
 	if err := os.WriteFile(unitPath, []byte(unit), 0644); err != nil {
-		return fmt.Errorf("write unit file: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonWriteUnit), err)
 	}
 	if err := runCommand("systemctl", "--user", "daemon-reload"); err != nil {
-		return fmt.Errorf("daemon-reload: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonReload), err)
 	}
 	if err := runCommand("systemctl", "--user", "enable", systemdServiceName); err != nil {
-		return fmt.Errorf("enable: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonEnable), err)
 	}
 	// Enable linger so user services survive logout
 	lingerOk, lingerUser := checkLingerStatus()
 	if !lingerOk && lingerUser != "" {
 		if err := runCommand("loginctl", "enable-linger", lingerUser); err != nil {
-			output.Debugf("Warning: failed to enable linger for user %s: %v\n", lingerUser, err)
-			output.Debugf("Service may stop when you log out. Run: sudo loginctl enable-linger %s\n", lingerUser)
+			output.Debugf(i18n.T(i18n.MsgDaemonLingerWarning)+"\n", lingerUser, err)
+			output.Debugf(i18n.T(i18n.MsgDaemonLingerHint)+"\n", lingerUser)
 		}
 	}
 	return nil
@@ -938,7 +938,7 @@ func (s *Service) daemonStatusLaunchd() DaemonStatusResult {
 	plistPath := launchdPlistPath()
 	res := DaemonStatusResult{Platform: "launchd", UnitFile: plistPath}
 	if plistPath == "" {
-		res.Detail = "cannot determine plist path"
+		res.Detail = i18n.T(i18n.MsgDaemonStatusLaunchdNoPath)
 		return res
 	}
 	if _, err := os.Stat(plistPath); err == nil {
@@ -950,12 +950,12 @@ func (s *Service) daemonStatusLaunchd() DaemonStatusResult {
 		res.Active = true
 	}
 	if res.Installed {
-		res.Detail = "launchd plist installed"
+		res.Detail = i18n.T(i18n.MsgDaemonStatusLaunchdInstalled)
 		if res.Active {
-			res.Detail += ", loaded"
+			res.Detail += i18n.T(i18n.MsgDaemonStatusLoaded)
 		}
 	} else {
-		res.Detail = "launchd plist not installed"
+		res.Detail = i18n.T(i18n.MsgDaemonStatusLaunchdNotInst)
 	}
 	return res
 }
@@ -963,12 +963,12 @@ func (s *Service) daemonStatusLaunchd() DaemonStatusResult {
 func (s *Service) daemonInstallLaunchd() error {
 	plistPath := launchdPlistPath()
 	if plistPath == "" {
-		return errors.New("cannot determine plist path")
+		return errors.New(i18n.T(i18n.MsgErrDaemonNoPlistPath))
 	}
 
 	cmdName := ResolveOpenClawCmd()
 	if cmdName == "" {
-		return errors.New("openclaw command not found")
+		return errors.New(i18n.T(i18n.MsgErrDaemonCmdNotFound))
 	}
 	absCmd, _ := exec.LookPath(cmdName)
 	if absCmd == "" {
@@ -1033,7 +1033,7 @@ func (s *Service) daemonInstallLaunchd() error {
 	_ = runCommand("launchctl", "unload", plistPath)
 
 	if err := os.WriteFile(plistPath, []byte(content), 0644); err != nil {
-		return fmt.Errorf("write plist: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonWritePlist), err)
 	}
 
 	// Clear any cached disabled state
@@ -1041,7 +1041,7 @@ func (s *Service) daemonInstallLaunchd() error {
 
 	// Bootstrap and kickstart the service
 	if err := runCommand("launchctl", "bootstrap", domain, plistPath); err != nil {
-		return fmt.Errorf("launchctl bootstrap: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonBootstrap), err)
 	}
 	_ = runCommand("launchctl", "kickstart", "-k", domain+"/"+launchdLabel)
 	return nil
@@ -1050,7 +1050,7 @@ func (s *Service) daemonInstallLaunchd() error {
 func (s *Service) daemonUninstallLaunchd() error {
 	plistPath := launchdPlistPath()
 	if plistPath == "" {
-		return errors.New("cannot determine plist path")
+		return errors.New(i18n.T(i18n.MsgErrDaemonNoPlistPath))
 	}
 	domain := launchdGuiDomain()
 	_ = runCommand("launchctl", "bootout", domain+"/"+launchdLabel)
@@ -1088,7 +1088,7 @@ func (s *Service) daemonStatusWindows() DaemonStatusResult {
 	res := DaemonStatusResult{Platform: "windows"}
 	out, err := runOutput("schtasks", "/Query", "/TN", windowsTaskName, "/V", "/FO", "LIST")
 	if err != nil {
-		res.Detail = "scheduled task not installed"
+		res.Detail = i18n.T(i18n.MsgDaemonStatusTaskNotInst)
 		return res
 	}
 	res.Installed = true
@@ -1099,12 +1099,12 @@ func (s *Service) daemonStatusWindows() DaemonStatusResult {
 	if strings.Contains(upper, "READY") || strings.Contains(upper, "RUNNING") {
 		res.Enabled = true
 	}
-	res.Detail = "scheduled task installed"
+	res.Detail = i18n.T(i18n.MsgDaemonStatusTaskInstalled)
 	if res.Enabled {
-		res.Detail += ", enabled"
+		res.Detail += i18n.T(i18n.MsgDaemonStatusEnabled)
 	}
 	if res.Active {
-		res.Detail += ", running"
+		res.Detail += i18n.T(i18n.MsgDaemonStatusRunning)
 	}
 	return res
 }
@@ -1112,12 +1112,12 @@ func (s *Service) daemonStatusWindows() DaemonStatusResult {
 func (s *Service) daemonInstallWindows() error {
 	scriptPath := windowsTaskScriptPath()
 	if scriptPath == "" {
-		return errors.New("cannot determine state directory")
+		return errors.New(i18n.T(i18n.MsgErrDaemonNoStateDir))
 	}
 
 	cmdName := ResolveOpenClawCmd()
 	if cmdName == "" {
-		return errors.New("openclaw command not found")
+		return errors.New(i18n.T(i18n.MsgErrDaemonCmdNotFound))
 	}
 	absCmd, _ := exec.LookPath(cmdName)
 	if absCmd == "" {
@@ -1146,7 +1146,7 @@ func (s *Service) daemonInstallWindows() error {
 
 	os.MkdirAll(filepath.Dir(scriptPath), 0755)
 	if err := os.WriteFile(scriptPath, []byte(script), 0644); err != nil {
-		return fmt.Errorf("write task script: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonWriteScript), err)
 	}
 
 	// Remove existing task if present
@@ -1158,7 +1158,7 @@ func (s *Service) daemonInstallWindows() error {
 		"/RL", "LIMITED",
 		"/TN", windowsTaskName,
 		"/TR", fmt.Sprintf(`"%s"`, scriptPath)); err != nil {
-		return fmt.Errorf("schtasks create: %w", err)
+		return fmt.Errorf(i18n.T(i18n.MsgErrDaemonCreateTask), err)
 	}
 
 	// Start the task immediately

@@ -54,13 +54,13 @@ const (
 
 // Model messages
 const (
-	MsgModelTestSuccess = "model.test_success"
-	MsgModelTestFailed  = "model.test_failed"
-	MsgModelNotFound    = "model.not_found"
-	MsgModelAuthFailed  = "model.auth_failed"
-	MsgModelRateLimited        = "model.rate_limited"
-	MsgModelTestUnstable       = "model.test_unstable"
-	MsgModelTestWarningAuthOK  = "model.test_warning_auth_ok"
+	MsgModelTestSuccess       = "model.test_success"
+	MsgModelTestFailed        = "model.test_failed"
+	MsgModelNotFound          = "model.not_found"
+	MsgModelAuthFailed        = "model.auth_failed"
+	MsgModelRateLimited       = "model.rate_limited"
+	MsgModelTestUnstable      = "model.test_unstable"
+	MsgModelTestWarningAuthOK = "model.test_warning_auth_ok"
 )
 
 // Config messages
@@ -770,6 +770,44 @@ const (
 	MsgErrParsePairingListFailed       = "error.parse_pairing_list_failed"
 	MsgErrGatewayCliNotFound           = "error.gateway_cli_not_found"
 	MsgErrTargetFragmentNotFound       = "error.target_fragment_not_found"
+)
+
+// Daemon service management messages
+const (
+	MsgErrDaemonRemoteInstall       = "error.daemon_remote_install"
+	MsgErrDaemonRemoteUninstall     = "error.daemon_remote_uninstall"
+	MsgErrDaemonUnsupportedOS       = "error.daemon_unsupported_os"
+	MsgErrDaemonNoHomeDir           = "error.daemon_no_home_dir"
+	MsgErrDaemonNoPlistPath         = "error.daemon_no_plist_path"
+	MsgErrDaemonNoStateDir          = "error.daemon_no_state_dir"
+	MsgErrDaemonCmdNotFound         = "error.daemon_cmd_not_found"
+	MsgErrDaemonSystemdWSL2         = "error.daemon_systemd_wsl2"
+	MsgErrDaemonSystemdUnavailable  = "error.daemon_systemd_unavailable"
+	MsgErrDaemonCreateDir           = "error.daemon_create_dir"
+	MsgErrDaemonWriteUnit           = "error.daemon_write_unit"
+	MsgErrDaemonReload              = "error.daemon_reload"
+	MsgErrDaemonEnable              = "error.daemon_enable"
+	MsgErrDaemonWritePlist          = "error.daemon_write_plist"
+	MsgErrDaemonBootstrap           = "error.daemon_bootstrap"
+	MsgErrDaemonWriteScript         = "error.daemon_write_script"
+	MsgErrDaemonCreateTask          = "error.daemon_create_task"
+	MsgDaemonLingerWarning          = "daemon.linger_warning"
+	MsgDaemonLingerHint             = "daemon.linger_hint"
+	MsgDaemonLegacySystemd          = "daemon.legacy_systemd"
+	MsgDaemonLegacyWinService       = "daemon.legacy_win_service"
+	MsgDaemonStatusSystemdInstalled = "daemon.status_systemd_installed"
+	MsgDaemonStatusSystemdNotInst   = "daemon.status_systemd_not_installed"
+	MsgDaemonStatusSystemdNoHome    = "daemon.status_systemd_no_home"
+	MsgDaemonStatusLaunchdInstalled = "daemon.status_launchd_installed"
+	MsgDaemonStatusLaunchdNotInst   = "daemon.status_launchd_not_installed"
+	MsgDaemonStatusLaunchdNoPath    = "daemon.status_launchd_no_path"
+	MsgDaemonStatusTaskInstalled    = "daemon.status_task_installed"
+	MsgDaemonStatusTaskNotInst      = "daemon.status_task_not_installed"
+	MsgDaemonStatusEnabled          = "daemon.status_enabled"
+	MsgDaemonStatusAutoStart        = "daemon.status_auto_start"
+	MsgDaemonStatusActive           = "daemon.status_active"
+	MsgDaemonStatusLoaded           = "daemon.status_loaded"
+	MsgDaemonStatusRunning          = "daemon.status_running"
 )
 
 // Notification messages
