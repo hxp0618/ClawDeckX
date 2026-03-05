@@ -135,17 +135,13 @@ func (h *SelfUpdateHandler) Apply(w http.ResponseWriter, r *http.Request) {
 
 // Info returns current version and build info.
 func (h *SelfUpdateHandler) Info(w http.ResponseWriter, r *http.Request) {
-	compat := ""
-	if data, err := os.ReadFile("OPENCLAW_COMPAT"); err == nil {
-		compat = strings.TrimSpace(string(data))
-	}
 	web.OK(w, r, map[string]interface{}{
 		"version":        version.Version,
 		"build":          version.Build,
 		"os":             runtime.GOOS,
 		"arch":           runtime.GOARCH,
 		"platform":       platformName(),
-		"openclawCompat": compat,
+		"openclawCompat": version.OpenClawCompat,
 		"goVersion":      runtime.Version(),
 	})
 }
