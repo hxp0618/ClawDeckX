@@ -318,6 +318,7 @@
   "httpConfig": "HTTP कॉन्फ़िग (API)",
   "httpChat": "चैट कंप्लीशन",
   "httpResponses": "रिस्पॉन्स",
+  "httpHealthz": "हेल्थ प्रोब (/healthz)",
   "httpStsHeader": "HSTS हेडर",
   "permissionsPolicy": "अनुमति नीति",
   "trustedProxies": "विश्वसनीय प्रॉक्सी",

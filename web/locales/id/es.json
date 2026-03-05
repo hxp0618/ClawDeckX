@@ -318,6 +318,7 @@
   "httpConfig": "Konfigurasi HTTP (API)",
   "httpChat": "Chat Completions",
   "httpResponses": "Responses",
+  "httpHealthz": "Probe Kesehatan (/healthz)",
   "httpStsHeader": "Header HSTS",
   "permissionsPolicy": "Kebijakan Izin",
   "trustedProxies": "Proxy Terpercaya",

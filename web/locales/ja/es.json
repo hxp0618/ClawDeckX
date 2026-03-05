@@ -318,6 +318,7 @@
   "httpConfig": "HTTP設定（API）",
   "httpChat": "チャット補完",
   "httpResponses": "レスポンス",
+  "httpHealthz": "ヘルスプローブ (/healthz)",
   "httpStsHeader": "HSTSヘッダー",
   "permissionsPolicy": "Permissions-Policy",
   "trustedProxies": "信頼済みプロキシ",

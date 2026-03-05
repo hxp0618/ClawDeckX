@@ -318,6 +318,7 @@
   "httpConfig": "إعدادات HTTP (API)",
   "httpChat": "إكمالات المحادثة",
   "httpResponses": "الاستجابات",
+  "httpHealthz": "فحص الصحة (/healthz)",
   "httpStsHeader": "ترويسة HSTS",
   "permissionsPolicy": "سياسة الأذونات",
   "trustedProxies": "الوكلاء الموثوقون",

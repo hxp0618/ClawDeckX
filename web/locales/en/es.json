@@ -318,6 +318,7 @@
   "httpConfig": "HTTP Config (API)",
   "httpChat": "Chat Completions",
   "httpResponses": "Responses",
+  "httpHealthz": "Health Probe (/healthz)",
   "httpStsHeader": "HSTS Header",
   "permissionsPolicy": "Permissions-Policy",
   "trustedProxies": "Trusted Proxies",
