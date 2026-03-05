@@ -318,7 +318,6 @@
   "httpConfig": "HTTP 配置 (API)",
   "httpChat": "对话补全 (Chat)",
   "httpResponses": "响应 (Responses)",
-  "httpHealthz": "健康探针 (/healthz)",
   "httpStsHeader": "HSTS 头",
   "permissionsPolicy": "权限策略",
   "trustedProxies": "受信任代理",

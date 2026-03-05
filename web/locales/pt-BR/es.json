@@ -318,7 +318,6 @@
   "httpConfig": "Config HTTP (API)",
   "httpChat": "Completções de chat",
   "httpResponses": "Responses",
-  "httpHealthz": "Sonda de Saúde (/healthz)",
   "httpStsHeader": "Header HSTS",
   "permissionsPolicy": "Permissions-Policy",
   "trustedProxies": "Proxies Confiáveis",

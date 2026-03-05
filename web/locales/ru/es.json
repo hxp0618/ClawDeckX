@@ -318,7 +318,6 @@
   "httpConfig": "HTTP-конфигурация (API)",
   "httpChat": "Завершения чата",
   "httpResponses": "Ответы",
-  "httpHealthz": "Проба здоровья (/healthz)",
   "httpStsHeader": "Заголовок HSTS",
   "permissionsPolicy": "Permissions-Policy",
   "trustedProxies": "Доверенные прокси",

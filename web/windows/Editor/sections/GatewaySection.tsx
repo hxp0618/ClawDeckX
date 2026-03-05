@@ -120,7 +120,6 @@ const GatewaySection: React.FC<SectionProps> = ({ setField, getField, language }
       <ConfigSection title={es.httpConfig} icon="http" iconColor="text-sky-500" defaultOpen={false}>
         <SwitchField label={es.httpChat} tooltip={tip('gateway.http.endpoints.chatCompletions')} value={g(['http', 'endpoints', 'chatCompletions']) !== false} onChange={v => s(['http', 'endpoints', 'chatCompletions'], v)} />
         <SwitchField label={es.httpResponses} tooltip={tip('gateway.http.endpoints.responses')} value={g(['http', 'endpoints', 'responses']) !== false} onChange={v => s(['http', 'endpoints', 'responses'], v)} />
-        <SwitchField label={es.httpHealthz || '/healthz'} tooltip={tip('gateway.http.endpoints.healthz')} value={g(['http', 'endpoints', 'healthz']) !== false} onChange={v => s(['http', 'endpoints', 'healthz'], v)} />
         <TextField label={es.httpStsHeader} tooltip={tip('gateway.http.securityHeaders.strictTransportSecurity')} value={g(['http', 'securityHeaders', 'strictTransportSecurity']) || ''} onChange={v => s(['http', 'securityHeaders', 'strictTransportSecurity'], v)} placeholder="max-age=63072000" />
         <TextField label={es.permissionsPolicy || 'Permissions-Policy'} tooltip={tip('gateway.http.securityHeaders.permissionsPolicy')} value={g(['http', 'securityHeaders', 'permissionsPolicy']) || ''} onChange={v => s(['http', 'securityHeaders', 'permissionsPolicy'], v)} placeholder="camera=(), microphone=(), geolocation=()" />
       </ConfigSection>

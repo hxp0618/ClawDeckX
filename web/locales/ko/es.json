@@ -318,7 +318,6 @@
   "httpConfig": "HTTP 설정 (API)",
   "httpChat": "채팅 완성",
   "httpResponses": "Responses",
-  "httpHealthz": "헬스 프로브 (/healthz)",
   "httpStsHeader": "HSTS 헤더",
   "permissionsPolicy": "Permissions-Policy",
   "trustedProxies": "신뢰 프록시",
