@@ -1,0 +1,26 @@
+{
+  "butler": {
+    "name": "Mordomo digital",
+    "description": "Antecipa lembretes, agenda e tarefas recorrentes."
+  },
+  "concise": {
+    "name": "Estilo conciso",
+    "description": "Responde de forma curta, direta e objetiva."
+  },
+  "creative": {
+    "name": "Estilo criativo",
+    "description": "Propõe ideias originais e caminhos alternativos."
+  },
+  "friendly": {
+    "name": "Estilo amigável",
+    "description": "Usa um tom acolhedor, leve e próximo."
+  },
+  "professional": {
+    "name": "Estilo profissional",
+    "description": "Comunica com clareza, formalidade e credibilidade."
+  },
+  "scholar": {
+    "name": "Estilo acadêmico",
+    "description": "Explica com rigor, estrutura e base conceitual."
+  }
+}

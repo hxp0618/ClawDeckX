@@ -1,0 +1,22 @@
+{
+  "content-factory": {
+    "name": "콘텐츠 팩토리",
+    "description": "다양한 형식의 콘텐츠를 대량으로 생성합니다."
+  },
+  "customer-support": {
+    "name": "고객 지원",
+    "description": "문의 응답을 자동화하고 복잡한 이슈를 이관합니다."
+  },
+  "data-pipeline": {
+    "name": "데이터 파이프라인",
+    "description": "데이터 수집, 변환, 동기화 흐름을 자동화합니다."
+  },
+  "devops-team": {
+    "name": "DevOps 팀",
+    "description": "개발과 운영 협업을 강화해 배포 효율을 높입니다."
+  },
+  "research-team": {
+    "name": "리서치 팀",
+    "description": "조사를 분담하고 결과를 통합해 결론을 만듭니다."
+  }
+}

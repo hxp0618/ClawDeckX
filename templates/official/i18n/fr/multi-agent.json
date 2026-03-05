@@ -1,0 +1,22 @@
+{
+  "content-factory": {
+    "name": "Usine à contenu",
+    "description": "Produit du contenu en volume pour plusieurs formats."
+  },
+  "customer-support": {
+    "name": "Support client",
+    "description": "Accélère les réponses et escalade les cas complexes."
+  },
+  "data-pipeline": {
+    "name": "Pipeline de données",
+    "description": "Automatise extraction, transformation et synchronisation des données."
+  },
+  "devops-team": {
+    "name": "Équipe DevOps",
+    "description": "Coordonne développement et opérations pour livrer plus vite."
+  },
+  "research-team": {
+    "name": "Équipe de recherche",
+    "description": "Répartit les analyses et consolide les conclusions utiles."
+  }
+}

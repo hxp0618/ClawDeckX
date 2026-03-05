@@ -1,0 +1,26 @@
+{
+  "butler": {
+    "name": "Mayordomo digital",
+    "description": "Se adelanta a recordatorios, agenda y tareas rutinarias."
+  },
+  "concise": {
+    "name": "Estilo conciso",
+    "description": "Responde de forma breve, directa y al punto."
+  },
+  "creative": {
+    "name": "Estilo creativo",
+    "description": "Propone ideas originales y enfoques alternativos."
+  },
+  "friendly": {
+    "name": "Estilo amable",
+    "description": "Usa un tono cercano, cálido y fácil de seguir."
+  },
+  "professional": {
+    "name": "Estilo profesional",
+    "description": "Comunica con claridad, formalidad y credibilidad."
+  },
+  "scholar": {
+    "name": "Estilo académico",
+    "description": "Explica con rigor, estructura y fundamento."
+  }
+}

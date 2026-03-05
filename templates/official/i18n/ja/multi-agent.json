@@ -1,0 +1,22 @@
+{
+  "content-factory": {
+    "name": "コンテンツファクトリー",
+    "description": "複数形式のコンテンツをまとめて生成します。"
+  },
+  "customer-support": {
+    "name": "カスタマーサポート",
+    "description": "問い合わせ対応を効率化し、難件を適切に引き継ぎます。"
+  },
+  "data-pipeline": {
+    "name": "データパイプライン",
+    "description": "データの収集・変換・同期を自動化します。"
+  },
+  "devops-team": {
+    "name": "DevOpsチーム",
+    "description": "開発と運用の連携を強化し、提供速度を上げます。"
+  },
+  "research-team": {
+    "name": "リサーチチーム",
+    "description": "調査を分担し、知見を統合して結論化します。"
+  }
+}

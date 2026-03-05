@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://clawhub.ai/api/v1/skills?limit=5&sort=stars\")",
+      "Bash(clawhub --version)",
+      "Bash(npx clawhub --version)",
+      "Bash(clawhub --cli-version)",
+      "Bash(npx clawhub --cli-version)",
+      "Bash(clawhub --workdir /tmp/clawhub_test --dir . uninstall find-skills --no-input)",
+      "Bash(clawhub --help)",
+      "Bash(clawhub install --help)",
+      "Bash(clawhub uninstall --help)",
+      "Bash(clawhub list --help)",
+      "Bash(clawhub update --help)",
+      "Bash(go test ./internal/handlers/...)",
+      "Bash(go test -vet=off ./internal/handlers/...)",
+      "Bash(npm --prefix \"e:/chrismk/dev/ClawDeckX/web\" run -s build)",
+      "Bash(go test ./internal/setup/...)",
+      "Bash(go test -vet=off ./internal/setup/...)",
+      "Bash(npm run build)",
+      "Bash(ls -la \".claude\"/*)",
+      "Bash(go test -vet=off ./internal/cli ./internal/commands)",
+      "Bash(go test -vet=off ./internal/commands)",
+      "Bash(sqlite3 \"e:/chrismk/dev/ClawDeckX/data/ClawDeckX.db\" \"select count\\(*\\) as total from alerts;\")",
+      "Bash(sqlite3 \"e:/chrismk/dev/ClawDeckX/data/ClawDeckX.db\" \"select count\\(*\\) as total from activities;\")",
+      "Bash(sqlite3 \"e:/chrismk/dev/ClawDeckX/data/ClawDeckX.db\" \"select count\\(*\\) as total from monitor_states;\")",
+      "Bash(sqlite3 \"e:/chrismk/dev/ClawDeckX/data/ClawDeckX.db\" \"select id, alert_id, risk, substr\\(message,1,120\\), created_at from alerts order by created_at desc limit 5;\")",
+      "Bash(sqlite3 \"e:/chrismk/dev/ClawDeckX/data/ClawDeckX.db\" \"select id, event_id, category, risk, substr\\(summary,1,80\\), created_at from activities order by created_at desc limit 5;\")",
+      "Bash(go test ./internal/handlers ./internal/database)",
+      "Bash(git -C \"e:/chrismk/dev/ClawDeckX\" status --short)",
+      "Bash(go test ./internal/handlers/... ./internal/snapshots/... ./internal/database/...)",
+      "Bash(go test ./internal/commands/...)",
+      "Bash(go test ./internal/database/... ./internal/snapshots/...)"
+    ]
+  }
+}
