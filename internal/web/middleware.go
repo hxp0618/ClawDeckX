@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"ClawDeckX/internal/logger"
+	"ClawDeckX/internal/safego"
 )
 
 type statusWriter struct {
@@ -43,11 +44,19 @@ func RecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if err := recover(); err != nil {
-				logger.Log.Error().
-					Str("request_id", GetRequestID(r)).
-					Interface("panic", err).
-					Str("stack", string(debug.Stack())).
-					Msg("PANIC RECOVERED")
+				transient := safego.IsTransientError(err)
+				if transient {
+					logger.Log.Warn().
+						Str("request_id", GetRequestID(r)).
+						Interface("panic", err).
+						Msg("TRANSIENT PANIC RECOVERED (non-fatal)")
+				} else {
+					logger.Log.Error().
+						Str("request_id", GetRequestID(r)).
+						Interface("panic", err).
+						Str("stack", string(debug.Stack())).
+						Msg("PANIC RECOVERED")
+				}
 				FailErr(w, r, ErrInternalError)
 			}
 		}()

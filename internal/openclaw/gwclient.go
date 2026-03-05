@@ -16,6 +16,9 @@ import (
 
 	"ClawDeckX/internal/i18n"
 	"ClawDeckX/internal/logger"
+	"ClawDeckX/internal/safego"
+	"ClawDeckX/internal/sentinel"
+	"ClawDeckX/internal/webconfig"
 )
 
 type RequestFrame struct {
@@ -145,7 +148,7 @@ func (c *GWClient) SetHealthCheckEnabled(enabled bool) {
 	if enabled && !c.healthRunning {
 		c.healthRunning = true
 		c.healthStopCh = make(chan struct{})
-		go c.healthCheckLoop()
+		safego.GoLoopWithCooldown("gwclient/healthCheck", 5*time.Second, c.healthCheckLoop)
 		logger.Gateway.Info().Msg(i18n.T(i18n.MsgLogHealthCheckEnabled))
 	} else if !enabled && c.healthRunning {
 		c.healthRunning = false
@@ -258,6 +261,11 @@ func (c *GWClient) healthCheckLoop() {
 					notifyFn := c.onNotify
 					c.healthMu.Unlock()
 
+					// Write restart sentinel for heartbeat-triggered restart
+					_ = sentinel.Write(webconfig.DataDir(), "heartbeat_restart", "watchdog", map[string]interface{}{
+						"consecutive_fails": c.healthMaxFails,
+					})
+
 					if restartErr := restartFn(); restartErr != nil {
 						logger.Gateway.Error().Err(restartErr).Msg(i18n.T(i18n.MsgLogHeartbeatRestartFailed))
 						if notifyFn != nil {
@@ -296,7 +304,7 @@ func (c *GWClient) SetHealthCheckIntervalSeconds(seconds int) {
 	if enabled {
 		c.healthRunning = true
 		c.healthStopCh = make(chan struct{})
-		go c.healthCheckLoop()
+		safego.GoLoopWithCooldown("gwclient/healthCheck", 5*time.Second, c.healthCheckLoop)
 	}
 	c.healthMu.Unlock()
 }
@@ -350,7 +358,7 @@ func (c *GWClient) IsConnected() bool {
 }
 
 func (c *GWClient) Start() {
-	go c.connectLoop()
+	safego.GoLoopWithCooldown("gwclient/connectLoop", 3*time.Second, c.connectLoop)
 }
 
 func (c *GWClient) Stop() {
@@ -391,7 +399,7 @@ func (c *GWClient) Reconnect(newCfg GWClientConfig) {
 	c.backoffMs = 1000
 	c.mu.Unlock()
 
-	go c.connectLoop()
+	safego.GoLoopWithCooldown("gwclient/connectLoop", 3*time.Second, c.connectLoop)
 }
 
 func (c *GWClient) GetConfig() GWClientConfig {

@@ -10,7 +10,9 @@ import (
 	"ClawDeckX/internal/database"
 	"ClawDeckX/internal/logger"
 	"ClawDeckX/internal/openclaw"
+	"ClawDeckX/internal/sentinel"
 	"ClawDeckX/internal/web"
+	"ClawDeckX/internal/webconfig"
 )
 
 // GatewayHandler manages gateway lifecycle.
@@ -105,6 +107,9 @@ func (h *GatewayHandler) Restart(w http.ResponseWriter, r *http.Request) {
 		Str("user", web.GetUsername(r)).
 		Str("ip", r.RemoteAddr).
 		Msg("user requested gateway restart")
+
+	// Write restart sentinel before restarting so post-restart can report the reason
+	_ = sentinel.Write(webconfig.DataDir(), "user_restart", web.GetUsername(r), nil)
 
 	before := h.svc.Status()
 	startedAt := time.Now().UTC()
@@ -321,4 +326,21 @@ func (h *GatewayHandler) DaemonUninstall(w http.ResponseWriter, r *http.Request)
 	h.writeAudit(r, constants.ActionGatewayStop, "success", "daemon uninstalled")
 	logger.Gateway.Info().Msg("daemon uninstalled")
 	web.OK(w, r, h.svc.DaemonStatus())
+}
+
+// LastRestart returns the last restart sentinel info (reason, trigger, timestamp).
+// Returns null if no restart sentinel was consumed on this boot.
+func (h *GatewayHandler) LastRestart(w http.ResponseWriter, r *http.Request) {
+	info := sentinel.Last()
+	if info == nil {
+		web.OK(w, r, map[string]interface{}{"has_restart": false})
+		return
+	}
+	web.OK(w, r, map[string]interface{}{
+		"has_restart": true,
+		"reason":      info.Reason,
+		"trigger":     info.Trigger,
+		"timestamp":   info.Timestamp,
+		"extra":       info.Extra,
+	})
 }

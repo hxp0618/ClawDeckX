@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -26,6 +27,8 @@ import (
 	"ClawDeckX/internal/monitor"
 	"ClawDeckX/internal/notify"
 	"ClawDeckX/internal/openclaw"
+	"ClawDeckX/internal/proclock"
+	"ClawDeckX/internal/sentinel"
 	"ClawDeckX/internal/tray"
 	"ClawDeckX/internal/version"
 	"ClawDeckX/internal/web"
@@ -309,6 +312,7 @@ func RunServe(args []string) int {
 	router.GET("/api/v1/gateway/daemon/status", gatewayHandler.DaemonStatus)
 	router.POST("/api/v1/gateway/daemon/install", web.RequireAdmin(gatewayHandler.DaemonInstall))
 	router.POST("/api/v1/gateway/daemon/uninstall", web.RequireAdmin(gatewayHandler.DaemonUninstall))
+	router.GET("/api/v1/gateway/last-restart", gatewayHandler.LastRestart)
 
 	router.GET("/api/v1/activities", activityHandler.List)
 	router.GET("/api/v1/activities/", activityHandler.GetByID)
@@ -533,17 +537,30 @@ func RunServe(args []string) int {
 			Msg(i18n.T(i18n.MsgLogBindNonLoopbackWarning))
 	}
 
-	testAddr := fmt.Sprintf("%s:%d", cfg.Server.Bind, cfg.Server.Port)
-	ln, err := net.Listen("tcp", testAddr)
+	// Acquire process lock to prevent duplicate instances
+	plock, err := proclock.Acquire(webconfig.DataDir(), cfg.Server.Port)
 	if err != nil {
-		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, i18n.T(i18n.MsgServePortInUse, map[string]interface{}{"Port": cfg.Server.Port}))
-		fmt.Fprintln(os.Stderr)
-		fmt.Fprintln(os.Stderr, i18n.T(i18n.MsgServePortInUseSolutions))
-		logger.Log.Error().Int("port", cfg.Server.Port).Err(err).Msg(i18n.T(i18n.MsgLogPortInUse))
+		if errors.Is(err, proclock.ErrAlreadyRunning) {
+			fmt.Fprintln(os.Stderr)
+			fmt.Fprintln(os.Stderr, i18n.T(i18n.MsgServePortInUse, map[string]interface{}{"Port": cfg.Server.Port}))
+			fmt.Fprintln(os.Stderr)
+			fmt.Fprintln(os.Stderr, i18n.T(i18n.MsgServePortInUseSolutions))
+			logger.Log.Error().Int("port", cfg.Server.Port).Msg(i18n.T(i18n.MsgLogPortInUse))
+		} else {
+			fmt.Fprintln(os.Stderr, i18n.T(i18n.MsgServePortInUse, map[string]interface{}{"Port": cfg.Server.Port}))
+			logger.Log.Error().Err(err).Msg("failed to acquire process lock")
+		}
 		return 1
 	}
-	ln.Close()
+	defer plock.Release()
+
+	// Consume restart sentinel (if any) so the frontend can query the restart reason
+	if info := sentinel.Consume(webconfig.DataDir()); info != nil {
+		logger.Log.Info().
+			Str("reason", info.Reason).
+			Str("trigger", info.Trigger).
+			Msg("restart sentinel consumed")
+	}
 
 	addr := cfg.ListenAddr()
 	logger.Log.Info().Str("addr", addr).Msg(i18n.T(i18n.MsgLogWebServiceStarted))
@@ -744,13 +761,21 @@ func RunServe(args []string) int {
 	// Graceful shutdown
 	srv := &http.Server{Addr: addr, Handler: handler}
 
-	go func() {
-		sigCh := make(chan os.Signal, 1)
-		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-		<-sigCh
-		logger.Log.Info().Msg(i18n.T(i18n.MsgLogShuttingDown))
-		srv.Close()
-	}()
+	// gracefulShutdown drains in-flight requests with a 10s deadline,
+	// then falls back to hard close.
+	gracefulShutdown := func(reason string) {
+		logger.Log.Info().Str("reason", reason).Msg(i18n.T(i18n.MsgLogShuttingDown))
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer shutdownCancel()
+		if err := srv.Shutdown(shutdownCtx); err != nil {
+			logger.Log.Warn().Err(err).Msg("graceful shutdown timed out, forcing close")
+			srv.Close()
+		}
+	}
+
+	// Signal handler goroutine
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -760,18 +785,11 @@ func RunServe(args []string) int {
 
 	if tray.HasGUI() {
 		tray.Run(addr, func() {
-			logger.Log.Info().Msg(i18n.T(i18n.MsgLogUserExitTray))
-			srv.Close()
+			gracefulShutdown("tray_exit")
 		})
 	} else {
-		done := make(chan struct{})
-		go func() {
-			sigCh := make(chan os.Signal, 1)
-			signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-			<-sigCh
-			close(done)
-		}()
-		<-done
+		<-sigCh
+		gracefulShutdown("signal")
 	}
 
 	logger.Log.Info().Msg(i18n.T(i18n.MsgLogServiceStopped))

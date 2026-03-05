@@ -246,6 +246,7 @@ func (s *Service) Stop() error {
 		}
 		return runCommand("docker", "stop", name)
 	case RuntimeProcess:
+		// Step 1: try the CLI graceful stop command
 		cmdName := ResolveOpenClawCmd()
 		if cmdName != "" {
 			if err := runCommand(cmdName, "gateway", "stop"); err == nil {
@@ -254,13 +255,25 @@ func (s *Service) Stop() error {
 				}
 			}
 		}
+		// Step 2: graceful signal — SIGTERM (Unix) / taskkill without /F (Windows)
+		if runtime.GOOS == "windows" {
+			_ = runCommand("taskkill", "/IM", "openclaw.exe")
+		} else {
+			_ = runCommand("pkill", "-SIGTERM", "-f", "openclaw-gateway")
+			_ = runCommand("pkill", "-SIGTERM", "-f", "openclaw gateway")
+		}
+		// Grace period: wait up to 3 seconds for graceful exit
+		if waitGatewayDown(6, 500*time.Millisecond) {
+			return nil
+		}
+		// Step 3: force kill as last resort
 		if runtime.GOOS == "windows" {
 			_ = runCommand("taskkill", "/F", "/IM", "openclaw.exe")
 			_ = runCommand("powershell", "-NoProfile", "-Command",
 				"Get-CimInstance Win32_Process -Filter \"Name='node.exe'\" | Where-Object { $_.CommandLine -match 'openclaw' -and $_.CommandLine -match 'gateway' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }")
 		} else {
-			_ = runCommand("pkill", "-f", "openclaw-gateway")
-			_ = runCommand("pkill", "-f", "openclaw gateway")
+			_ = runCommand("pkill", "-SIGKILL", "-f", "openclaw-gateway")
+			_ = runCommand("pkill", "-SIGKILL", "-f", "openclaw gateway")
 		}
 		if waitGatewayDown(5, 700*time.Millisecond) {
 			return nil

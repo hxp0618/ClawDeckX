@@ -70,6 +70,11 @@ type Config struct {
 	Alert    AlertConfig    `json:"alert"`
 }
 
+// DataDir returns the default data directory for the application.
+func DataDir() string {
+	return defaultDataDir()
+}
+
 func defaultDataDir() string {
 	exe, err := os.Executable()
 	if err != nil {
