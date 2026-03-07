@@ -85,6 +85,24 @@ const TemplateSourceManagerUI: React.FC<TemplateSourceManagerProps> = ({ languag
     return labels[type] || type;
   }, [ts]);
 
+  const getLocalizedSourceName = useCallback((source: TemplateSource) => {
+    const nameMap: Record<string, string> = {
+      local: ts.sourceNameBuiltin || 'Built-in Templates',
+      cdn: ts.sourceNameCdn || 'Official CDN',
+      github: ts.sourceNameGithub || 'Official Online Templates',
+    };
+    return nameMap[source.id] || source.name;
+  }, [ts]);
+
+  const getSourceDescription = useCallback((source: TemplateSource) => {
+    const descMap: Record<string, string> = {
+      local: ts.sourceDescBuiltin,
+      cdn: ts.sourceDescCdn,
+      github: ts.sourceDescGithub,
+    };
+    return descMap[source.id] || '';
+  }, [ts]);
+
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
       <div
@@ -143,7 +161,7 @@ const TemplateSourceManagerUI: React.FC<TemplateSourceManagerProps> = ({ languag
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-[12px] font-bold text-slate-800 dark:text-white">{source.name}</h3>
+                      <h3 className="text-[12px] font-bold text-slate-800 dark:text-white">{getLocalizedSourceName(source)}</h3>
                       <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-white/[0.05] text-slate-500 dark:text-white/40">
                         {getSourceTypeLabel(source.type)}
                       </span>
@@ -159,14 +177,17 @@ const TemplateSourceManagerUI: React.FC<TemplateSourceManagerProps> = ({ languag
 
                     {/* Source Details */}
                     <div className="text-[10px] text-slate-500 dark:text-white/40 space-y-0.5">
-                      {source.type === 'local' && source.path && <p>Path: {source.path}</p>}
-                      {source.type === 'cdn' && source.url && <p>URL: {source.url}</p>}
+                      {getSourceDescription(source) && (
+                        <p className="text-[10px] text-slate-400 dark:text-white/30 mb-0.5">{getSourceDescription(source)}</p>
+                      )}
+                      {source.type === 'local' && source.path && <p>{ts.labelPath || 'Path'}: {source.path}</p>}
+                      {source.type === 'cdn' && source.url && <p>{ts.labelUrl || 'URL'}: {source.url}</p>}
                       {source.type === 'github' && source.repo && (
                         <p>
-                          Repo: {source.repo} ({source.branch})
+                          {ts.labelRepo || 'Repo'}: {source.repo} ({source.branch})
                         </p>
                       )}
-                      {source.fallback && <p>Fallback: {source.fallback}</p>}
+                      {source.fallback && <p>{ts.labelFallback || 'Fallback'}: {source.fallback}</p>}
                     </div>
                   </div>
 

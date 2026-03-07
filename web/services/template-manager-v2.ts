@@ -285,14 +285,8 @@ class TemplateManagerV2 {
       throw result.error || new Error('Failed to load scenarios');
     }
 
-    // Apply i18n - load translations for each subcategory
-    const subcategories = [...new Set(result.data.map(t => t.metadata.category))];
-    await Promise.all(
-      subcategories.map(subcat => templateI18n.loadTranslations('scenarios', subcat, language))
-    );
-    const localized = result.data.map((template) => {
-      return templateI18n.getLocalizedTemplate(template, 'scenarios', template.metadata.category, language);
-    });
+    // Apply i18n — per-item translation files
+    const localized = await templateI18n.localizeItems(result.data, 'scenarios', language);
 
     this.scenarioCache.set(cacheKey, localized);
     return localized;
@@ -337,10 +331,8 @@ class TemplateManagerV2 {
       throw result.error || new Error('Failed to load multi-agent templates');
     }
 
-    await templateI18n.loadTranslations('multi-agent', null, language);
-    const localized = result.data.map((template) => {
-      return templateI18n.getLocalizedTemplate(template, 'multi-agent', null, language);
-    });
+    // Apply i18n — per-item translation files
+    const localized = await templateI18n.localizeItems(result.data, 'multi-agent', language);
 
     this.multiAgentCache.set(cacheKey, localized);
     return localized;
@@ -385,10 +377,8 @@ class TemplateManagerV2 {
       throw result.error || new Error('Failed to load agent templates');
     }
 
-    await templateI18n.loadTranslations('agents', null, language);
-    const localized = result.data.map((template) => {
-      return templateI18n.getLocalizedTemplate(template, 'agents', null, language);
-    });
+    // Apply i18n — per-item translation files
+    const localized = await templateI18n.localizeItems(result.data, 'agents', language);
 
     this.agentCache.set(cacheKey, localized);
     return localized;
@@ -431,11 +421,8 @@ class TemplateManagerV2 {
     // Knowledge items may be empty (no content yet), that's OK
     const data = result.data || [];
 
-    // Apply i18n — knowledge uses a single unified translation file per language
-    await templateI18n.loadTranslations('knowledge', null, language);
-    const localized = data.map((item) => {
-      return templateI18n.getLocalizedTemplate(item, 'knowledge', null, language);
-    });
+    // Apply i18n — knowledge uses per-item translation files
+    const localized = await templateI18n.localizeKnowledgeItems(data, language);
 
     this.knowledgeCache.set(cacheKey, localized);
     return localized;

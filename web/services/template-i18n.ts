@@ -1,6 +1,7 @@
 import { Language } from '../types';
 
 export interface I18nOverride {
+  _tags?: Record<string, string>;
   name?: string;
   description?: string;
   content?: Record<string, any>;
@@ -10,262 +11,113 @@ export interface I18nOverride {
   tags?: Record<string, string>;
 }
 
-interface TemplateI18nFile {
-  _tags?: Record<string, string>;
-  [templateId: string]: I18nOverride | Record<string, string> | undefined;
-}
+// All supported languages
+const ALL_LANGS: Language[] = ['en', 'zh', 'zh-TW', 'ja', 'ko', 'es', 'pt-BR', 'de', 'fr', 'ru', 'ar', 'hi', 'id'];
 
-interface TemplateI18nCache {
-  [category: string]: {
-    [lang: string]: TemplateI18nFile;
-  };
-}
-
-// Static imports for bundled translations (zh is always included)
-const staticTranslations: Record<string, Record<string, TemplateI18nFile>> = {};
-
-// Lazy load translations
-const translationLoaders: Record<string, Record<string, () => Promise<TemplateI18nFile>>> = {
-  en: {
-    'knowledge': () => import('../../templates/official/i18n/en/knowledge.json').then(m => m.default || m),
-  },
-  zh: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/zh/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/zh/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/zh/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/zh/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/zh/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/zh/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/zh/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/zh/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/zh/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/zh/knowledge.json').then(m => m.default || m),
-  },
-  'zh-TW': {
-    'scenarios/productivity': () => import('../../templates/official/i18n/zh-TW/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/zh-TW/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/zh-TW/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/zh-TW/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/zh-TW/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/zh-TW/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/zh-TW/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/zh-TW/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/zh-TW/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/zh-TW/knowledge.json').then(m => m.default || m),
-  },
-  ja: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/ja/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/ja/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/ja/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/ja/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/ja/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/ja/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/ja/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/ja/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/ja/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/ja/knowledge.json').then(m => m.default || m),
-  },
-  ko: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/ko/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/ko/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/ko/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/ko/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/ko/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/ko/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/ko/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/ko/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/ko/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/ko/knowledge.json').then(m => m.default || m),
-  },
-  es: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/es/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/es/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/es/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/es/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/es/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/es/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/es/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/es/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/es/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/es/knowledge.json').then(m => m.default || m),
-  },
-  'pt-BR': {
-    'scenarios/productivity': () => import('../../templates/official/i18n/pt-BR/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/pt-BR/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/pt-BR/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/pt-BR/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/pt-BR/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/pt-BR/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/pt-BR/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/pt-BR/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/pt-BR/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/pt-BR/knowledge.json').then(m => m.default || m),
-  },
-  de: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/de/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/de/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/de/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/de/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/de/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/de/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/de/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/de/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/de/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/de/knowledge.json').then(m => m.default || m),
-  },
-  fr: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/fr/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/fr/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/fr/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/fr/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/fr/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/fr/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/fr/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/fr/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/fr/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/fr/knowledge.json').then(m => m.default || m),
-  },
-  ru: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/ru/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/ru/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/ru/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/ru/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/ru/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/ru/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/ru/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/ru/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/ru/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/ru/knowledge.json').then(m => m.default || m),
-  },
-  ar: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/ar/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/ar/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/ar/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/ar/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/ar/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/ar/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/ar/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/ar/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/ar/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/ar/knowledge.json').then(m => m.default || m),
-  },
-  hi: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/hi/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/hi/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/hi/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/hi/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/hi/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/hi/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/hi/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/hi/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/hi/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/hi/knowledge.json').then(m => m.default || m),
-  },
-  id: {
-    'scenarios/productivity': () => import('../../templates/official/i18n/id/scenarios/productivity.json').then(m => m.default || m),
-    'scenarios/social': () => import('../../templates/official/i18n/id/scenarios/social.json').then(m => m.default || m),
-    'scenarios/creative': () => import('../../templates/official/i18n/id/scenarios/creative.json').then(m => m.default || m),
-    'scenarios/devops': () => import('../../templates/official/i18n/id/scenarios/devops.json').then(m => m.default || m),
-    'scenarios/research': () => import('../../templates/official/i18n/id/scenarios/research.json').then(m => m.default || m),
-    'scenarios/finance': () => import('../../templates/official/i18n/id/scenarios/finance.json').then(m => m.default || m),
-    'scenarios/family': () => import('../../templates/official/i18n/id/scenarios/family.json').then(m => m.default || m),
-    'multi-agent': () => import('../../templates/official/i18n/id/multi-agent.json').then(m => m.default || m),
-    'agents': () => import('../../templates/official/i18n/id/agents.json').then(m => m.default || m),
-    'knowledge': () => import('../../templates/official/i18n/id/knowledge.json').then(m => m.default || m),
-  },
+// Knowledge item type → directory name mapping (mirrors templates/official/knowledge/ structure)
+const KNOWLEDGE_TYPE_DIR: Record<string, string> = {
+  faq: 'faq',
+  recipe: 'recipes',
+  tip: 'tips',
+  snippet: 'snippets',
 };
 
+// Resolve per-item translation file path for each category
+// All categories use per-item files mirroring the source file structure:
+//   scenarios: i18n/{lang}/scenarios/{subcategory}/{id}.json
+//   agents:    i18n/{lang}/agents/{id}.json
+//   multi-agent: i18n/{lang}/multi-agent/{id}.json
+//   knowledge: i18n/{lang}/knowledge/{typeDir}/{slug}.json
+function resolveItemPath(item: { id: string; type?: string; metadata?: any }, category: string): string | null {
+  switch (category) {
+    case 'scenarios': {
+      const subcat = item.metadata?.category;
+      if (!subcat) return null;
+      return `scenarios/${subcat}/${item.id}`;
+    }
+    case 'agents':
+      return `agents/${item.id}`;
+    case 'multi-agent':
+      return `multi-agent/${item.id}`;
+    case 'knowledge': {
+      const type = item.type as string;
+      const dir = KNOWLEDGE_TYPE_DIR[type];
+      if (!dir) return null;
+      const prefix = type + '-';
+      const slug = item.id.startsWith(prefix) ? item.id.slice(prefix.length) : item.id;
+      return `knowledge/${dir}/${slug}`;
+    }
+    default:
+      return null;
+  }
+}
+
 class TemplateI18nManager {
-  private cache: TemplateI18nCache = {};
-  private loadingPromises: Map<string, Promise<void>> = new Map();
+  private itemCache: Map<string, I18nOverride | null> = new Map();
 
-  async loadTranslations(category: string, subcategory: string | null, lang: Language): Promise<void> {
-    // English is default for scenarios/agents/multi-agent, but knowledge items are in Chinese
-    const path = subcategory ? `${category}/${subcategory}` : category;
-    if (lang === 'en' && path !== 'knowledge') return;
-    const cacheKey = `${path}:${lang}`;
-
-    // Check cache
-    if (this.cache[path]?.[lang]) return;
-
-    // Avoid duplicate loading
-    if (this.loadingPromises.has(cacheKey)) {
-      return this.loadingPromises.get(cacheKey);
-    }
-
-    const loadPromise = this._loadTranslations(path, lang);
-    this.loadingPromises.set(cacheKey, loadPromise);
-
-    try {
-      await loadPromise;
-    } finally {
-      this.loadingPromises.delete(cacheKey);
-    }
-  }
-
-  private async _loadTranslations(path: string, lang: Language): Promise<void> {
-    try {
-      // Check static translations first
-      if (staticTranslations[lang]?.[path]) {
-        if (!this.cache[path]) this.cache[path] = {};
-        this.cache[path][lang] = staticTranslations[lang][path];
-        return;
-      }
-
-      // Try dynamic loader
-      const loader = translationLoaders[lang]?.[path];
-      if (loader) {
-        const translations = await loader();
-        if (!this.cache[path]) this.cache[path] = {};
-        this.cache[path][lang] = translations;
-        return;
-      }
-
-      // No translation available
-      if (!this.cache[path]) this.cache[path] = {};
-      this.cache[path][lang] = {};
-    } catch (err) {
-      console.warn(`[TemplateI18n] Failed to load ${path} for ${lang}:`, err);
-      if (!this.cache[path]) this.cache[path] = {};
-      this.cache[path][lang] = {};
-    }
-  }
-
-  getLocalizedTemplate<T extends { id: string; metadata?: any; content?: any }>(
-    template: T,
+  // Load and apply translation for a single template item (any category)
+  async loadItemTranslation<T extends { id: string; type?: string; metadata?: any; content?: any }>(
+    item: T,
     category: string,
-    subcategory: string | null,
     lang: Language
-  ): T {
-    const path = subcategory ? `${category}/${subcategory}` : category;
-    // English is default for scenarios/agents, but knowledge needs translation (source is Chinese)
-    if (lang === 'en' && path !== 'knowledge') return template;
-    const translations = this.cache[path]?.[lang];
-    const override = translations?.[template.id] as I18nOverride | undefined;
+  ): Promise<T> {
+    // English is the source language for scenarios/agents/multi-agent — skip
+    if (lang === 'en' && category !== 'knowledge') return item;
 
-    if (!override) return template;
+    const itemPath = resolveItemPath(item, category);
+    if (!itemPath) return item;
 
-    // Get _tags for tag translation
-    const tagMap = (translations as any)?._tags || {};
-    return this.mergeTranslation(template, override, tagMap);
+    const cacheKey = `${lang}:${itemPath}`;
+
+    if (!this.itemCache.has(cacheKey)) {
+      try {
+        const mod = await import(`../../templates/official/i18n/${lang}/${itemPath}.json`);
+        this.itemCache.set(cacheKey, (mod.default || mod) as I18nOverride);
+      } catch {
+        this.itemCache.set(cacheKey, null);
+      }
+    }
+
+    const override = this.itemCache.get(cacheKey);
+    if (!override) return item;
+    return this.mergeTranslation(item, override);
   }
 
-  getTagTranslations(category: string, subcategory: string | null, lang: Language): Record<string, string> {
-    if (lang === 'en') return {};
+  // Batch-load translations for a list of template items (any category)
+  async localizeItems<T extends { id: string; type?: string; metadata?: any; content?: any }>(
+    items: T[],
+    category: string,
+    lang: Language
+  ): Promise<T[]> {
+    return Promise.all(items.map(item => this.loadItemTranslation(item, category, lang)));
+  }
 
-    const path = subcategory ? `${category}/${subcategory}` : category;
-    const translations = this.cache[path]?.[lang];
-    
-    // Return the _tags object if it exists
-    return (translations as any)?._tags || {};
+  // Legacy aliases for backward compatibility
+  async localizeKnowledgeItems<T extends { id: string; type?: string; metadata?: any; content?: any }>(
+    items: T[],
+    lang: Language
+  ): Promise<T[]> {
+    return this.localizeItems(items, 'knowledge', lang);
+  }
+
+  getTagTranslations(_category: string, _subcategory: string | null, lang: Language): Record<string, string> {
+    if (lang === 'en') return {};
+    // With per-item files, _tags are embedded in each item's translation file.
+    // Callers should use the _tags from the item override directly.
+    // This method is kept for compatibility but returns empty — tag translation
+    // is now handled inside mergeTranslation via override._tags.
+    return {};
   }
 
   private mergeTranslation<T extends { id: string; metadata?: any; content?: any }>(
     template: T,
     translation: I18nOverride,
-    tagMap: Record<string, string> = {}
+    tagMap?: Record<string, string>
   ): T {
     const result = { ...template };
+
+    // Use _tags from the translation file if not provided externally
+    const effectiveTagMap = tagMap || translation._tags || {};
 
     // Merge metadata
     if (translation.name || translation.description || translation.metadata) {
@@ -278,10 +130,10 @@ class TemplateI18nManager {
     }
 
     // Translate tags using tagMap from _tags field
-    if (result.metadata?.tags && Object.keys(tagMap).length > 0) {
+    if (result.metadata?.tags && Object.keys(effectiveTagMap).length > 0) {
       result.metadata = {
         ...result.metadata,
-        tags: result.metadata.tags.map((tag: string) => tagMap[tag] || tag),
+        tags: result.metadata.tags.map((tag: string) => effectiveTagMap[tag] || tag),
       };
     }
 
@@ -321,54 +173,23 @@ class TemplateI18nManager {
     return result;
   }
 
-  getLocalizedTemplates<T extends { id: string; metadata?: any; content?: any }>(
-    templates: T[],
-    category: string,
-    subcategory: string | null,
-    lang: Language
-  ): T[] {
-    return templates.map(t => this.getLocalizedTemplate(t, category, subcategory, lang));
-  }
-
-  async preloadLanguage(lang: Language, categories: string[]): Promise<void> {
-    if (lang === 'en') return;
-
-    const promises: Promise<void>[] = [];
-    for (const category of categories) {
-      // Load category-level translations
-      promises.push(this.loadTranslations(category, null, lang));
-
-      // Load subcategory translations for scenarios
-      if (category === 'scenarios') {
-        const subcategories = ['productivity', 'social', 'creative', 'devops', 'research', 'finance', 'family'];
-        for (const sub of subcategories) {
-          promises.push(this.loadTranslations(category, sub, lang));
-        }
-      }
-
-      // Load subcategory translations for knowledge
-      if (category === 'knowledge') {
-        const subcategories = ['recipes', 'tips', 'snippets', 'faq'];
-        for (const sub of subcategories) {
-          promises.push(this.loadTranslations(category, sub, lang));
-        }
-      }
-    }
-
-    await Promise.allSettled(promises);
+  async preloadLanguage(_lang: Language, _categories: string[]): Promise<void> {
+    // Per-item files are loaded on-demand, no bulk preload needed
   }
 
   clearCache(path?: string): void {
     if (path) {
-      delete this.cache[path];
+      // Clear all items matching path prefix
+      for (const key of this.itemCache.keys()) {
+        if (key.includes(path)) this.itemCache.delete(key);
+      }
     } else {
-      this.cache = {};
+      this.itemCache.clear();
     }
   }
 
-  // Get available languages
   getAvailableLanguages(): Language[] {
-    return ['en', ...(Object.keys(translationLoaders) as Language[])] as Language[];
+    return ALL_LANGS;
   }
 }
 
