@@ -100,6 +100,7 @@ type GWClient struct {
 	closed    bool
 	stopCh    chan struct{}
 	onEvent   GWEventHandler
+	lastError string // last connection/auth error for diagnostics
 
 	reconnectCount int
 	backoffMs      int
@@ -376,6 +377,13 @@ func (c *GWClient) IsConnected() bool {
 	return c.connected
 }
 
+// LastError returns the last connection/auth error for diagnostics.
+func (c *GWClient) LastError() string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.lastError
+}
+
 func (c *GWClient) Start() {
 	safego.GoLoopWithCooldown("gwclient/connectLoop", 3*time.Second, c.connectLoop)
 }
@@ -509,7 +517,10 @@ func (c *GWClient) connectLoop() {
 
 		err := c.dial()
 		if err != nil {
-			logger.Log.Debug().Err(err).
+			c.mu.Lock()
+			c.lastError = err.Error()
+			c.mu.Unlock()
+			logger.Log.Warn().Err(err).
 				Str("host", c.cfg.Host).
 				Int("port", c.cfg.Port).
 				Msg(i18n.T(i18n.MsgLogGatewayWsConnectFailed))
@@ -761,6 +772,7 @@ func (c *GWClient) sendConnect(conn *websocket.Conn, nonce string) {
 			c.mu.Lock()
 			c.connected = true
 			c.backoffMs = 1000
+			c.lastError = ""
 			c.mu.Unlock()
 			logger.Log.Info().
 				Str("host", c.cfg.Host).
@@ -770,11 +782,21 @@ func (c *GWClient) sendConnect(conn *websocket.Conn, nonce string) {
 			msg := i18n.T(i18n.MsgGwclientUnknownError)
 			if resp != nil && resp.Error != nil {
 				msg = resp.Error.Message
+			} else if resp == nil {
+				// Channel closed — usually means the server closed the connection
+				// right after sending an error (e.g. "pairing required").
+				msg = "connection closed by server (check gateway logs for pairing/auth errors)"
 			}
+			c.mu.Lock()
+			c.lastError = msg
+			c.mu.Unlock()
 			logger.Log.Error().Str("error", msg).Msg(i18n.T(i18n.MsgLogGatewayWsAuthFail))
 			conn.Close()
 		}
 	case <-time.After(10 * time.Second):
+		c.mu.Lock()
+		c.lastError = "connect handshake timeout (10s)"
+		c.mu.Unlock()
 		logger.Log.Error().Msg(i18n.T(i18n.MsgLogGatewayWsConnectTimeout))
 		conn.Close()
 	case <-c.stopCh:

@@ -793,6 +793,68 @@ func RunServe(args []string) int {
 
 	fmt.Printf("%s\n\n", bottomBorder)
 
+	// Pre-flight: check if the port is actually available before starting.
+	// This catches cases where proclock succeeded but another process holds the port.
+	if ln, err := net.Listen("tcp", addr); err != nil {
+		fmt.Fprintln(os.Stderr)
+		fmt.Fprintf(os.Stderr, "❌ %s\n", i18n.T(i18n.MsgServePortInUse, map[string]interface{}{"Port": cfg.Server.Port}))
+		fmt.Fprintf(os.Stderr, "   %s\n", err.Error())
+		fmt.Fprintln(os.Stderr)
+
+		// Try to find and offer to kill the blocking process
+		if info := proclock.FindPortProcess(cfg.Server.Port); info != nil {
+			procDesc := fmt.Sprintf("PID=%d", info.PID)
+			if info.Name != "" {
+				procDesc = fmt.Sprintf("%s (%s)", info.Name, procDesc)
+			}
+			fmt.Fprintf(os.Stderr, "   %s\n\n",
+				i18n.T(i18n.MsgServePortOccupiedBy, map[string]interface{}{"Process": procDesc}))
+
+			// Interactive: ask user whether to kill
+			fmt.Fprintf(os.Stderr, "   %s [y/N] ",
+				i18n.T(i18n.MsgServeKillProcessPrompt))
+			var answer string
+			fmt.Scanln(&answer)
+			answer = strings.TrimSpace(strings.ToLower(answer))
+
+			if answer == "y" || answer == "yes" {
+				if err := proclock.KillProcess(info.PID); err != nil {
+					fmt.Fprintf(os.Stderr, "   ❌ %s: %s\n",
+						i18n.T(i18n.MsgServeKillProcessFailed), err.Error())
+					return 1
+				}
+				fmt.Fprintf(os.Stderr, "   ✅ %s (PID %d)\n",
+					i18n.T(i18n.MsgServeKillProcessOk), info.PID)
+
+				// Wait for port to become available
+				portReady := false
+				for j := 0; j < 20; j++ {
+					time.Sleep(250 * time.Millisecond)
+					if ln2, err2 := net.Listen("tcp", addr); err2 == nil {
+						ln2.Close()
+						portReady = true
+						break
+					}
+				}
+				if !portReady {
+					fmt.Fprintf(os.Stderr, "   ❌ %s\n",
+						i18n.T(i18n.MsgServePortStillInUse))
+					return 1
+				}
+				fmt.Fprintln(os.Stderr)
+			} else {
+				fmt.Fprintln(os.Stderr, i18n.T(i18n.MsgServePortInUseSolutions))
+				return 1
+			}
+		} else {
+			fmt.Fprintln(os.Stderr, i18n.T(i18n.MsgServePortInUseSolutions))
+			logger.Log.Error().Err(err).Int("port", cfg.Server.Port).Msg(i18n.T(i18n.MsgLogServiceStartFailed))
+			return 1
+		}
+	} else {
+		ln.Close()
+	}
+
 	// Graceful shutdown
 	srv := &http.Server{Addr: addr, Handler: handler}
 
@@ -814,6 +876,7 @@ func RunServe(args []string) int {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			fmt.Fprintf(os.Stderr, "\n❌ %s: %s\n", i18n.T(i18n.MsgLogServiceStartFailed), err.Error())
 			logger.Log.Fatal().Err(err).Msg(i18n.T(i18n.MsgLogServiceStartFailed))
 		}
 	}()

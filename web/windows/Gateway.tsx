@@ -944,6 +944,9 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
               <span className="text-[11px] font-bold text-mac-yellow">{gw.wsDisconnected || 'Data channel disconnected'}</span>
             </div>
             <p className="text-[10px] text-slate-500 dark:text-white/40 mt-1 ms-6 leading-relaxed">{gw.wsDisconnectedHint || 'WebSocket data channel is not established. Check token, firewall, and proxy settings.'}</p>
+            {status?.ws_error && (
+              <p className="text-[10px] text-mac-red/80 mt-1 ms-6 font-mono break-all">{status.ws_error}</p>
+            )}
           </div>
         )}
         {/* Row 1: 状态信息 + 心跳 */}

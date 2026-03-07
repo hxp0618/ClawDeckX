@@ -45,14 +45,19 @@ type GatewayStatusResponse struct {
 	Port        int    `json:"port,omitempty"`
 	Remote      bool   `json:"remote"`
 	WsConnected bool   `json:"ws_connected"`
+	WsError     string `json:"ws_error,omitempty"`
 }
 
 // Status returns gateway running status.
 func (h *GatewayHandler) Status(w http.ResponseWriter, r *http.Request) {
 	st := h.svc.Status()
 	wsConnected := false
+	wsError := ""
 	if h.gwClient != nil {
 		wsConnected = h.gwClient.IsConnected()
+		if !wsConnected {
+			wsError = h.gwClient.LastError()
+		}
 	}
 	web.OK(w, r, GatewayStatusResponse{
 		Running:     st.Running,
@@ -62,6 +67,7 @@ func (h *GatewayHandler) Status(w http.ResponseWriter, r *http.Request) {
 		Port:        h.svc.GatewayPort,
 		Remote:      h.svc.IsRemote(),
 		WsConnected: wsConnected,
+		WsError:     wsError,
 	})
 }
 
