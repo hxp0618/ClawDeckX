@@ -8,6 +8,7 @@
   "loading": "加载中...",
   "noNodes": "暂无节点连接",
   "noDevices": "暂无配对设备",
+  "myDeviceId": "我的设备 ID",
   "pending": "待审批",
   "paired": "已配对",
   "approve": "批准",

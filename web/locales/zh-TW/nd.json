@@ -8,6 +8,7 @@
   "loading": "載入中...",
   "noNodes": "目前沒有已連線的節點",
   "noDevices": "目前沒有已配對的裝置",
+  "myDeviceId": "我的裝置 ID",
   "pending": "待審核",
   "paired": "已配對",
   "approve": "核准",

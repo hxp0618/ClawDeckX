@@ -384,6 +384,48 @@ func (c *GWClient) LastError() string {
 	return c.lastError
 }
 
+// ConnectionStatus returns a snapshot of the WS connection state for diagnostics.
+func (c *GWClient) ConnectionStatus() map[string]interface{} {
+	c.mu.Lock()
+	connected := c.connected
+	host := c.cfg.Host
+	port := c.cfg.Port
+	reconnects := c.reconnectCount
+	backoff := c.backoffMs
+	lastErr := c.lastError
+	c.mu.Unlock()
+
+	c.healthMu.Lock()
+	failCount := c.healthFailCount
+	maxFails := c.healthMaxFails
+	intervalSec := int(c.healthInterval / time.Second)
+	healthEnabled := c.healthEnabled
+	lastOK := ""
+	if !c.healthLastOK.IsZero() {
+		lastOK = c.healthLastOK.Format(time.RFC3339)
+	}
+	graceStr := ""
+	if !c.healthGraceUntil.IsZero() && time.Now().Before(c.healthGraceUntil) {
+		graceStr = c.healthGraceUntil.Format(time.RFC3339)
+	}
+	c.healthMu.Unlock()
+
+	return map[string]interface{}{
+		"connected":       connected,
+		"host":            host,
+		"port":            port,
+		"reconnect_count": reconnects,
+		"backoff_ms":      backoff,
+		"last_error":      lastErr,
+		"health_enabled":  healthEnabled,
+		"fail_count":      failCount,
+		"max_fails":       maxFails,
+		"interval_sec":    intervalSec,
+		"last_ok":         lastOK,
+		"grace_until":     graceStr,
+	}
+}
+
 func (c *GWClient) Start() {
 	safego.GoLoopWithCooldown("gwclient/connectLoop", 3*time.Second, c.connectLoop)
 }

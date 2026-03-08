@@ -8,6 +8,7 @@
   "loading": "Laden...",
   "noNodes": "Keine Knoten verbunden",
   "noDevices": "Keine gekoppelten Geräte",
+  "myDeviceId": "Meine Geräte-ID",
   "pending": "Ausstehend",
   "paired": "Gekoppelt",
   "approve": "Genehmigen",

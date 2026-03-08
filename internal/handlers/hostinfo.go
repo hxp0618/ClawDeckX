@@ -100,6 +100,18 @@ type EnvInfo struct {
 	WorkDir string `json:"workDir,omitempty"`
 }
 
+// DeviceID returns the local device identity ID for node pairing.
+func (h *HostInfoHandler) DeviceID(w http.ResponseWriter, r *http.Request) {
+	identity, err := openclaw.LoadOrCreateDeviceIdentity("")
+	if err != nil {
+		web.Fail(w, r, "DEVICE_IDENTITY_ERROR", "failed to load device identity: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	web.OK(w, r, map[string]string{
+		"deviceId": identity.DeviceID,
+	})
+}
+
 // CheckUpdate checks if a new OpenClaw version is available.
 func (h *HostInfoHandler) CheckUpdate(w http.ResponseWriter, r *http.Request) {
 	// get current installed version

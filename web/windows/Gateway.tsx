@@ -156,6 +156,9 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
   const [watchdogAdvancedOpen, setWatchdogAdvancedOpen] = useState(false);
   const [watchdogSaving, setWatchdogSaving] = useState(false);
 
+  // WebSocket 连接状态（用于 tab 标题指示灯）
+  const [gwWsConnected, setGwWsConnected] = useState<boolean | null>(null);
+
   // 按钮操作状态
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
@@ -303,6 +306,25 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
     }, 0);
     return () => clearTimeout(deferTimer);
   }, [fetchProfiles, fetchStatus, fetchHealthCheck, fetchLogs, fetchEvents, fetchChannels, activeTab]);
+
+  // WS connection status polling + disconnect/reconnect toast
+  useEffect(() => {
+    const pollWs = () => {
+      gwApi.status().then((data: any) => {
+        const connected = !!data?.connected;
+        setGwWsConnected(prev => {
+          if (prev !== null && prev !== connected) {
+            if (connected) toast('success', gw.svcWsReconnected || 'WebSocket reconnected');
+            else toast('error', gw.svcWsLost || 'WebSocket disconnected');
+          }
+          return connected;
+        });
+      }).catch(() => {});
+    };
+    pollWs();
+    const wsTimer = setInterval(pollWs, 6000);
+    return () => clearInterval(wsTimer);
+  }, [toast, gw]);
 
   // Status + health polling with visibility pause
   useEffect(() => {
@@ -1085,9 +1107,23 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
             const labels: Record<string, string> = { logs: gw.logs, events: eventsLabel, channels: gw.channels || 'Channels', service: gw.service || 'Service', debug: gw.debug };
             return (
               <button key={tab} onClick={() => { setActiveTab(tab); if (tab === 'debug') fetchDebugData(); if (tab === 'events') fetchEvents(); if (tab === 'channels') fetchChannels(true); }}
-                className={`px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition-all ${activeTab === tab ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'}`}>
-                <span className="material-symbols-outlined text-[12px] align-middle me-0.5">{icons[tab]}</span>
+                className={`px-2 py-1 rounded text-[11px] font-bold uppercase tracking-wider transition-all ${activeTab === tab ? 'bg-white/10 text-white' : 'text-white/30 hover:text-white/60'} flex items-center gap-1`}>
+                <span className="material-symbols-outlined text-[12px] align-middle">{icons[tab]}</span>
                 {labels[tab]}
+                {tab === 'service' && gwWsConnected !== null && (
+                  <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${gwWsConnected ? 'bg-mac-green' : 'bg-mac-red animate-pulse'}`} />
+                )}
+                {tab === 'channels' && channelsList.length > 0 && (() => {
+                  const now = Date.now();
+                  const hasStuck = channelsList.some((c: any) => {
+                    const busy = c.busy === true || (typeof c.activeRuns === 'number' && c.activeRuns > 0);
+                    const lra = typeof c.lastRunActivityAt === 'number' ? c.lastRunActivityAt : null;
+                    return busy && lra != null && (now - lra) > 25 * 60_000;
+                  });
+                  const hasDisconnected = channelsList.some((c: any) => c.enabled !== false && (c.lastError || c.connected === false) && c.running !== true);
+                  if (!hasStuck && !hasDisconnected) return null;
+                  return <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${hasStuck ? 'bg-mac-red animate-pulse' : 'bg-amber-500'}`} />;
+                })()}
               </button>
             );
           })}

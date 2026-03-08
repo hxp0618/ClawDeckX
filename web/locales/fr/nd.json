@@ -8,6 +8,7 @@
   "loading": "Chargement...",
   "noNodes": "Aucun nœud connecté",
   "noDevices": "Aucun appareil appairé",
+  "myDeviceId": "Mon ID d'appareil",
   "pending": "En attente",
   "paired": "Appairé",
   "approve": "Approuver",

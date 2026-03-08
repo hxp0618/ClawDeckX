@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../locales';
-import { gwApi } from '../services/api';
+import { gwApi, hostInfoApi } from '../services/api';
 import { useToast } from '../components/Toast';
 import { useGatewayEvents } from '../hooks/useGatewayEvents';
 import CustomSelect from '../components/CustomSelect';
@@ -12,18 +12,22 @@ import EmptyState from '../components/EmptyState';
 interface NodesProps { language: Language; }
 
 interface NodeEntry {
-  id: string;
-  host?: string;
-  ip?: string;
+  nodeId: string;
+  displayName?: string;
   platform?: string;
   version?: string;
-  capabilities?: string[];
-  roles?: string[];
-  scopes?: string[];
-  mode?: string;
-  lastInputSeconds?: number;
-  ts?: number;
-  [key: string]: unknown;
+  coreVersion?: string;
+  uiVersion?: string;
+  deviceFamily?: string;
+  modelIdentifier?: string;
+  remoteIp?: string;
+  caps?: string[];
+  commands?: string[];
+  paired?: boolean;
+  connected?: boolean;
+  connectedAtMs?: number;
+  pathEnv?: string[];
+  permissions?: Record<string, unknown>;
 }
 
 interface DeviceTokenSummary {
@@ -132,14 +136,12 @@ function truncateId(id: string, maxLen = 16): string {
 }
 
 function isNodeOnline(node: NodeEntry): boolean {
-  return node.lastInputSeconds != null && node.lastInputSeconds < 300;
+  return node.connected === true;
 }
 
 function getHealthStatus(node: NodeEntry): 'healthy' | 'warning' | 'critical' | 'unknown' {
-  if (node.lastInputSeconds == null) return 'unknown';
-  if (node.lastInputSeconds < 120) return 'healthy';
-  if (node.lastInputSeconds < 300) return 'warning';
-  return 'critical';
+  if (node.connected == null) return 'unknown';
+  return node.connected ? 'healthy' : 'critical';
 }
 
 const HEALTH_COLORS: Record<string, { dot: string; bg: string; text: string }> = {
@@ -152,10 +154,10 @@ const HEALTH_COLORS: Record<string, { dot: string; bg: string; text: string }> =
 function sortNodes(list: NodeEntry[], key: SortKey): NodeEntry[] {
   return [...list].sort((a, b) => {
     switch (key) {
-      case 'name': return (a.host || a.id).localeCompare(b.host || b.id);
+      case 'name': return (a.displayName || a.nodeId).localeCompare(b.displayName || b.nodeId);
       case 'status': return (isNodeOnline(b) ? 1 : 0) - (isNodeOnline(a) ? 1 : 0);
-      case 'lastUsed': return (a.lastInputSeconds ?? Infinity) - (b.lastInputSeconds ?? Infinity);
-      case 'connectedAt': return (b.ts ?? 0) - (a.ts ?? 0);
+      case 'lastUsed': return (b.connectedAtMs ?? 0) - (a.connectedAtMs ?? 0);
+      case 'connectedAt': return (b.connectedAtMs ?? 0) - (a.connectedAtMs ?? 0);
       default: return 0;
     }
   });
@@ -168,8 +170,8 @@ function groupNodes(list: NodeEntry[], key: GroupKey, nd: any): { label: string;
     let gk: string;
     switch (key) {
       case 'platform': gk = n.platform || nd?.ungrouped || '-'; break;
-      case 'status': gk = isNodeOnline(n) ? (nd?.online || 'Online') : (nd?.offline || 'Offline'); break;
-      case 'version': gk = n.version || nd?.ungrouped || '-'; break;
+      case 'status': gk = n.connected ? (nd?.online || 'Online') : n.paired ? (nd?.paired || 'Paired') : (nd?.offline || 'Offline'); break;
+      case 'version': gk = n.version || n.coreVersion || nd?.ungrouped || '-'; break;
       default: gk = '-';
     }
     if (!groups.has(gk)) groups.set(gk, []);
@@ -200,6 +202,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
   const [devicesLoading, setDevicesLoading] = useState(false);
   const [devicesError, setDevicesError] = useState('');
   const [nodePending, setNodePending] = useState<any[]>([]);
+  const [localDeviceId, setLocalDeviceId] = useState('');
   const [config, setConfig] = useState<Record<string, any> | null>(null);
   const [configLoading, setConfigLoading] = useState(false);
   const [configSaving, setConfigSaving] = useState(false);
@@ -309,15 +312,15 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
   useEffect(() => {
     const prev = prevNodesRef.current;
     if (prev.length === 0) { prevNodesRef.current = nodes; return; }
-    const prevMap = new Map(prev.map(n => [n.id, n]));
+    const prevMap = new Map(prev.map(n => [n.nodeId, n]));
     const newAlerts: NodeAlert[] = [];
     for (const n of nodes) {
-      const p = prevMap.get(n.id);
+      const p = prevMap.get(n.nodeId);
       if (p && isNodeOnline(p) && !isNodeOnline(n)) {
-        newAlerts.push({ id: `${n.id}-${Date.now()}`, type: 'offline', nodeName: n.host || n.id, nodeId: n.id, ts: Date.now() });
+        newAlerts.push({ id: `${n.nodeId}-${Date.now()}`, type: 'offline', nodeName: n.displayName || n.nodeId, nodeId: n.nodeId, ts: Date.now() });
       }
       if (p && !isNodeOnline(p) && isNodeOnline(n)) {
-        newAlerts.push({ id: `${n.id}-${Date.now()}`, type: 'back', nodeName: n.host || n.id, nodeId: n.id, ts: Date.now() });
+        newAlerts.push({ id: `${n.nodeId}-${Date.now()}`, type: 'back', nodeName: n.displayName || n.nodeId, nodeId: n.nodeId, ts: Date.now() });
       }
     }
     if (newAlerts.length > 0) {
@@ -355,9 +358,9 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     if (nodeSearch.trim()) {
       const s = nodeSearch.toLowerCase();
       result = result.filter(n =>
-        n.id.toLowerCase().includes(s) ||
-        n.host?.toLowerCase().includes(s) ||
-        n.ip?.toLowerCase().includes(s) ||
+        n.nodeId.toLowerCase().includes(s) ||
+        n.displayName?.toLowerCase().includes(s) ||
+        n.remoteIp?.toLowerCase().includes(s) ||
         n.platform?.toLowerCase().includes(s)
       );
     }
@@ -412,7 +415,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     });
   }, []);
   const selectAllVisible = useCallback(() => {
-    const allIds = sortedNodes.map(n => n.id);
+    const allIds = sortedNodes.map(n => n.nodeId);
     setSelectedIds(new Set(allIds));
   }, [sortedNodes]);
   const deselectAll = useCallback(() => setSelectedIds(new Set()), []);
@@ -485,13 +488,13 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
   }, [toast, nd]);
 
   const handleSelectNode = useCallback((node: NodeEntry) => {
-    if (selectedNode?.id === node.id) {
+    if (selectedNode?.nodeId === node.nodeId) {
       setSelectedNode(null);
       setNodeDetail(null);
       setInvokeResult(null);
     } else {
       setSelectedNode(node);
-      fetchNodeDetail(node.id);
+      fetchNodeDetail(node.nodeId);
     }
   }, [selectedNode, fetchNodeDetail]);
 
@@ -505,7 +508,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
         try { params = JSON.parse(invokeParams); } catch { params = invokeParams; }
       }
       const res = await gwApi.proxy('node.invoke', {
-        nodeId: selectedNode.id,
+        nodeId: selectedNode.nodeId,
         command: invokeCmd.trim(),
         params,
         timeoutMs: invokeTimeout ? Number(invokeTimeout) : undefined,
@@ -523,7 +526,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     setPairing(true);
     setPairResult(null);
     try {
-      await gwApi.proxy('node.pair.request', { nodeId: pairNodeId.trim(), displayName: pairName.trim() || undefined, platform: pairPlatform.trim() || undefined });
+      await gwApi.nodePairRequest({ nodeId: pairNodeId.trim(), displayName: pairName.trim() || undefined, platform: pairPlatform.trim() || undefined });
       setPairResult({ ok: true, text: nd.pairOk });
       setEventLog(prev => [`[${new Date().toLocaleTimeString()}] pair.request → ${pairNodeId.trim()}`, ...prev.slice(0, 49)]);
       setPairNodeId(''); setPairName(''); setPairPlatform('');
@@ -539,7 +542,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     setVerifying(true);
     setVerifyResult(null);
     try {
-      const res = await gwApi.proxy('node.pair.verify', { nodeId: verifyNodeId.trim(), token: verifyToken.trim() }) as any;
+      const res = await gwApi.nodePairVerify(verifyNodeId.trim(), verifyToken.trim()) as any;
       setVerifyResult({ ok: true, text: nd.pairVerifyOk + (res?.valid === false ? ` (${nd.invalid})` : '') });
     } catch (err: any) {
       setVerifyResult({ ok: false, text: nd.pairVerifyFailed + ': ' + (err?.message || '') });
@@ -551,7 +554,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     if (!renameName.trim() || renaming) return;
     setRenaming(true);
     try {
-      await gwApi.proxy('node.rename', { nodeId, displayName: renameName.trim() });
+      await gwApi.nodeRename(nodeId, renameName.trim());
       setRenameNodeId(null);
       setRenameName('');
       fetchNodes();
@@ -582,7 +585,16 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     const raf = requestAnimationFrame(() => { fetchNodes(); });
     return () => cancelAnimationFrame(raf);
   }, [fetchNodes]);
-  useEffect(() => { if (tab === 'devices') fetchDevices(); }, [tab, fetchDevices]);
+  useEffect(() => {
+    if (tab === 'devices') {
+      fetchDevices();
+      if (!localDeviceId) {
+        hostInfoApi.deviceId().then(res => {
+          if (res?.deviceId) setLocalDeviceId(res.deviceId);
+        }).catch(() => {});
+      }
+    }
+  }, [tab, fetchDevices, localDeviceId]);
   useEffect(() => { if (tab === 'bindings' && !config) fetchConfig(); }, [tab, config, fetchConfig]);
 
   const handleApprove = useCallback((requestId: string, displayName?: string) => {
@@ -616,14 +628,14 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     });
   }, [fetchDevices, nd, toast]);
 
-  const handleNodePairApprove = useCallback((nodeId: string, displayName?: string) => {
+  const handleNodePairApprove = useCallback((requestId: string, displayName?: string) => {
     setConfirmDialog({
       title: nd?.confirmApproveTitle || 'Approve',
-      desc: (nd?.confirmApproveDesc || 'Approve pairing request from {name}?').replace('{name}', displayName || nodeId),
+      desc: (nd?.confirmApproveDesc || 'Approve pairing request from {name}?').replace('{name}', displayName || requestId),
       variant: 'success',
       onOk: async () => {
         try {
-          await gwApi.nodePairApprove(nodeId);
+          await gwApi.nodePairApprove(requestId);
           toast('success', nd.approved);
           setTimeout(() => fetchDevices(), 500);
         } catch (e: any) { toast('error', String(e)); }
@@ -632,13 +644,13 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
     });
   }, [fetchDevices, toast, nd]);
 
-  const handleNodePairReject = useCallback((nodeId: string, displayName?: string) => {
+  const handleNodePairReject = useCallback((requestId: string, displayName?: string) => {
     setConfirmDialog({
       title: nd?.confirmRejectTitle || 'Reject',
-      desc: (nd?.confirmRejectDesc || 'Reject pairing request from {name}?').replace('{name}', displayName || nodeId),
+      desc: (nd?.confirmRejectDesc || 'Reject pairing request from {name}?').replace('{name}', displayName || requestId),
       onOk: async () => {
         try {
-          await gwApi.nodePairReject(nodeId);
+          await gwApi.nodePairReject(requestId);
           toast('success', nd.rejected);
           setTimeout(() => fetchDevices(), 500);
         } catch (e: any) { toast('error', String(e)); }
@@ -1226,31 +1238,31 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                   )}
                   <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'space-y-2'}>
                     {group.nodes.slice(0, 120).map((node, i) => {
-                      const isSelected = selectedNode?.id === node.id;
+                      const isSelected = selectedNode?.nodeId === node.nodeId;
                       const online = isNodeOnline(node);
                       const health = getHealthStatus(node);
                       const hc = HEALTH_COLORS[health];
-                      const checked = selectedIds.has(node.id);
+                      const checked = selectedIds.has(node.nodeId);
 
                       if (viewMode === 'list') {
                         return (
-                          <div key={node.id || i}
+                          <div key={node.nodeId || i}
                             className={`flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-primary ring-1 ring-primary/20 bg-primary/[0.02]' : 'border-slate-200 dark:border-white/10 hover:border-primary/40 bg-slate-50 dark:bg-white/[0.02]'}`}>
                             <input type="checkbox" checked={checked}
-                              onChange={() => toggleSelect(node.id)}
+                              onChange={() => toggleSelect(node.nodeId)}
                               onClick={e => e.stopPropagation()}
                               className="w-3.5 h-3.5 rounded accent-primary shrink-0" />
                             <div className={`w-2 h-2 rounded-full shrink-0 ${hc.dot} ${online ? 'animate-pulse' : ''}`} title={nd[health] || health} />
                             <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleSelectNode(node)}>
-                              <span className="font-bold text-[12px] text-slate-800 dark:text-white truncate">{node.host || truncateId(node.id, 20)}</span>
+                              <span className="font-bold text-[12px] text-slate-800 dark:text-white truncate">{node.displayName || truncateId(node.nodeId, 20)}</span>
                             </div>
                             {node.platform && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 font-bold hidden sm:inline">{node.platform}</span>}
                             {node.version && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 font-bold hidden sm:inline">v{node.version}</span>}
                             <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${hc.bg} ${hc.text}`}>{nd[health] || health}</span>
-                            {node.lastInputSeconds != null && (
-                              <span className="text-[10px] text-slate-400 dark:text-white/30 hidden sm:inline">{fmtAge(node.lastInputSeconds)}</span>
+                            {node.connected && node.connectedAtMs && (
+                              <span className="text-[10px] text-slate-400 dark:text-white/30 hidden sm:inline">{fmtAge((Date.now() - node.connectedAtMs) / 1000)}</span>
                             )}
-                            <button onClick={e => { e.stopPropagation(); copyToClipboard(node.id); }} title={nd.copyId}
+                            <button onClick={e => { e.stopPropagation(); copyToClipboard(node.nodeId); }} title={nd.copyId}
                               className="text-slate-400 hover:text-primary shrink-0">
                               <span className="material-symbols-outlined text-[14px]">content_copy</span>
                             </button>
@@ -1259,11 +1271,11 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                       }
 
                       return (
-                        <div key={node.id || i}
+                        <div key={node.nodeId || i}
                           className={`relative bg-slate-50 dark:bg-white/[0.02] border rounded-2xl p-3 sm:p-4 cursor-pointer transition-all group shadow-sm hover:shadow-md ${isSelected ? 'border-primary ring-1 ring-primary/20' : 'border-slate-200 dark:border-white/10 hover:border-primary/40'}`}>
                           {/* Batch checkbox */}
                           <div className="absolute top-3 start-3" onClick={e => e.stopPropagation()}>
-                            <input type="checkbox" checked={checked} onChange={() => toggleSelect(node.id)}
+                            <input type="checkbox" checked={checked} onChange={() => toggleSelect(node.nodeId)}
                               className="w-3.5 h-3.5 rounded accent-primary" />
                           </div>
                           {/* Health indicator */}
@@ -1277,25 +1289,25 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                               <span className="material-symbols-outlined text-sky-500 text-[20px]">dns</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              {renameNodeId === node.id ? (
+                              {renameNodeId === node.nodeId ? (
                                 <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                                   <input value={renameName} onChange={e => setRenameName(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleRename(node.id)}
+                                    onKeyDown={e => e.key === 'Enter' && handleRename(node.nodeId)}
                                     autoFocus placeholder={nd.newName}
                                     className="flex-1 h-6 px-2 bg-white dark:bg-black/20 border border-primary/40 rounded text-[11px] text-slate-700 dark:text-white/70 outline-none" />
-                                  <button onClick={() => handleRename(node.id)} disabled={renaming || !renameName.trim()}
+                                  <button onClick={() => handleRename(node.nodeId)} disabled={renaming || !renameName.trim()}
                                     className="text-[10px] text-primary font-bold disabled:opacity-40">{renaming ? '...' : '✓'}</button>
                                   <button onClick={() => { setRenameNodeId(null); setRenameName(''); }}
                                     className="text-[10px] text-slate-400">✗</button>
                                 </div>
                               ) : (
-                                <h4 className="font-bold text-[13px] text-slate-800 dark:text-white truncate" onDoubleClick={e => { e.stopPropagation(); setRenameNodeId(node.id); setRenameName(node.host || ''); }}>
-                                  {node.host || truncateId(node.id, 20)}
+                                <h4 className="font-bold text-[13px] text-slate-800 dark:text-white truncate" onDoubleClick={e => { e.stopPropagation(); setRenameNodeId(node.nodeId); setRenameName(node.displayName || ''); }}>
+                                  {node.displayName || truncateId(node.nodeId, 20)}
                                 </h4>
                               )}
                               <p className="text-[10px] text-slate-400 dark:text-white/40 font-mono truncate flex items-center gap-1 group/id">
-                                <span title={node.id}>{truncateId(node.id, 24)}</span>
-                                <button onClick={e => { e.stopPropagation(); copyToClipboard(node.id); }}
+                                <span title={node.nodeId}>{truncateId(node.nodeId, 24)}</span>
+                                <button onClick={e => { e.stopPropagation(); copyToClipboard(node.nodeId); }}
                                   className="opacity-0 group-hover/id:opacity-100 transition-opacity" title={nd.copyId}>
                                   <span className="material-symbols-outlined text-[12px] hover:text-primary">content_copy</span>
                                 </button>
@@ -1307,26 +1319,26 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                           <div className="flex flex-wrap gap-1 mb-2 ps-5">
                             {node.platform && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 font-bold">{node.platform}</span>}
                             {node.version && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 font-bold">v{node.version}</span>}
-                            {node.mode && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-bold">{node.mode}</span>}
-                            {Array.isArray(node.roles) && node.roles.map(r => (
-                              <span key={r} className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">{r}</span>
+                            {node.paired && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-mac-green/10 text-mac-green font-bold">{nd?.paired || 'Paired'}</span>}
+                            {Array.isArray(node.caps) && node.caps.length > 0 && node.caps.slice(0, 3).map(c => (
+                              <span key={c} className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold">{c}</span>
                             ))}
                           </div>
 
-                          {/* Heartbeat & last used */}
+                          {/* Connection info */}
                           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] ps-5">
-                            {node.ip && (
-                              <><span className="text-slate-400 dark:text-white/35">{nd.ip}</span><span className="text-slate-600 dark:text-white/60 font-mono">{node.ip}</span></>
+                            {node.remoteIp && (
+                              <><span className="text-slate-400 dark:text-white/35">{nd.ip}</span><span className="text-slate-600 dark:text-white/60 font-mono">{node.remoteIp}</span></>
                             )}
-                            <span className="text-slate-400 dark:text-white/35">{nd.heartbeat}</span>
+                            <span className="text-slate-400 dark:text-white/35">{nd.status || 'Status'}</span>
                             <span className={`font-bold ${online ? 'text-mac-green' : 'text-slate-400 dark:text-white/30'}`}>
-                              {node.lastInputSeconds != null ? fmtRelativeTime(node.lastInputSeconds, nd) : nd.heartbeatNever}
+                              {online ? (nd?.online || 'Online') : (nd?.offline || 'Offline')}
                             </span>
-                            {node.lastInputSeconds != null && (
-                              <><span className="text-slate-400 dark:text-white/35">{nd.lastUsed}</span><span className="text-slate-600 dark:text-white/60">{fmtAge(node.lastInputSeconds)} {nd.ago}</span></>
+                            {node.connectedAtMs && (
+                              <><span className="text-slate-400 dark:text-white/35">{nd.connectedAt || 'Connected'}</span><span className="text-slate-600 dark:text-white/60">{fmtTs(node.connectedAtMs)}</span></>
                             )}
-                            {Array.isArray(node.scopes) && node.scopes.length > 0 && (
-                              <><span className="text-slate-400 dark:text-white/35">{nd.scopes}</span><span className="text-slate-600 dark:text-white/60 truncate">{node.scopes.join(', ')}</span></>
+                            {node.deviceFamily && (
+                              <><span className="text-slate-400 dark:text-white/35">{nd.device || 'Device'}</span><span className="text-slate-600 dark:text-white/60 truncate">{node.deviceFamily}</span></>
                             )}
                           </div>
 
@@ -1464,6 +1476,24 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                 </div>
               </div>
 
+              {/* Local Device ID */}
+              {localDeviceId && (
+                <div className="bg-gradient-to-r from-primary/[0.06] to-sky-500/[0.04] border border-primary/20 rounded-xl p-3 flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-primary text-[18px]">fingerprint</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-slate-400 dark:text-white/40 font-bold uppercase tracking-wider mb-0.5">{nd.myDeviceId || 'My Device ID'}</p>
+                    <p className="text-[12px] text-slate-700 dark:text-white/80 font-mono truncate select-all" title={localDeviceId}>{localDeviceId}</p>
+                  </div>
+                  <button onClick={() => { navigator.clipboard.writeText(localDeviceId); toast('success', nd.copied); }}
+                    className="h-8 px-2.5 flex items-center gap-1.5 bg-primary/10 text-primary border border-primary/20 rounded-lg text-[10px] font-bold hover:bg-primary/20 transition-colors shrink-0">
+                    <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                    <span className="hidden sm:inline">{nd.copy || 'Copy'}</span>
+                  </button>
+                </div>
+              )}
+
               {/* Device stats bar */}
               {(paired.length > 0 || pending.length > 0) && (
                 <div className="flex items-center gap-3 flex-wrap">
@@ -1595,11 +1625,11 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                           </div>
                         </div>
                         <div className="flex gap-2 shrink-0">
-                          <button onClick={() => handleNodePairApprove(req.nodeId, req.displayName || req.nodeId)}
+                          <button onClick={() => handleNodePairApprove(req.requestId, req.displayName || req.nodeId)}
                             className="h-8 px-4 bg-mac-green text-white text-[10px] font-bold rounded-lg hover:opacity-90 transition-opacity flex items-center gap-1">
                             <span className="material-symbols-outlined text-[14px]">check</span>{nd.approve}
                           </button>
-                          <button onClick={() => handleNodePairReject(req.nodeId, req.displayName || req.nodeId)}
+                          <button onClick={() => handleNodePairReject(req.requestId, req.displayName || req.nodeId)}
                             className="h-8 px-4 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 text-[10px] font-bold rounded-lg hover:bg-mac-red/10 hover:text-mac-red transition-colors flex items-center gap-1">
                             <span className="material-symbols-outlined text-[14px]">close</span>{nd.reject}
                           </button>
@@ -1967,7 +1997,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                           <div className="flex items-center gap-2">
                             <h4 className="font-bold text-[12px] text-slate-800 dark:text-white">{nd.defaultBinding}</h4>
                             {defaultBinding && (() => {
-                              const boundNode = nodes.find(n => n.id === defaultBinding);
+                              const boundNode = nodes.find(n => n.nodeId === defaultBinding);
                               const online = boundNode ? isNodeOnline(boundNode) : false;
                               return (
                                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${online ? 'bg-mac-green/10 text-mac-green' : 'bg-mac-red/10 text-mac-red'}`}>
@@ -1982,7 +2012,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                       <div className="flex items-center gap-2">
                         <CustomSelect value={defaultBinding} onChange={v => handleBindDefault(v)}
                           disabled={nodes.length === 0}
-                          options={[{ value: '', label: nd.anyNode }, ...nodes.map(n => ({ value: n.id, label: `${n.host || n.id} ${isNodeOnline(n) ? '●' : '○'}` }))]}
+                          options={[{ value: '', label: nd.anyNode }, ...nodes.map(n => ({ value: n.nodeId, label: `${n.displayName || n.nodeId} ${isNodeOnline(n) ? '●' : '○'}` }))]}
                           className="h-8 px-3 bg-white dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[11px] font-bold text-slate-700 dark:text-white/70 min-w-[160px]" />
                         {defaultBinding && (
                           <button onClick={() => handleBindingTest(defaultBinding, '__default')}
@@ -2005,7 +2035,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                           : (nd.bindingTestFailed || '').replace('{error}', bindingTestResults['__default'].error || '')}
                       </div>
                     )}
-                    {defaultBinding && !isNodeOnline(nodes.find(n => n.id === defaultBinding) || {} as NodeEntry) && (
+                    {defaultBinding && !isNodeOnline(nodes.find(n => n.nodeId === defaultBinding) || {} as NodeEntry) && (
                       <p className="text-[10px] text-mac-red mt-2 flex items-center gap-1">
                         <span className="material-symbols-outlined text-[12px]">warning</span>{nd.bindingOfflineWarning}
                       </p>
@@ -2028,7 +2058,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                       </div>
                       <div className="space-y-2">
                         {agentsList.map((agent, idx) => {
-                          const boundNode = agent.binding ? nodes.find(n => n.id === agent.binding) : null;
+                          const boundNode = agent.binding ? nodes.find(n => n.nodeId === agent.binding) : null;
                           const online = boundNode ? isNodeOnline(boundNode) : false;
                           const testKey = agent.id;
                           const testResult = bindingTestResults[testKey];
@@ -2062,7 +2092,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                               <div className="flex items-center gap-2">
                                 <CustomSelect value={agent.binding || ''} onChange={v => handleBindAgent(agent.index, v)}
                                   disabled={nodes.length === 0}
-                                  options={[{ value: '', label: nd.anyNode }, ...nodes.map(n => ({ value: n.id, label: `${n.host || n.id} ${isNodeOnline(n) ? '●' : '○'}` }))]}
+                                  options={[{ value: '', label: nd.anyNode }, ...nodes.map(n => ({ value: n.nodeId, label: `${n.displayName || n.nodeId} ${isNodeOnline(n) ? '●' : '○'}` }))]}
                                   className="h-7 px-2 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-bold text-slate-700 dark:text-white/70 min-w-[140px]" />
                                 {agent.binding && (
                                   <button onClick={() => handleBindingTest(agent.binding!, agent.id)}

@@ -8,6 +8,7 @@
   "loading": "Memuat...",
   "noNodes": "Tidak ada node terhubung",
   "noDevices": "Tidak ada perangkat dipasangkan",
+  "myDeviceId": "ID Perangkat Saya",
   "pending": "Tertunda",
   "paired": "Dipasangkan",
   "approve": "Setujui",

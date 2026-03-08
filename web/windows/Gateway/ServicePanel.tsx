@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { gatewayApi } from '../../services/api';
+import { gatewayApi, gwApi } from '../../services/api';
 
 interface DaemonState {
   platform: string;
@@ -8,6 +8,21 @@ interface DaemonState {
   active: boolean;
   unitFile: string;
   detail: string;
+}
+
+interface WsStatus {
+  connected: boolean;
+  host: string;
+  port: number;
+  reconnect_count: number;
+  backoff_ms: number;
+  last_error: string;
+  health_enabled: boolean;
+  fail_count: number;
+  max_fails: number;
+  interval_sec: number;
+  last_ok: string;
+  grace_until: string;
 }
 
 interface ServicePanelProps {
@@ -38,6 +53,8 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
   const [daemon, setDaemon] = useState<DaemonState | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<'install' | 'uninstall' | null>(null);
+  const [wsStatus, setWsStatus] = useState<WsStatus | null>(null);
+  const [reconnecting, setReconnecting] = useState(false);
 
   const fetchDaemonStatus = useCallback(() => {
     setLoading(true);
@@ -47,7 +64,29 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { fetchDaemonStatus(); }, [fetchDaemonStatus]);
+  const fetchWsStatus = useCallback(() => {
+    gwApi.status().then((data: any) => setWsStatus(data)).catch(() => {});
+  }, []);
+
+  useEffect(() => { fetchDaemonStatus(); fetchWsStatus(); }, [fetchDaemonStatus, fetchWsStatus]);
+
+  useEffect(() => {
+    const timer = setInterval(fetchWsStatus, 6000);
+    return () => clearInterval(timer);
+  }, [fetchWsStatus]);
+
+  const handleReconnect = useCallback(async () => {
+    setReconnecting(true);
+    try {
+      await gwApi.reconnect();
+      toast('success', gw.svcWsReconnecting || 'Reconnecting...');
+      setTimeout(fetchWsStatus, 2000);
+    } catch (err: any) {
+      toast('error', err?.message || gw.svcWsReconnectFailed || 'Reconnect failed');
+    } finally {
+      setReconnecting(false);
+    }
+  }, [gw, toast, fetchWsStatus]);
 
   const handleInstall = useCallback(async () => {
     setActionLoading('install');
@@ -213,6 +252,72 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
         )}
       </div>
 
+      {/* WebSocket Connection Status */}
+      <div className="space-y-2">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-[14px]">cable</span>
+          {gw.svcWsTitle || 'WebSocket Connection'}
+        </h4>
+        {wsStatus ? (
+          <div className="space-y-2">
+            <div className={`px-3 py-3 rounded-lg border flex items-center gap-3 ${
+              wsStatus.connected ? 'bg-mac-green/5 border-mac-green/20' : 'bg-mac-red/5 border-mac-red/20'
+            }`}>
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
+                wsStatus.connected ? 'bg-mac-green/15' : 'bg-mac-red/15'
+              }`}>
+                <span className={`material-symbols-outlined text-[20px] ${wsStatus.connected ? 'text-mac-green' : 'text-mac-red'}`}>
+                  {wsStatus.connected ? 'link' : 'link_off'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-[12px] font-bold ${wsStatus.connected ? 'text-mac-green' : 'text-mac-red'}`}>
+                  {wsStatus.connected ? (gw.svcWsConnected || 'Connected') : (gw.svcWsDisconnected || 'Disconnected')}
+                </p>
+                <p className="text-[10px] text-white/40 font-mono mt-0.5">
+                  {wsStatus.host}:{wsStatus.port}
+                </p>
+              </div>
+              <button
+                onClick={handleReconnect}
+                disabled={reconnecting}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 text-white/50 font-bold text-[10px] transition-all hover:bg-white/10 hover:text-white disabled:opacity-40 shrink-0"
+              >
+                <span className={`material-symbols-outlined text-[14px] ${reconnecting ? 'animate-spin' : ''}`}>
+                  {reconnecting ? 'progress_activity' : 'refresh'}
+                </span>
+                {gw.svcWsReconnect || 'Reconnect'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.svcWsReconnects || 'Reconnects'}</p>
+                <p className="text-[12px] font-bold font-mono text-white/70">{wsStatus.reconnect_count}</p>
+              </div>
+              <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+                <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.svcWsBackoff || 'Backoff'}</p>
+                <p className="text-[12px] font-bold font-mono text-white/70">
+                  {wsStatus.backoff_ms >= 1000 ? `${(wsStatus.backoff_ms / 1000).toFixed(1)}s` : `${wsStatus.backoff_ms}ms`}
+                </p>
+              </div>
+            </div>
+
+            {wsStatus.last_error && (
+              <div className="px-3 py-2 rounded-lg bg-mac-red/5 border border-mac-red/20">
+                <p className="text-[9px] text-white/30 uppercase tracking-wider mb-0.5">{gw.svcWsLastError || 'Last Error'}</p>
+                <p className="text-[10px] font-mono text-mac-red/80 break-all">{wsStatus.last_error}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-3 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
+            <span className="material-symbols-outlined text-[16px] text-white/20 animate-spin">progress_activity</span>
+            <span className="text-[11px] text-white/30">{gw.loading || 'Loading...'}</span>
+          </div>
+        )}
+      </div>
+
       {/* Watchdog Status */}
       <div className="space-y-2">
         <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
@@ -242,6 +347,50 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
             )}
           </div>
         </div>
+
+        {healthCheckEnabled && wsStatus && (
+          <div className="grid grid-cols-3 gap-2">
+            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.wdFailCount || 'Fails'}</p>
+              <p className={`text-[12px] font-bold font-mono ${
+                wsStatus.fail_count > 0 ? (wsStatus.fail_count >= wsStatus.max_fails ? 'text-mac-red' : 'text-mac-yellow') : 'text-mac-green'
+              }`}>
+                {wsStatus.fail_count}/{wsStatus.max_fails}
+              </p>
+            </div>
+            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.wdInterval || 'Interval'}</p>
+              <p className="text-[12px] font-bold font-mono text-white/70">{wsStatus.interval_sec}s</p>
+            </div>
+            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.wdLastOk || 'Last OK'}</p>
+              <p className="text-[11px] font-mono text-white/60">
+                {wsStatus.last_ok ? new Date(wsStatus.last_ok).toLocaleTimeString() : '-'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {healthCheckEnabled && wsStatus?.grace_until && (
+          <div className="px-3 py-2 rounded-lg bg-amber-500/5 border border-amber-500/20 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[14px] text-amber-500">hourglass_top</span>
+            <div>
+              <p className="text-[10px] font-bold text-amber-400">{gw.wdGracePeriod || 'Grace Period Active'}</p>
+              <p className="text-[9px] text-white/30 font-mono mt-0.5">
+                {gw.wdGraceUntil || 'Until'}: {new Date(wsStatus.grace_until).toLocaleTimeString()}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {healthCheckEnabled && remote && (
+          <div className="px-3 py-2 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-2">
+            <span className="material-symbols-outlined text-[14px] text-primary">cloud</span>
+            <p className="text-[10px] text-white/40">
+              {gw.wdRemoteHint || 'Remote mode: watchdog will only reconnect, never restart the remote gateway.'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

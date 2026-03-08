@@ -124,7 +124,7 @@ export const LiveConfigSection: React.FC<LiveConfigSectionProps> = ({ language }
     try {
       let input: any = wizardInput.trim();
       try { input = JSON.parse(input); } catch { /* keep as string */ }
-      const res = await gwApi.wizardNext(wizardSessionId, input) as any;
+      const res = await gwApi.wizardNext(wizardSessionId, input, wizardStep?.step?.id || wizardStep?.id || '') as any;
       setWizardStep(res);
       setWizardInput('');
       if (res?.done || res?.complete) {
@@ -134,7 +134,7 @@ export const LiveConfigSection: React.FC<LiveConfigSectionProps> = ({ language }
       setWizardError(err?.message || es.failed);
     }
     setWizardLoading(false);
-  }, [wizardSessionId, wizardInput, es]);
+  }, [wizardSessionId, wizardInput, wizardStep, es]);
 
   const handleWizardCancel = useCallback(async () => {
     if (!wizardSessionId) return;

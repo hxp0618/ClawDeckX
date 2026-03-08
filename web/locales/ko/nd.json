@@ -8,6 +8,7 @@
   "loading": "로딩 중...",
   "noNodes": "연결된 노드 없음",
   "noDevices": "페어링된 디바이스 없음",
+  "myDeviceId": "내 디바이스 ID",
   "pending": "대기 중",
   "paired": "페어링됨",
   "approve": "승인",

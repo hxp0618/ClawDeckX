@@ -1379,9 +1379,13 @@ func (h *DoctorHandler) collectSessionErrors() summarySessionErrors {
 		logger.Doctor.Debug().Msg("collectSessionErrors: gwClient is nil")
 		return summarySessionErrors{}
 	}
+	now := time.Now().UTC()
+	startDate := now.AddDate(0, 0, -1).Format("2006-01-02")
+	endDate := now.Format("2006-01-02")
 	data, err := h.gwClient.RequestWithTimeout("sessions.usage", map[string]interface{}{
-		"days":  1,
-		"limit": 50,
+		"startDate": startDate,
+		"endDate":   endDate,
+		"limit":     50,
 	}, 15*time.Second)
 	if err != nil {
 		logger.Doctor.Debug().Err(err).Msg("collectSessionErrors: RPC failed")

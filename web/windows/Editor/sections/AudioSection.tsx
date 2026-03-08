@@ -55,7 +55,8 @@ export const AudioSection: React.FC<SectionProps> = ({ setField, getField, langu
     setTalkModeLoading(true);
     setTalkModeResult(null);
     try {
-      await gwApi.talkMode(mode);
+      const enabled = mode !== 'off';
+      await gwApi.talkMode(enabled, enabled ? mode : undefined);
       setTalkMode(mode);
       setTalkModeResult({ ok: true, text: `${es.talkModeOk}: ${mode}` });
       setTimeout(() => setTalkModeResult(null), 3000);

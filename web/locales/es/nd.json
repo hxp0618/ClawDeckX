@@ -8,6 +8,7 @@
   "loading": "Cargando...",
   "noNodes": "No hay nodos conectados",
   "noDevices": "No hay dispositivos emparejados",
+  "myDeviceId": "Mi ID de Dispositivo",
   "pending": "Pendiente",
   "paired": "Emparejado",
   "approve": "Aprobar",
