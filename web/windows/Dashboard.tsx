@@ -2,7 +2,7 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef, useId } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../locales';
-import { dashboardApi, gwApi, gatewayApi, hostInfoApi, configApi, doctorApi } from '../services/api';
+import { dashboardApi, gwApi, gatewayApi, hostInfoApi, configApi, doctorApi, gatewayProfileApi } from '../services/api';
 import { useGatewayEvents } from '../hooks/useGatewayEvents';
 import { subscribeManagerWS } from '../services/manager-ws';
 import { useToast } from '../components/Toast';
@@ -195,7 +195,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
   interface DashState {
     data: any; gwStatus: any; sessions: any[]; models: any[]; skills: any[];
     agents: any[]; cronStatus: any; channels: any; usageCost: any; health: any;
-    instances: any[]; hostInfo: any; userConfig: any;
+    instances: any[]; hostInfo: any; userConfig: any; activeGateway: any;
   }
   const cachedFast = readCachedFastData();
   const cachedSlow = readCachedSlowData();
@@ -208,7 +208,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
     channels: cachedFast?.channels ?? null,
     usageCost: cachedSlow?.usageCost ?? null,
     health: cachedFast?.health ?? null,
-    instances: [], hostInfo: readCachedHostInfo(), userConfig: null,
+    instances: [], hostInfo: readCachedHostInfo(), userConfig: null, activeGateway: null,
   });
   // If we have cached fast data, skip the skeleton immediately
   const [initialLoading, setInitialLoading] = useState(!cachedFast?.data && !cachedFast?.gwStatus);
@@ -226,7 +226,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
   const [refreshCountdown, setRefreshCountdown] = useState(FAST_INTERVAL / 1000);
   const [hasFirstDashboardData, setHasFirstDashboardData] = useState(!!cachedFast?.data || !!cachedFast?.gwStatus);
 
-  const { data, gwStatus, sessions, models, skills, agents, cronStatus, channels, usageCost, health, instances, hostInfo, userConfig } = ds;
+  const { data, gwStatus, sessions, models, skills, agents, cronStatus, channels, usageCost, health, instances, hostInfo, userConfig, activeGateway } = ds;
 
   const abortRef = useRef(false);
   const fastFetchingRef = useRef(false);
@@ -243,14 +243,16 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
     if (fastFetchingRef.current) return;
     fastFetchingRef.current = true;
     try {
-      const [dashRes, gwStatusRes, channelsRes, healthRes, presenceRes] = await Promise.all([
+      const [dashRes, gwStatusRes, channelsRes, healthRes, presenceRes, profilesRes] = await Promise.all([
         settle(dashboardApi.get()), settle(gwApi.status()), settle(gwApi.channels()),
         settle(gwApi.health()), settle(gwApi.proxy('system-presence', {})),
+        settle(gatewayProfileApi.list()),
       ]);
       if (abortRef.current) return;
       const results = [dashRes, gwStatusRes, channelsRes, healthRes, presenceRes];
       setHasPartialFailure(results.some(r => !r.ok) && !results.every(r => !r.ok));
       setHasFetchError(results.every(r => !r.ok));
+      const activeGw = profilesRes.ok && Array.isArray(profilesRes.data) ? profilesRes.data.find((p: any) => p.is_active) : null;
       const fastPartial = {
         data: dashRes.data,
         gwStatus: gwStatusRes.data,
@@ -264,6 +266,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
         channels: fastPartial.channels ?? prev.channels,
         health: fastPartial.health ?? prev.health,
         instances: presenceRes.data ? (Array.isArray(presenceRes.data) ? presenceRes.data : []) : prev.instances,
+        activeGateway: activeGw ?? prev.activeGateway,
       }));
       if (dashRes.ok || gwStatusRes.ok || channelsRes.ok || healthRes.ok) {
         setHasFirstDashboardData(true);
@@ -449,7 +452,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
   const loading = initialLoading || refreshing;
 
   const gwRunning = gwStatus?.running || gwStatus?.connected || data?.gateway?.running || false;
-  const uptimeMs = health?.snapshot?.uptimeMs || health?.uptimeMs || 0;
+  const uptimeMs = gwStatus?.gateway_uptime_ms || 0;
   const tickMs = health?.snapshot?.policy?.tickIntervalMs || 0;
   const alerts = (data?.recent_alerts || []).slice(0, 4);
   const dailyCost = usageCost?.daily || [];
@@ -630,7 +633,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-lg font-black dark:text-white text-slate-800">{d.gwStatus}</h2>
+                <h2 className="text-lg font-black dark:text-white text-slate-800">{activeGateway?.name || d.gwStatus}</h2>
                 <div className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${gwRunning ? 'bg-mac-green/15' : 'bg-slate-200 dark:bg-white/10'}`}>
                   <HealthDot ok={gwRunning} />
                   <span className={`text-[10px] font-bold uppercase ${gwRunning ? 'text-mac-green' : 'text-slate-400'}`}>{gwRunning ? d.running : d.stopped}</span>

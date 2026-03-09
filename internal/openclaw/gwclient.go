@@ -101,7 +101,9 @@ type GWClient struct {
 	stopCh    chan struct{}
 	onEvent   GWEventHandler
 	lastError string // last connection/auth error for diagnostics
-	gwVersion string // gateway version fetched after connect
+	gwVersion     string    // gateway version fetched after connect
+	gwUptimeMs    int64     // gateway uptime from hello-ok snapshot
+	gwConnectedAt time.Time // when we received hello-ok (for local elapsed calc)
 
 	reconnectCount int
 	backoffMs      int
@@ -401,6 +403,11 @@ func (c *GWClient) ConnectionStatus() map[string]interface{} {
 	reconnects := c.reconnectCount
 	backoff := c.backoffMs
 	lastErr := c.lastError
+	// Compute live gateway uptime: base from hello-ok + local elapsed time
+	gwUptimeMs := int64(0)
+	if c.gwUptimeMs > 0 && !c.gwConnectedAt.IsZero() {
+		gwUptimeMs = c.gwUptimeMs + time.Since(c.gwConnectedAt).Milliseconds()
+	}
 	c.mu.Unlock()
 
 	c.healthMu.Lock()
@@ -419,19 +426,20 @@ func (c *GWClient) ConnectionStatus() map[string]interface{} {
 	c.healthMu.Unlock()
 
 	return map[string]interface{}{
-		"connected":       connected,
-		"host":            host,
-		"port":            port,
-		"reconnect_count": reconnects,
-		"backoff_ms":      backoff,
-		"last_error":      lastErr,
-		"health_enabled":  healthEnabled,
-		"fail_count":      failCount,
-		"max_fails":       maxFails,
-		"interval_sec":    intervalSec,
-		"last_ok":         lastOK,
-		"grace_until":     graceStr,
-		"version":         c.gwVersion,
+		"connected":          connected,
+		"host":               host,
+		"port":               port,
+		"reconnect_count":    reconnects,
+		"backoff_ms":         backoff,
+		"last_error":         lastErr,
+		"health_enabled":     healthEnabled,
+		"fail_count":         failCount,
+		"max_fails":          maxFails,
+		"interval_sec":       intervalSec,
+		"last_ok":            lastOK,
+		"grace_until":        graceStr,
+		"version":            c.gwVersion,
+		"gateway_uptime_ms":  gwUptimeMs,
 	}
 }
 
@@ -620,6 +628,8 @@ func (c *GWClient) readLoop(conn *websocket.Conn) error {
 		wasConnected := c.connected
 		c.connected = false
 		c.gwVersion = ""
+		c.gwUptimeMs = 0
+		c.gwConnectedAt = time.Time{}
 		if c.conn == conn {
 			c.conn = nil
 		}
@@ -836,6 +846,18 @@ func (c *GWClient) sendConnect(conn *websocket.Conn, nonce string) {
 			c.connected = true
 			c.backoffMs = 1000
 			c.lastError = ""
+			// Parse snapshot.uptimeMs from hello-ok payload
+			if resp.Payload != nil {
+				var helloOk struct {
+					Snapshot struct {
+						UptimeMs int64 `json:"uptimeMs"`
+					} `json:"snapshot"`
+				}
+				if json.Unmarshal(resp.Payload, &helloOk) == nil && helloOk.Snapshot.UptimeMs > 0 {
+					c.gwUptimeMs = helloOk.Snapshot.UptimeMs
+					c.gwConnectedAt = time.Now()
+				}
+			}
 			c.mu.Unlock()
 			logger.Log.Info().
 				Str("host", c.cfg.Host).

@@ -150,6 +150,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
   // 看门狗
   const [healthCheckEnabled, setHealthCheckEnabled] = useState(false);
   const [healthStatus, setHealthStatus] = useState<{ fail_count: number; last_ok: string } | null>(null);
+  const [displayUptimeMs, setDisplayUptimeMs] = useState(0);
   const [watchdogIntervalSec, setWatchdogIntervalSec] = useState('30');
   const [watchdogMaxFails, setWatchdogMaxFails] = useState('3');
   const [watchdogBackoffCapMs, setWatchdogBackoffCapMs] = useState('30000');
@@ -307,7 +308,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
     return () => clearTimeout(deferTimer);
   }, [fetchProfiles, fetchStatus, fetchHealthCheck, fetchLogs, fetchEvents, fetchChannels, activeTab]);
 
-  // WS connection status polling + disconnect/reconnect toast
+  // WS connection status polling + disconnect/reconnect toast + gateway uptime
   useEffect(() => {
     const pollWs = () => {
       gwApi.status().then((data: any) => {
@@ -319,6 +320,9 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
           }
           return connected;
         });
+        // Gateway uptime from backend (auto-incremented server-side)
+        const upMs = data?.gateway_uptime_ms || 0;
+        setDisplayUptimeMs(upMs);
       }).catch(() => {});
     };
     pollWs();
@@ -348,6 +352,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
       document.removeEventListener('visibilitychange', onVisibility);
     };
   }, [fetchStatus, fetchHealthCheck]);
+
 
   // Log polling with visibility pause (cursor-based incremental, 3s interval)
   useEffect(() => {
@@ -670,6 +675,17 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
 
   const isLocal = (host: string) => ['127.0.0.1', 'localhost', '::1'].includes(host.trim());
 
+  const fmtUptime = (ms: number): string => {
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60);
+    if (m < 60) return `${m}m`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}h ${m % 60}m`;
+    const d = Math.floor(h / 24);
+    return `${d}d ${h % 24}h`;
+  };
+
   // 解析 JSON 格式日志行（tslog / zerolog / pino 等）
   const parseLogLine = useCallback((line: string): { time: string; level: string; message: string; component?: string; extra?: string } | null => {
     if (!line.startsWith('{')) return null;
@@ -989,6 +1005,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
           </div>
           <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
             <h3 className="text-slate-800 dark:text-white font-bold text-sm">{activeProfile ? (isLocal(activeProfile.host) && (activeProfile.name === 'Local Gateway' || activeProfile.name === '本地网关') ? (gw.localGateway || activeProfile.name) : activeProfile.name) : gw.status}</h3>
+            {displayUptimeMs > 0 && <span className="text-[11px] text-slate-500 dark:text-white/50 font-mono">{fmtUptime(displayUptimeMs)}</span>}
             {/* 看门狗探测状态 */}
             {status?.running && (
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02]">

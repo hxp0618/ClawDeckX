@@ -44,6 +44,7 @@ openclaw.json
 # Build artifacts
 internal/web/dist/
 web/dist/
+*.syso
 
 # Binaries
 /ClawDeckX
