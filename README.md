@@ -5,7 +5,7 @@
 **Complexity within, simplicity without.**<br>
 **繁于内，简于形。**
 
-[![Release](https://img.shields.io/badge/Release-0.0.1-blue?style=for-the-badge&logo=rocket)](https://github.com/ClawDeckX/ClawDeckX/releases)
+[![Release](https://img.shields.io/github/v/release/ClawDeckX/ClawDeckX?style=for-the-badge&logo=rocket)](https://github.com/ClawDeckX/ClawDeckX/releases)
 [![Build](https://img.shields.io/badge/Build-Passing-success?style=for-the-badge&logo=github-actions)](https://github.com/ClawDeckX/ClawDeckX/actions)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 
@@ -269,6 +269,12 @@ This is my first open-source project, and I hope it will continue to improve wit
 This project is licensed under the [MIT License](LICENSE) — free to use, modify, and distribute for both personal and commercial purposes.
 
 本项目基于 [MIT 协议](LICENSE) 开源 — 可自由使用、修改和分发，适用于个人及商业用途。
+
+<br>
+
+## ⭐ Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ClawDeckX/ClawDeckX&type=Date)](https://star-history.com/#ClawDeckX/ClawDeckX&Date)
 
 <br>
 
