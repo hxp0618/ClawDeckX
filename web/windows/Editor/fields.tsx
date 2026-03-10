@@ -275,27 +275,31 @@ export const ArrayField: React.FC<ArrayFieldProps> = ({ label, desc, tooltip, va
   }, [input, items, onChange]);
 
   return (
-    <ConfigField label={label} desc={desc} tooltip={tooltip} inline={false}>
-      <div className="flex flex-wrap gap-1.5 min-h-[28px]">
-        {items.map((item, i) => (
-          <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] md:text-[11px] rounded-md font-mono">
-            {item}
-            <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="hover:text-red-500 transition-colors">
-              <span className="material-symbols-outlined text-[12px]">close</span>
-            </button>
-          </span>
-        ))}
-      </div>
-      <div className="flex flex-col sm:flex-row gap-1.5 mt-1">
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
-          placeholder={placeholder || ed.enterToAdd}
-          className={`${inputBase} flex-1`}
-        />
-        <button onClick={add} className="h-9 md:h-8 px-2.5 bg-primary/10 text-primary text-[11px] md:text-[10px] font-bold rounded-md hover:bg-primary/20 transition-colors">+</button>
+    <ConfigField label={label} desc={desc} tooltip={tooltip} inline={true}>
+      <div className="flex flex-col gap-1.5">
+        {items.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {items.map((item, i) => (
+              <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] md:text-[11px] rounded-md font-mono">
+                {item}
+                <button onClick={() => onChange(items.filter((_, j) => j !== i))} className="hover:text-red-500 transition-colors">
+                  <span className="material-symbols-outlined text-[12px]">close</span>
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-1.5">
+          <input
+            type="text"
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+            placeholder={placeholder || ed.enterToAdd}
+            className={`${inputBase} flex-1`}
+          />
+          <button onClick={add} className="h-9 md:h-8 px-2.5 bg-primary/10 text-primary text-[11px] md:text-[10px] font-bold rounded-md hover:bg-primary/20 transition-colors">+</button>
+        </div>
       </div>
     </ConfigField>
   );
@@ -370,38 +374,42 @@ export const DiscordGuildField: React.FC<DiscordGuildFieldProps> = ({ label, des
   }, [guildsObj, onChange]);
 
   return (
-    <ConfigField label={label} desc={desc} tooltip={tooltip} inline={false}>
-      <div className="flex flex-wrap gap-1.5 min-h-[28px]">
-        {guildIds.map((guildId) => (
-          <span key={guildId} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] md:text-[11px] rounded-md font-mono">
-            {guildId}
-            <button onClick={() => remove(guildId)} className="hover:text-red-500 transition-colors">
-              <span className="material-symbols-outlined text-[12px]">close</span>
-            </button>
-          </span>
-        ))}
-      </div>
-      <div className="flex flex-col sm:flex-row gap-1.5 mt-1">
-        <div className="flex-1 relative">
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
-            placeholder={placeholder || ed.enterToAdd}
-            className={`${inputBase} w-full ${extracted ? 'pe-24' : ''}`}
-          />
-          {extracted && (
-            <span className="absolute end-2 top-1/2 -translate-y-1/2 text-[10px] text-green-600 dark:text-green-400 font-mono bg-green-50 dark:bg-green-500/10 px-1.5 py-0.5 rounded">
-              → {extracted}
-            </span>
-          )}
+    <ConfigField label={label} desc={desc} tooltip={tooltip} inline={true}>
+      <div className="flex flex-col gap-1.5">
+        {guildIds.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {guildIds.map((guildId) => (
+              <span key={guildId} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary text-[10px] md:text-[11px] rounded-md font-mono">
+                {guildId}
+                <button onClick={() => remove(guildId)} className="hover:text-red-500 transition-colors">
+                  <span className="material-symbols-outlined text-[12px]">close</span>
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex gap-1.5">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+              placeholder={placeholder || ed.enterToAdd}
+              className={`${inputBase} w-full ${extracted ? 'pe-24' : ''}`}
+            />
+            {extracted && (
+              <span className="absolute end-2 top-1/2 -translate-y-1/2 text-[10px] text-green-600 dark:text-green-400 font-mono bg-green-50 dark:bg-green-500/10 px-1.5 py-0.5 rounded">
+                → {extracted}
+              </span>
+            )}
+          </div>
+          <button onClick={add} className="h-9 md:h-8 px-2.5 bg-primary/10 text-primary text-[11px] md:text-[10px] font-bold rounded-md hover:bg-primary/20 transition-colors">+</button>
         </div>
-        <button onClick={add} className="h-9 md:h-8 px-2.5 bg-primary/10 text-primary text-[11px] md:text-[10px] font-bold rounded-md hover:bg-primary/20 transition-colors">+</button>
+        {linkHint && (
+          <p className="text-[10px] text-slate-400 dark:text-white/40">{linkHint}</p>
+        )}
       </div>
-      {linkHint && (
-        <p className="text-[10px] text-slate-400 dark:text-white/40 mt-1">{linkHint}</p>
-      )}
     </ConfigField>
   );
 };

@@ -154,28 +154,38 @@ const PairingSection: React.FC<{ channel: string; es: any; cw: any; toast: (type
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={pairingCode}
-          onChange={(e) => setPairingCode(e.target.value.toUpperCase())}
-          placeholder={cw.enterPairingCode || 'Enter pairing code'}
-          className="flex-1 px-3 py-1.5 text-sm rounded-lg bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10"
-        />
-        <button
-          onClick={() => handleApprove(pairingCode)}
-          disabled={loading || !pairingCode.trim()}
-          className="px-3 py-1.5 text-sm font-medium rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? (cw.approving || 'Approving...') : (cw.approve || 'Approve')}
-        </button>
-      </div>
-      {pendingRequests.length > 0 && (
-        <div className="text-xs text-slate-600 dark:text-white/60">
-          {cw.pendingRequests || 'Pending requests'}: {pendingRequests.length}
+    <div className="flex flex-col md:grid md:grid-cols-12 md:items-start gap-2 md:gap-3 py-2 md:py-1.5">
+      <div className="md:col-span-4 lg:col-span-5 flex flex-col">
+        <div className="flex items-center gap-1">
+          <label className="text-[11px] md:text-xs font-semibold text-slate-500 dark:text-slate-400 select-none">
+            {cw.pairingCodeLabel || es.pairingCode || 'Pairing Code'}
+          </label>
+          <span className="material-symbols-outlined text-[13px] text-slate-400 dark:text-slate-500 cursor-help" title={es.tipPairingCode || 'Enter the pairing code from the channel'}>info</span>
         </div>
-      )}
+      </div>
+      <div className="md:col-span-8 lg:col-span-7 flex flex-col gap-1.5 min-w-0">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={pairingCode}
+            onChange={(e) => setPairingCode(e.target.value.toUpperCase())}
+            placeholder={cw.pairingCodePlaceholder || 'Enter pairing code'}
+            className="flex-1 h-9 md:h-8 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-md px-3 text-[12px] md:text-xs font-mono text-slate-800 dark:text-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-600"
+          />
+          <button
+            onClick={() => handleApprove(pairingCode)}
+            disabled={loading || !pairingCode.trim()}
+            className="h-9 md:h-8 px-3 md:px-2.5 text-xs md:text-[11px] font-bold rounded-lg bg-primary text-white hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? (cw.pairingApproving || 'Approving...') : (cw.pairingApprove || 'Approve')}
+          </button>
+        </div>
+        {pendingRequests.length > 0 && (
+          <div className="text-[10px] text-slate-600 dark:text-white/60">
+            {cw.pendingRequests || es.pendingRequests || 'Pending requests'}: {pendingRequests.length}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
