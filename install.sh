@@ -237,14 +237,14 @@ uninstall() {
         echo "  2) Custom uninstall (select what to remove) / 自定义卸载（选择删除内容）"
         echo ""
         echo -n "Enter your choice [1-2] / 输入选择 [1-2]: "
-        read -n 1 -r MODE
+        read -n 1 -r MODE </dev/tty
         echo
         
         # Handle empty or invalid input
         if [ -z "$MODE" ] || { [ "$MODE" != "1" ] && [ "$MODE" != "2" ]; }; then
             echo -e "${RED}Invalid input. Please enter 1 or 2. / 输入无效，请输入 1 或 2。${NC}"
             echo -e "${YELLOW}Press any key to continue... / 按任意键继续...${NC}"
-            read -n 1 -s
+            read -n 1 -s </dev/tty
             exec "$0" "$@"
         fi
         
@@ -271,7 +271,7 @@ uninstall() {
             
             echo ""
             echo -n -e "${RED}Confirm quick uninstall? / 确认快速卸载？ [y/N] ${NC}"
-            read -n 1 -r
+            read -n 1 -r </dev/tty
             echo
             
             if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -294,7 +294,7 @@ uninstall() {
                 echo -e "    ${CYAN}Service will be stopped automatically during uninstall / 卸载时将自动停止服务${NC}"
                 echo ""
                 echo -n "Also uninstall systemd service? / 同时卸载 systemd 服务？ [Y/n] "
-                read -n 1 -r
+                read -n 1 -r </dev/tty
                 echo
                 if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
                     SYSTEMD_UNINSTALL=true
@@ -309,7 +309,7 @@ uninstall() {
             
             if [ -d "$CONFIG_DIR" ]; then
                 echo -n "Also remove config directory ($CONFIG_DIR)? / 同时删除配置目录？ [y/N] "
-                read -n 1 -r
+                read -n 1 -r </dev/tty
                 echo
                 if [[ $REPLY =~ ^[Yy]$ ]]; then
                     REMOVE_CONFIG=true
@@ -321,7 +321,7 @@ uninstall() {
             
             if [ -d "$DATA_DIR" ]; then
                 echo -n "Also remove data directory ($DATA_DIR)? / 同时删除数据目录？ [y/N] "
-                read -n 1 -r
+                read -n 1 -r </dev/tty
                 echo
                 if [[ $REPLY =~ ^[Yy]$ ]]; then
                     REMOVE_DATA=true
@@ -346,7 +346,7 @@ uninstall() {
             
             echo ""
             echo -n -e "${RED}Confirm custom uninstall? / 确认自定义卸载？ [y/N] ${NC}"
-            read -n 1 -r
+            read -n 1 -r </dev/tty
             echo
             
             if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -603,14 +603,14 @@ update() {
         echo -e "${GREEN}✓ Already up to date! / 已经是最新版本！${NC}"
         echo ""
         echo -n "Force re-download? / 强制重新下载？ [y/N] "
-        read -n 1 -r
+        read -n 1 -r </dev/tty
         echo
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             exit 0
         fi
     else
         echo -n "Proceed with update? / 确认更新？ [Y/n] "
-        read -n 1 -r
+        read -n 1 -r </dev/tty
         echo
         if [[ $REPLY =~ ^[Nn]$ ]]; then
             exit 0
@@ -624,7 +624,7 @@ update() {
         echo -e "${YELLOW}The program needs to be stopped before updating. / 更新前需要停止程序。${NC}"
         echo ""
         echo -n "Stop ClawDeckX now and continue update? / 立即停止 ClawDeckX 并继续更新？ [Y/n] "
-        read -n 1 -r
+        read -n 1 -r </dev/tty
         echo
         if [[ $REPLY =~ ^[Nn]$ ]]; then
             echo -e "${YELLOW}Update cancelled. / 更新已取消${NC}"
@@ -655,7 +655,7 @@ update() {
     
     # Ask if user wants to restart ClawDeckX
     echo -n "Start ClawDeckX now? / 立即启动 ClawDeckX？ [Y/n] "
-    read -n 1 -r
+    read -n 1 -r </dev/tty
     echo
     
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
@@ -777,14 +777,14 @@ if check_installed; then
     fi
     echo ""
     echo -n "Enter your choice [1-4] / 输入选择 [1-4]: "
-    read -n 1 -r CHOICE
+    read -n 1 -r CHOICE </dev/tty
     echo
     
     # Handle empty input
     if [ -z "$CHOICE" ]; then
         echo -e "${RED}Invalid input. Please enter a number between 1-4. / 输入无效，请输入 1-4 之间的数字。${NC}"
         echo -e "${YELLOW}Press any key to continue... / 按任意键继续...${NC}"
-        read -n 1 -s
+        read -n 1 -s </dev/tty
         exec "$0" "$@"
     fi
     
@@ -847,7 +847,7 @@ if check_installed; then
             # Invalid input
             echo -e "${RED}Invalid choice. Please enter a number between 1-4. / 选择无效，请输入 1-4 之间的数字。${NC}"
             echo -e "${YELLOW}Press any key to continue... / 按任意键继续...${NC}"
-            read -n 1 -s
+            read -n 1 -s </dev/tty
             exec "$0" "$@"
             ;;
     esac
@@ -1013,7 +1013,7 @@ if ! check_systemd_service; then
     echo -e "${YELLOW}Would you like to install auto-start service?"
     echo -e "是否安装自动启动服务？（系统重启后自动运行）${NC}"
     echo -n "Install auto-start service? / 安装自动启动服务？ [Y/n] "
-    read -n 1 -r
+    read -n 1 -r </dev/tty
     echo
     
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
@@ -1031,7 +1031,7 @@ if [ "$SERVICE_JUST_INSTALLED" = true ]; then
 fi
 
 echo -n "Start ClawDeckX now? / 立即启动 ClawDeckX？ [Y/n] "
-read -n 1 -r
+read -n 1 -r </dev/tty
 echo
 
 if [[ $REPLY =~ ^[Nn]$ ]]; then
