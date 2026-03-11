@@ -240,6 +240,14 @@ uninstall() {
         read -n 1 -r MODE
         echo
         
+        # Handle empty or invalid input
+        if [ -z "$MODE" ] || { [ "$MODE" != "1" ] && [ "$MODE" != "2" ]; }; then
+            echo -e "${RED}Invalid input. Please enter 1 or 2. / 输入无效，请输入 1 或 2。${NC}"
+            echo -e "${YELLOW}Press any key to continue... / 按任意键继续...${NC}"
+            read -n 1 -s
+            exec "$0" "$@"
+        fi
+        
         if [ "$MODE" = "1" ]; then
             # Quick uninstall - remove everything
             echo ""
@@ -772,6 +780,14 @@ if check_installed; then
     read -n 1 -r CHOICE
     echo
     
+    # Handle empty input
+    if [ -z "$CHOICE" ]; then
+        echo -e "${RED}Invalid input. Please enter a number between 1-4. / 输入无效，请输入 1-4 之间的数字。${NC}"
+        echo -e "${YELLOW}Press any key to continue... / 按任意键继续...${NC}"
+        read -n 1 -s
+        exec "$0" "$@"
+    fi
+    
     case $CHOICE in
         1)
             update
@@ -822,10 +838,17 @@ if check_installed; then
             # Always uninstall (option 3 is always "Uninstall")
             uninstall
             ;;
-        4|*)
-            # Always exit (option 4 is always "Exit")
+        4)
+            # Exit
             echo -e "${YELLOW}Exiting / 退出${NC}"
             exit 0
+            ;;
+        *)
+            # Invalid input
+            echo -e "${RED}Invalid choice. Please enter a number between 1-4. / 选择无效，请输入 1-4 之间的数字。${NC}"
+            echo -e "${YELLOW}Press any key to continue... / 按任意键继续...${NC}"
+            read -n 1 -s
+            exec "$0" "$@"
             ;;
     esac
 fi
