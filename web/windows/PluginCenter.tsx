@@ -5,6 +5,8 @@ import { pluginApi, gwApi, gatewayApi, PluginStatusPlugin, PluginDiagnostic, Plu
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
+import { copyToClipboard } from '../utils/clipboard';
+import { copyToClipboard } from '../utils/clipboard';
 
 // Built-in plugin catalog
 type CatalogEntry = { id: string; spec: string; name: string; nameZh: string; description: string; descriptionZh: string; icon: string; category: 'channel' | 'integration' | 'utility'; relatedChannels?: string[] };
@@ -257,7 +259,7 @@ const PluginCenter: React.FC<PluginCenterProps> = ({ language }) => {
   }, [sk, toast, confirm, fetchPlugins]);
 
   const handleCopySpec = useCallback((spec: string) => {
-    navigator.clipboard?.writeText(spec).then(() => toast('success', sk.pluginCopied)).catch(() => {});
+    copyToClipboard(spec).then(() => toast('success', sk.pluginCopied)).catch(() => {});
   }, [sk, toast]);
 
   const statusBadge = (s?: string) => s === 'loaded' ? 'bg-mac-green/15 text-mac-green' : s === 'error' ? 'bg-mac-red/15 text-mac-red' : 'bg-slate-200 dark:bg-white/10 text-slate-500';
