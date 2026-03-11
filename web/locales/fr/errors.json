@@ -119,5 +119,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "Échec du déverrouillage de sauvegarde",
   "SNAPSHOT_PLAN_FAILED": "Échec du plan de restauration de sauvegarde",
   "SNAPSHOT_RESTORE_FAILED": "Échec de la restauration de sauvegarde",
-  "SYSTEM_METHOD_NOT_ALLOWED": "Méthode non autorisée"
+  "SYSTEM_METHOD_NOT_ALLOWED": "Méthode non autorisée",
+  "API_NOT_AVAILABLE": "Point de terminaison API non disponible (le backend doit peut-être être mis à jour)",
+  "INVALID_RESPONSE": "Réponse invalide du serveur"
 }

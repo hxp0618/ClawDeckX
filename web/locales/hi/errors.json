@@ -105,5 +105,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "बैकअप अनलॉक विफल",
   "SNAPSHOT_PLAN_FAILED": "बैकअप पुनर्स्थापना योजना विफल",
   "SNAPSHOT_RESTORE_FAILED": "बैकअप पुनर्स्थापना विफल",
-  "SYSTEM_METHOD_NOT_ALLOWED": "विधि अनुमत नहीं है"
+  "SYSTEM_METHOD_NOT_ALLOWED": "विधि की अनुमति नहीं है",
+  "API_NOT_AVAILABLE": "API एंडपॉइंट उपलब्ध नहीं है (बैकएंड को अपडेट करने की आवश्यकता हो सकती है)",
+  "INVALID_RESPONSE": "सर्वर से अमान्य प्रतिक्रिया"
 }

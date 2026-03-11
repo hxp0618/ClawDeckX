@@ -119,5 +119,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "Ошибка разблокировки резервной копии",
   "SNAPSHOT_PLAN_FAILED": "Ошибка плана восстановления резервной копии",
   "SNAPSHOT_RESTORE_FAILED": "Ошибка восстановления резервной копии",
-  "SYSTEM_METHOD_NOT_ALLOWED": "Метод не разрешён"
+  "SYSTEM_METHOD_NOT_ALLOWED": "Метод не разрешён",
+  "API_NOT_AVAILABLE": "Конечная точка API недоступна (возможно, требуется обновление бэкенда)",
+  "INVALID_RESPONSE": "Недопустимый ответ от сервера"
 }

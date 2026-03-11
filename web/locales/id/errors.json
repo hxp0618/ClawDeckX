@@ -105,5 +105,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "Gagal membuka kunci cadangan",
   "SNAPSHOT_PLAN_FAILED": "Gagal merencanakan pemulihan cadangan",
   "SNAPSHOT_RESTORE_FAILED": "Gagal memulihkan cadangan",
-  "SYSTEM_METHOD_NOT_ALLOWED": "Metode tidak diizinkan"
+  "SYSTEM_METHOD_NOT_ALLOWED": "Metode tidak diizinkan",
+  "API_NOT_AVAILABLE": "Endpoint API tidak tersedia (backend mungkin perlu diperbarui)",
+  "INVALID_RESPONSE": "Respons tidak valid dari server"
 }

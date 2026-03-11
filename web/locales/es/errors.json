@@ -119,5 +119,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "Error al desbloquear copia de seguridad",
   "SNAPSHOT_PLAN_FAILED": "Error en el plan de restauración de copia de seguridad",
   "SNAPSHOT_RESTORE_FAILED": "Error al restaurar copia de seguridad",
-  "SYSTEM_METHOD_NOT_ALLOWED": "Método no permitido"
+  "SYSTEM_METHOD_NOT_ALLOWED": "Método no permitido",
+  "API_NOT_AVAILABLE": "Endpoint API no disponible (el backend puede necesitar actualización)",
+  "INVALID_RESPONSE": "Respuesta inválida del servidor"
 }

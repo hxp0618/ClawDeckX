@@ -119,5 +119,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "バックアップのロック解除に失敗しました",
   "SNAPSHOT_PLAN_FAILED": "バックアップの復元計画に失敗しました",
   "SNAPSHOT_RESTORE_FAILED": "バックアップの復元に失敗しました",
-  "SYSTEM_METHOD_NOT_ALLOWED": "メソッドが許可されていません"
+  "SYSTEM_METHOD_NOT_ALLOWED": "メソッドが許可されていません",
+  "API_NOT_AVAILABLE": "APIエンドポイントが利用できません（バックエンドの更新が必要な可能性があります）",
+  "INVALID_RESPONSE": "サーバーからの無効なレスポンス"
 }

@@ -119,5 +119,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "备份解锁失败",
   "SNAPSHOT_PLAN_FAILED": "备份恢复计划失败",
   "SNAPSHOT_RESTORE_FAILED": "备份恢复失败",
-  "SYSTEM_METHOD_NOT_ALLOWED": "方法不允许"
+  "SYSTEM_METHOD_NOT_ALLOWED": "方法不允许",
+  "API_NOT_AVAILABLE": "API 接口不可用（后端可能需要更新）",
+  "INVALID_RESPONSE": "服务器响应无效"
 }

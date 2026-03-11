@@ -89,6 +89,33 @@ async function request<T = any>(
     throw new ApiError('AUTH_UNAUTHORIZED', translateApiError('AUTH_UNAUTHORIZED', 'session expired'), 401);
   }
 
+  // Guard: detect HTML responses (SPA fallback for unregistered routes, version mismatch, etc.)
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    const text = await res.text();
+    if (text.trimStart().startsWith('<')) {
+      throw new ApiError(
+        'API_NOT_AVAILABLE',
+        translateApiError('API_NOT_AVAILABLE', `API endpoint not available: ${url} (received HTML instead of JSON — the backend may need to be updated)`),
+        res.status,
+      );
+    }
+    // Try to parse as JSON anyway (some endpoints may omit content-type header)
+    try {
+      const parsed = JSON.parse(text);
+      const apiRes = parsed as ApiResponse<T>;
+      if (!apiRes.success) {
+        const code = apiRes.error_code || 'UNKNOWN';
+        const msg = translateApiError(code, apiRes.message || 'Request failed');
+        throw new ApiError(code, msg, res.status);
+      }
+      return apiRes.data as T;
+    } catch (e) {
+      if (e instanceof ApiError) throw e;
+      throw new ApiError('INVALID_RESPONSE', translateApiError('INVALID_RESPONSE', `Invalid response from ${url}`), res.status);
+    }
+  }
+
   const json: ApiResponse<T> = await res.json();
 
   if (!json.success) {

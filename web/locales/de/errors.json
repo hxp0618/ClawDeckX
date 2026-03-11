@@ -119,5 +119,7 @@
   "SNAPSHOT_UNLOCK_FAILED": "Sicherungsentschlüsselung fehlgeschlagen",
   "SNAPSHOT_PLAN_FAILED": "Sicherungswiederherstellungsplan fehlgeschlagen",
   "SNAPSHOT_RESTORE_FAILED": "Sicherungswiederherstellung fehlgeschlagen",
-  "SYSTEM_METHOD_NOT_ALLOWED": "Methode nicht erlaubt"
+  "SYSTEM_METHOD_NOT_ALLOWED": "Methode nicht erlaubt",
+  "API_NOT_AVAILABLE": "API-Endpunkt nicht verfügbar (Backend muss möglicherweise aktualisiert werden)",
+  "INVALID_RESPONSE": "Ungültige Antwort vom Server"
 }
