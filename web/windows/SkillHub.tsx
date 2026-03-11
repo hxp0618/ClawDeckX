@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../locales';
-import { skillHubApi, SkillHubSkill, SkillHubData, gwApi } from '../services/api';
+import { skillHubApi, SkillHubSkill, SkillHubData } from '../services/api';
 import { useToast } from '../components/Toast';
 import EmptyState from '../components/EmptyState';
 import CustomSelect from '../components/CustomSelect';
@@ -371,7 +371,7 @@ const SkillHub: React.FC<SkillHubProps> = ({ language }) => {
     setCLIStatus('dismissed');
   }, []);
 
-  // Fetch installed skills from backend (via OpenClaw Gateway skills.status RPC)
+  // Fetch installed skills from backend (merges Gateway skills.status RPC + skillhub list CLI)
   const fetchInstalledSkills = useCallback(async () => {
     try {
       const result = await skillHubApi.getInstalledSkills();

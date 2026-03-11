@@ -1310,5 +1310,4 @@ export const skillHubApi = {
     return get<SkillHubData>(endpoint);
   },
   getInstalledSkills: () => get<{ skills: string[] }>('/api/v1/skillhub/installed'),
-  listInstalledSkills: () => get<{ skills: { slug: string; version: string }[]; available: boolean }>('/api/v1/skillhub/installed-skills'),
 };
