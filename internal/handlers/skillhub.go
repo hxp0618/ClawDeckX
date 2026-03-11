@@ -240,12 +240,13 @@ func (h *SkillHubHandler) InstallSkill(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Execute skillhub install command with --dir pointing to openclaw managed skills dir
+	// Note: --dir must come BEFORE the install subcommand
 	skillsDir := managedSkillsDir()
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd.exe", "/c", "skillhub", "install", "--dir", skillsDir, req.Slug)
+		cmd = exec.Command("cmd.exe", "/c", "skillhub", "--dir", skillsDir, "install", req.Slug)
 	} else {
-		cmd = exec.Command("skillhub", "install", "--dir", skillsDir, req.Slug)
+		cmd = exec.Command("skillhub", "--dir", skillsDir, "install", req.Slug)
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -383,9 +384,9 @@ func (h *SkillHubHandler) GetInstalledSkills(w http.ResponseWriter, r *http.Requ
 		skillsDir := managedSkillsDir()
 		var cmd *exec.Cmd
 		if runtime.GOOS == "windows" {
-			cmd = exec.Command("cmd.exe", "/c", "skillhub", "list", "--dir", skillsDir)
+			cmd = exec.Command("cmd.exe", "/c", "skillhub", "--dir", skillsDir, "list")
 		} else {
-			cmd = exec.Command("skillhub", "list", "--dir", skillsDir)
+			cmd = exec.Command("skillhub", "--dir", skillsDir, "list")
 		}
 		var stdout bytes.Buffer
 		cmd.Stdout = &stdout
