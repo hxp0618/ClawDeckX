@@ -87,6 +87,14 @@ ensure_user_systemd_env() {
     fi
 }
 
+# Check if systemctl --user is actually usable (user systemd instance running).
+# Returns 0 if usable, 1 if not (e.g. su session without pam_systemd).
+can_use_systemctl_user() {
+    ensure_user_systemd_env
+    # Quick check: if systemctl --user can talk to the bus at all
+    systemctl --user --no-pager show-environment > /dev/null 2>&1
+}
+
 # Function to check if systemd service is installed
 check_systemd_service() {
     ensure_user_systemd_env
@@ -495,13 +503,17 @@ stop_clawdeckx() {
     
     # Try to stop systemd service first
     if check_systemd_service; then
-        echo -e "${BLUE}Stopping systemd service... / 正在停止 systemd 服务...${NC}"
-        if [ "$SYSTEMD_SERVICE_TYPE" = "user" ]; then
-            systemctl --user stop clawdeckx 2>/dev/null || true
+        if [ "$SYSTEMD_SERVICE_TYPE" = "user" ] && ! can_use_systemctl_user; then
+            : # skip systemctl --user in su sessions, will kill process below
         else
-            sudo systemctl stop clawdeckx 2>/dev/null || true
+            echo -e "${BLUE}Stopping systemd service... / 正在停止 systemd 服务...${NC}"
+            if [ "$SYSTEMD_SERVICE_TYPE" = "user" ]; then
+                systemctl --user stop clawdeckx > /dev/null 2>&1 || true
+            else
+                sudo systemctl stop clawdeckx > /dev/null 2>&1 || true
+            fi
+            sleep 2
         fi
-        sleep 2
     fi
     
     # Kill any remaining process
@@ -534,24 +546,30 @@ start_clawdeckx() {
     
     # Try to start systemd service if installed
     if check_systemd_service; then
-        echo -e "${BLUE}Starting systemd service... / 正在启动 systemd 服务...${NC}"
-        if [ "$SYSTEMD_SERVICE_TYPE" = "user" ]; then
-            systemctl --user start clawdeckx 2>/dev/null
+        if [ "$SYSTEMD_SERVICE_TYPE" = "user" ] && ! can_use_systemctl_user; then
+            echo -e "${YELLOW}⚠ Cannot use systemctl --user (no user session bus, likely su session)"
+            echo -e "  无法使用 systemctl --user（无用户会话总线，可能是 su 会话）${NC}"
+            echo -e "${CYAN}Falling back to direct binary start... / 回退到直接启动二进制文件...${NC}"
         else
-            sudo systemctl start clawdeckx 2>/dev/null
-        fi
-        sleep 2
-        
-        # Check if started successfully
-        if [ "$SYSTEMD_SERVICE_TYPE" = "user" ]; then
-            if systemctl --user is-active --quiet clawdeckx 2>/dev/null; then
-                echo -e "${GREEN}✓ Service started successfully / 服务启动成功${NC}"
-                return 0
+            echo -e "${BLUE}Starting systemd service... / 正在启动 systemd 服务...${NC}"
+            if [ "$SYSTEMD_SERVICE_TYPE" = "user" ]; then
+                systemctl --user start clawdeckx > /dev/null 2>&1
+            else
+                sudo systemctl start clawdeckx > /dev/null 2>&1
             fi
-        else
-            if systemctl is-active --quiet clawdeckx 2>/dev/null; then
-                echo -e "${GREEN}✓ Service started successfully / 服务启动成功${NC}"
-                return 0
+            sleep 2
+            
+            # Check if started successfully
+            if [ "$SYSTEMD_SERVICE_TYPE" = "user" ]; then
+                if systemctl --user is-active --quiet clawdeckx 2>/dev/null; then
+                    echo -e "${GREEN}✓ Service started successfully / 服务启动成功${NC}"
+                    return 0
+                fi
+            else
+                if systemctl is-active --quiet clawdeckx 2>/dev/null; then
+                    echo -e "${GREEN}✓ Service started successfully / 服务启动成功${NC}"
+                    return 0
+                fi
             fi
         fi
     fi
