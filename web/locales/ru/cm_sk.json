@@ -134,6 +134,8 @@
     "confirmDisable": "Отключить",
     "confirmUninstall": "Удалить",
     "installFailed": "Ошибка установки",
+    "permissionDenied": "Недостаточно прав. Запустите с sudo или от имени администратора",
+    "platformNotSupported": "Платформа не поддерживается. Установите вручную",
     "uninstalled": "удалён",
     "uninstallFailed": "Ошибка удаления",
     "updated": "обновлён",

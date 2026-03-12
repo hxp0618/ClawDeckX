@@ -134,6 +134,8 @@
     "confirmDisable": "Nonaktifkan",
     "confirmUninstall": "Hapus Instal",
     "installFailed": "Instal gagal",
+    "permissionDenied": "Izin ditolak. Jalankan dengan sudo atau sebagai administrator",
+    "platformNotSupported": "Platform tidak didukung. Silakan instal secara manual",
     "uninstalled": "dihapus",
     "uninstallFailed": "Gagal menghapus instal",
     "updated": "diperbarui",

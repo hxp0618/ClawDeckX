@@ -134,6 +134,8 @@
     "confirmDisable": "비활성화",
     "confirmUninstall": "제거",
     "installFailed": "설치 실패",
+    "permissionDenied": "권한이 부족합니다. sudo 또는 관리자 권한으로 실행해 주세요",
+    "platformNotSupported": "이 플랫폼은 원클릭 설치를 지원하지 않습니다. 수동으로 설치해 주세요",
     "uninstalled": "제거됨",
     "uninstallFailed": "제거 실패",
     "updated": "업데이트됨",

@@ -425,15 +425,15 @@ const SkillHub: React.FC<SkillHubProps> = ({ language }) => {
       }
     } catch (err: any) {
       const errorMsg = err?.message || 'Installation failed';
-      setCLIError(errorMsg);
-      setCLIStatus('error');
+      let localizedError = errorMsg;
       if (errorMsg.includes('PERMISSION_DENIED')) {
-        toast('error', sk.permissionDenied || 'Permission denied. Please run with sudo.');
+        localizedError = sk.permissionDenied || 'Permission denied. Please run with sudo.';
       } else if (errorMsg.includes('PLATFORM_NOT_SUPPORTED')) {
-        toast('error', sk.platformNotSupported || 'Platform not supported. Please install manually.');
-      } else {
-        toast('error', `${sk.installFailed || 'Install failed'}: ${errorMsg}`);
+        localizedError = sk.platformNotSupported || 'Platform not supported. Please install manually.';
       }
+      setCLIError(localizedError);
+      setCLIStatus('error');
+      toast('error', `${sk.installFailed || 'Install failed'}: ${localizedError}`);
     }
   }, [sk, toast]);
 
@@ -570,6 +570,8 @@ const SkillHub: React.FC<SkillHubProps> = ({ language }) => {
       const msg = err?.message || 'Install failed';
       if (msg.includes('CLI_NOT_INSTALLED')) {
         toast('error', sk.skillHubBannerNotInstalled || 'SkillHub CLI not installed');
+      } else if (msg.includes('PLATFORM_NOT_SUPPORTED')) {
+        toast('error', sk.platformNotSupported || 'Platform not supported. Please install manually.');
       } else {
         toast('error', `${sk.installFailed || 'Install failed'}: ${msg}`);
       }

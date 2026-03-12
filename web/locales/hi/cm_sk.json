@@ -134,6 +134,8 @@
     "confirmDisable": "अक्षम करें",
     "confirmUninstall": "अनइंस्टॉल करें",
     "installFailed": "इंस्टॉल विफल",
+    "permissionDenied": "अनुमति अस्वीकृत। कृपया sudo या एडमिनिस्ट्रेटर के रूप में चलाएं",
+    "platformNotSupported": "यह प्लेटफ़ॉर्म समर्थित नहीं है। कृपया मैन्युअल रूप से इंस्टॉल करें",
     "uninstalled": "अनइंस्टॉल हो गया",
     "uninstallFailed": "अनइंस्टॉल विफल",
     "updated": "अपडेट हो गया",

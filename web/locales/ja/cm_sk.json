@@ -134,6 +134,8 @@
     "confirmDisable": "無効化",
     "confirmUninstall": "アンインストール",
     "installFailed": "インストールに失敗しました",
+    "permissionDenied": "権限が不足です。sudo または管理者として実行してください",
+    "platformNotSupported": "このプラットフォームではワンクリックインストールはサポートされていません。手動でインストールしてください",
     "uninstalled": "アンインストール済み",
     "uninstallFailed": "アンインストールに失敗しました",
     "updated": "更新済み",

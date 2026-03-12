@@ -134,6 +134,8 @@
     "confirmDisable": "Deaktivieren",
     "confirmUninstall": "Deinstallieren",
     "installFailed": "Installation fehlgeschlagen",
+    "permissionDenied": "Zugriff verweigert. Bitte mit sudo oder als Administrator ausführen",
+    "platformNotSupported": "Plattform wird nicht unterstützt. Bitte manuell installieren",
     "uninstalled": "deinstalliert",
     "uninstallFailed": "Deinstallation fehlgeschlagen",
     "updated": "aktualisiert",
