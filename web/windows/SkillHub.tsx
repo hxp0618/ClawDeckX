@@ -185,7 +185,7 @@ const CLIBanner: React.FC<{
   error?: string;
   sk: any;
 }> = ({ status, onInstall, onDismiss, error, sk }) => {
-  if (status === 'installed' || status === 'dismissed') return null;
+  if (status === 'installed' || status === 'dismissed' || status === 'checking') return null;
 
   if (status === 'installing') {
     return (
@@ -223,7 +223,7 @@ const CLIBanner: React.FC<{
     );
   }
 
-  // not-installed or checking
+  // not-installed
   return (
     <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl">
       <div className="flex items-start gap-3">
@@ -232,12 +232,8 @@ const CLIBanner: React.FC<{
           <p className="text-sm font-bold text-amber-800 dark:text-amber-300">{sk.skillHubBannerNotInstalled || 'SkillHub CLI Not Installed'}</p>
           <p className="text-xs text-amber-700 dark:text-amber-200 mt-1">{sk.skillHubBannerDesc || 'Install SkillHub CLI to use skill installation features'}</p>
           <div className="flex gap-2 mt-3">
-            <button onClick={onInstall} disabled={status === 'checking'} className="h-7 px-4 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1">
-              {status === 'checking' ? (
-                <><span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>{sk.checking || 'Checking...'}</>
-              ) : (
-                <>{sk.oneClickInstall || 'One-Click Install'}</>
-              )}
+            <button onClick={onInstall} className="h-7 px-4 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 flex items-center gap-1">
+              {sk.oneClickInstall || 'One-Click Install'}
             </button>
             <button onClick={onDismiss} className="h-7 px-3 text-amber-600 dark:text-amber-400 text-xs font-bold hover:underline">
               {sk.close || 'Close'}
@@ -401,12 +397,20 @@ const SkillHub: React.FC<SkillHubProps> = ({ language }) => {
   }, [usePaginatedApi, fetchPage, fetchDataFallback]);
 
   // Check CLI status
+  const CLI_INSTALLED_KEY = 'skillhub_cli_installed';
   const checkCLI = useCallback(async () => {
     try {
       const status = await skillHubApi.cliStatus();
-      setCLIStatus(status.installed ? 'installed' : 'not-installed');
+      if (status.installed) {
+        setCLIStatus('installed');
+        localStorage.setItem(CLI_INSTALLED_KEY, 'true');
+      } else {
+        setCLIStatus('not-installed');
+        localStorage.removeItem(CLI_INSTALLED_KEY);
+      }
     } catch {
       setCLIStatus('not-installed');
+      localStorage.removeItem(CLI_INSTALLED_KEY);
     }
   }, []);
 
@@ -419,6 +423,7 @@ const SkillHub: React.FC<SkillHubProps> = ({ language }) => {
       if (result.success) {
         toast('success', sk.installSuccess || 'SkillHub CLI installed successfully!');
         setCLIStatus('installed');
+        localStorage.setItem('skillhub_cli_installed', 'true');
       } else {
         setCLIError(result.output || 'Unknown error');
         setCLIStatus('error');
@@ -458,8 +463,9 @@ const SkillHub: React.FC<SkillHubProps> = ({ language }) => {
   // Initial load
   useEffect(() => {
     const dismissed = localStorage.getItem(BANNER_DISMISSED_KEY);
-    if (dismissed === 'true') {
-      setCLIStatus('dismissed');
+    const wasInstalled = localStorage.getItem('skillhub_cli_installed') === 'true';
+    if (dismissed === 'true' || wasInstalled) {
+      setCLIStatus(wasInstalled ? 'installed' : 'dismissed');
     } else {
       checkCLI();
     }

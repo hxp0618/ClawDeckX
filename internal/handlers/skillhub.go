@@ -174,14 +174,61 @@ func (h *SkillHubHandler) SetGatewayClient(client GatewayClient) {
 	h.gwClient = client
 }
 
+// resolveSkillHubBin returns the absolute path to the skillhub binary.
+// It first checks the process PATH, then probes common install locations
+// (the Go process may have a narrower PATH than an interactive shell).
+func resolveSkillHubBin() string {
+	if p, err := exec.LookPath("skillhub"); err == nil {
+		return p
+	}
+	if runtime.GOOS == "windows" {
+		return ""
+	}
+	// Common install directories that may not be in the daemon/service PATH.
+	home, _ := os.UserHomeDir()
+	candidates := []string{
+		"/usr/local/bin/skillhub",
+		"/usr/bin/skillhub",
+		"/snap/bin/skillhub",
+	}
+	if home != "" {
+		candidates = append(candidates,
+			filepath.Join(home, ".local", "bin", "skillhub"),
+			filepath.Join(home, "bin", "skillhub"),
+		)
+	}
+	for _, c := range candidates {
+		if info, err := os.Stat(c); err == nil && !info.IsDir() {
+			return c
+		}
+	}
+	return ""
+}
+
 // CLIStatus checks if SkillHub CLI is installed
 // GET /api/v1/skillhub/cli-status
 func (h *SkillHubHandler) CLIStatus(w http.ResponseWriter, r *http.Request) {
+	bin := resolveSkillHubBin()
+
+	// On Windows fall back to bare name (resolved via cmd.exe %PATH%)
+	if bin == "" && runtime.GOOS == "windows" {
+		bin = "skillhub"
+	}
+
+	if bin == "" {
+		web.OK(w, r, map[string]interface{}{
+			"installed": false,
+			"version":   nil,
+			"path":      nil,
+		})
+		return
+	}
+
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd.exe", "/c", "skillhub", "--version")
+		cmd = exec.Command("cmd.exe", "/c", bin, "--version")
 	} else {
-		cmd = exec.Command("skillhub", "--version")
+		cmd = exec.Command(bin, "--version")
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -190,7 +237,7 @@ func (h *SkillHubHandler) CLIStatus(w http.ResponseWriter, r *http.Request) {
 
 	err := cmd.Run()
 	if err != nil {
-		// CLI not installed or not in PATH
+		logger.Log.Debug().Err(err).Str("bin", bin).Msg("skillhub --version failed")
 		web.OK(w, r, map[string]interface{}{
 			"installed": false,
 			"version":   nil,
@@ -204,24 +251,10 @@ func (h *SkillHubHandler) CLIStatus(w http.ResponseWriter, r *http.Request) {
 		version = strings.TrimSpace(stderr.String())
 	}
 
-	// Try to get the path
-	var pathCmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		pathCmd = exec.Command("cmd.exe", "/c", "where", "skillhub")
-	} else {
-		pathCmd = exec.Command("which", "skillhub")
-	}
-
-	var pathOut bytes.Buffer
-	pathCmd.Stdout = &pathOut
-	pathCmd.Run()
-
-	cliPath := strings.TrimSpace(pathOut.String())
-
 	web.OK(w, r, map[string]interface{}{
 		"installed": true,
 		"version":   version,
-		"path":      cliPath,
+		"path":      bin,
 	})
 }
 
@@ -341,15 +374,12 @@ func (h *SkillHubHandler) InstallSkill(w http.ResponseWriter, r *http.Request) {
 
 	logger.Log.Info().Str("slug", req.Slug).Msg("installing skill via SkillHub CLI")
 
-	// Check if SkillHub CLI is installed
-	var checkCmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		checkCmd = exec.Command("cmd.exe", "/c", "skillhub", "--version")
-	} else {
-		checkCmd = exec.Command("skillhub", "--version")
+	// Resolve binary (may not be on the daemon's PATH)
+	bin := resolveSkillHubBin()
+	if bin == "" && runtime.GOOS == "windows" {
+		bin = "skillhub"
 	}
-
-	if err := checkCmd.Run(); err != nil {
+	if bin == "" {
 		web.Fail(w, r, "CLI_NOT_INSTALLED", "SkillHub CLI is not installed", http.StatusBadRequest)
 		return
 	}
@@ -359,9 +389,9 @@ func (h *SkillHubHandler) InstallSkill(w http.ResponseWriter, r *http.Request) {
 	skillsDir := managedSkillsDir()
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd.exe", "/c", "skillhub", "--dir", skillsDir, "install", req.Slug)
+		cmd = exec.Command("cmd.exe", "/c", bin, "--dir", skillsDir, "install", req.Slug)
 	} else {
-		cmd = exec.Command("skillhub", "--dir", skillsDir, "install", req.Slug)
+		cmd = exec.Command(bin, "--dir", skillsDir, "install", req.Slug)
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -499,12 +529,19 @@ func (h *SkillHubHandler) GetInstalledSkills(w http.ResponseWriter, r *http.Requ
 
 	// Source 2: SkillHub CLI "skillhub list" (skills installed via skillhub install)
 	func() {
+		bin := resolveSkillHubBin()
+		if bin == "" && runtime.GOOS == "windows" {
+			bin = "skillhub"
+		}
+		if bin == "" {
+			return
+		}
 		skillsDir := managedSkillsDir()
 		var cmd *exec.Cmd
 		if runtime.GOOS == "windows" {
-			cmd = exec.Command("cmd.exe", "/c", "skillhub", "--dir", skillsDir, "list")
+			cmd = exec.Command("cmd.exe", "/c", bin, "--dir", skillsDir, "list")
 		} else {
-			cmd = exec.Command("skillhub", "--dir", skillsDir, "list")
+			cmd = exec.Command(bin, "--dir", skillsDir, "list")
 		}
 		var stdout bytes.Buffer
 		cmd.Stdout = &stdout
