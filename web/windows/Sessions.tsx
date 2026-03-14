@@ -68,7 +68,7 @@ function appendMessageDedup(
   const duplicated = prev.some((m) => {
     if (m.role !== next.role) return false;
     const mt = m.timestamp || 0;
-    if (ts && mt && Math.abs(mt - ts) > 2000) return false;
+    if (ts && mt && Math.abs(mt - ts) > 30000) return false;
     return extractText(m.content) === text;
   });
   return duplicated ? prev : [...prev, next];
@@ -596,7 +596,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     try {
       const res = await gwApi.proxy('chat.history', { sessionKey, limit: 200 }) as any;
       const msgs = Array.isArray(res?.messages) ? res.messages : [];
-      setMessages(msgs.map((m: any) => ({
+      const mapped = msgs.map((m: any) => ({
         role: m.role || 'assistant',
         content: m.content,
         timestamp: m.timestamp || m.ts,
@@ -605,7 +605,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         ...(m.model ? { model: m.model } : {}),
         ...(m.provider ? { provider: m.provider } : {}),
         ...(m.stopReason ? { stopReason: m.stopReason } : {}),
-      })));
+      }));
+      setMessages(mapped);
     } catch {
       setMessages([]);
     } finally {
@@ -676,9 +677,14 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       if (!pending || pending.runId !== runId) return;
       await loadHistory({ silent: true });
       setMessages((prev) => {
-        const latest = prev[prev.length - 1];
-        const hasAssistantReply = prev.length > pending.beforeCount && latest?.role === 'assistant';
-        if (hasAssistantReply) {
+        // After loadHistory replaces the messages array, check if the latest message
+        // is an assistant reply that appeared after our user message.
+        // Use a text-based check: find the last user message and see if there's an assistant after it.
+        const lastIdx = prev.length - 1;
+        const latest = prev[lastIdx];
+        const lastUserIdx = prev.reduce((acc, m, i) => m.role === 'user' ? i : acc, -1);
+        const hasAssistantAfterUser = lastUserIdx >= 0 && lastIdx > lastUserIdx && latest?.role === 'assistant';
+        if (hasAssistantAfterUser) {
           setRunId(null);
           setStream(null);
           setRunPhase('idle');
