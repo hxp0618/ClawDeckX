@@ -61,9 +61,15 @@ const UpdateTab: React.FC<UpdateTabProps> = ({ s, language, inputCls, rowCls }) 
   const [serviceStatus, setServiceStatus] = useState<{ openclaw_installed: boolean; clawdeckx_installed: boolean } | null>(null);
   const [serviceLoading, setServiceLoading] = useState(false);
 
-  // Markdown-like rendering for release notes
+  // Markdown-like rendering for release notes (sanitized)
   const renderMarkdown = useCallback((text: string) => {
-    return text
+    // Escape HTML first to prevent XSS from server-supplied release notes
+    const escaped = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+    return escaped
       .replace(/^### (.+)$/gm, '<h4 class="font-bold text-slate-700 dark:text-white/70 mt-2 mb-1">$1</h4>')
       .replace(/^## (.+)$/gm, '<h3 class="font-bold text-slate-700 dark:text-white/70 text-[12px] mt-3 mb-1">$1</h3>')
       .replace(/^- (.+)$/gm, '<li class="ms-3 list-disc">$1</li>')
@@ -94,10 +100,10 @@ const UpdateTab: React.FC<UpdateTabProps> = ({ s, language, inputCls, rowCls }) 
     setSelfUpdating(true);
     setSelfUpdateProgress({ stage: 'connecting', percent: 0 });
     try {
-      const token = localStorage.getItem('token');
       const resp = await fetch('/api/v1/self-update/apply', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ downloadUrl: selfUpdateInfo.downloadUrl }),
       });
       const reader = resp.body?.getReader();

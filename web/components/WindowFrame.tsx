@@ -201,10 +201,10 @@ const WindowFrame: React.FC<WindowFrameProps> = ({
           />
         ))}
 
-        <div className={`${shadowClass} ${inactiveClass} bg-slate-50 dark:bg-[#1a1c20] overflow-hidden flex flex-col w-full h-full transition-colors duration-300 ${isMax ? 'rounded-none' : 'rounded-xl border border-slate-200 dark:border-white/10'}`}>
+        <div className={`${shadowClass} ${inactiveClass} bg-slate-50 dark:bg-[#1a1c20] overflow-hidden flex flex-col w-full h-full transition-colors duration-300 ${isMax ? 'rounded-none' : `rounded-xl border border-slate-200 dark:border-white/10 ${isFocused ? 'glow-subtle-blue' : ''}`}`}>
           {/* Title bar — draggable */}
           <header
-            className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-white/5 bg-white/50 dark:bg-white/5 backdrop-blur-md shrink-0 select-none cursor-default"
+            className="flex items-center justify-between px-4 py-2.5 border-b border-slate-200 dark:border-white/5 bg-white/50 dark:bg-white/5 backdrop-blur-md shrink-0 select-none cursor-default neon-divider"
             onPointerDown={(e) => { if (!isMax) { onFocus(); onTitlePointerDown(e); } }}
             onDoubleClick={(e) => { e.stopPropagation(); onMaximize(); }}
           >
@@ -229,7 +229,7 @@ const WindowFrame: React.FC<WindowFrameProps> = ({
               {/* Title */}
               <div className="ms-4 flex items-center gap-2 text-slate-500 dark:text-white/50 min-w-0 max-w-full">
                 <span className="material-symbols-outlined text-[18px] hidden xs:inline shrink-0">terminal</span>
-                <span className="text-xs font-bold uppercase tracking-widest truncate">{win.title}</span>
+                <span className="text-xs font-bold uppercase tracking-widest truncate text-glow-cyan">{win.title}</span>
               </div>
             </div>
 
@@ -242,14 +242,14 @@ const WindowFrame: React.FC<WindowFrameProps> = ({
 
           {/* Footer (hidden when maximized) */}
           {!isMax && (
-            <footer className="px-4 py-2 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex items-center justify-between shrink-0">
+            <footer className="px-4 py-2 border-t border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/5 flex items-center justify-between shrink-0 neon-divider">
               <div className="flex items-center gap-4 text-[10px] font-medium text-slate-400 dark:text-white/40">
                 <div className="flex items-center gap-1">
                   <span className="material-symbols-outlined text-[14px]">shield_lock</span>
                   <span className="hidden xs:inline">{String(t.encrypted || '')}</span>
                 </div>
               </div>
-              <div className="text-[10px] text-slate-400 dark:text-white/40 font-mono italic">ClawDeckX OS</div>
+              <div className="text-[10px] text-slate-400 dark:text-white/40 font-mono italic text-glow-blue">ClawDeckX OS</div>
             </footer>
           )}
         </div>

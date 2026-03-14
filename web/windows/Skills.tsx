@@ -148,7 +148,7 @@ const ConfigModal: React.FC<{
             <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
           </button>
         </div>
-        <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+        <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar neon-scrollbar">
           {/* 启用/禁用 */}
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-700 dark:text-white/80">{enabled ? sk.enable : sk.disable}</span>
@@ -1136,7 +1136,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
 
       {/* Tools Catalog */}
       {activeTab === 'tools' && (
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar neon-scrollbar">
           <div className="max-w-6xl mx-auto">
             <ToolsCatalog language={language} />
           </div>
@@ -1155,7 +1155,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
 
       {/* 内容区 */}
       {activeTab !== 'plugins' && activeTab !== 'skillhub' && activeTab !== 'tools' && (
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar neon-scrollbar">
         <div className="max-w-6xl mx-auto">
           {/* 加载/错误状态 */}
           {activeTab !== 'market' && loading && (
@@ -1448,7 +1448,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                 <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar neon-scrollbar">
               {/* Description */}
               {detailSkill.description && <p className="text-[12px] text-slate-600 dark:text-white/50 leading-relaxed">{dShowTrans && dTrans?.description ? dTrans.description : detailSkill.description}</p>}
               {/* Status badges */}
@@ -1572,7 +1572,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                 </button>
               </div>
               {/* Body */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar neon-scrollbar">
                 {/* Description */}
                 {mdDesc && <p className="text-[12px] text-slate-600 dark:text-white/50 leading-relaxed">{mdDesc}</p>}
                 {/* Status badges */}
@@ -1622,14 +1622,14 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                 {md.readme && (
                   <div>
                     <h4 className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider mb-1.5">README</h4>
-                    <div className="text-[11px] text-slate-500 dark:text-white/40 leading-relaxed whitespace-pre-wrap font-mono bg-slate-50 dark:bg-black/20 rounded-lg p-3 max-h-[250px] overflow-y-auto custom-scrollbar">{md.readme}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-white/40 leading-relaxed whitespace-pre-wrap font-mono bg-slate-50 dark:bg-black/20 rounded-lg p-3 max-h-[250px] overflow-y-auto custom-scrollbar neon-scrollbar">{md.readme}</div>
                   </div>
                 )}
                 {/* Versions */}
                 {md.versions && Array.isArray(md.versions) && md.versions.length > 0 && (
                   <div>
                     <h4 className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider mb-1.5">{sk.versionHistory || 'Versions'}</h4>
-                    <div className="space-y-1 max-h-[120px] overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1 max-h-[120px] overflow-y-auto custom-scrollbar neon-scrollbar">
                       {md.versions.slice(0, 10).map((v: any, i: number) => (
                         <div key={i} className="text-[10px] text-slate-500 dark:text-white/40 font-mono flex gap-2">
                           <span>v{v.version || v}</span>

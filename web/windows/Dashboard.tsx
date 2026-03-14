@@ -77,7 +77,7 @@ function fmtBytes(b: number): string {
 }
 
 function HealthDot({ ok }: { ok: boolean }) {
-  return <div className={`w-2.5 h-2.5 rounded-full ${ok ? 'bg-mac-green motion-safe:animate-pulse' : 'bg-slate-400'} shadow-sm`} />;
+  return <div className={`w-2.5 h-2.5 rounded-full ${ok ? 'bg-mac-green animate-glow-pulse-green' : 'bg-slate-400'} shadow-sm`} />;
 }
 
 function MiniSparkline({ data, color, h = 32, w = 80, id }: { data: number[]; color: string; h?: number; w?: number; id?: string }) {
@@ -552,7 +552,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
   const showEntryDetecting = initialLoading && !hasFirstDashboardData;
   if (initialLoading && !ds.data && !ds.gwStatus) {
     return (
-      <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-slate-50/50 dark:bg-transparent">
+      <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar bg-slate-50/50 dark:bg-transparent">
         <div className="max-w-6xl mx-auto">
           {showEntryDetecting && (
             <div className="mb-4 flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-[11px] text-primary">
@@ -580,7 +580,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
     : 'bg-gradient-to-r from-red-400 via-red-500 to-red-400';
 
   return (
-    <main className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/50 dark:bg-transparent">
+    <main className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar bg-slate-50/50 dark:bg-transparent">
       {/* Health Score Color Bar */}
       <div className={`h-[3px] w-full ${healthBarColor} transition-all duration-700`} />
 
@@ -630,9 +630,9 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
 
       <div className="space-y-4 max-w-6xl mx-auto">
         {/* Gateway Status Hero + Controls */}
-        <div className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 ${gwRunning ? 'border-mac-green/20 bg-gradient-to-r from-emerald-50/80 to-white dark:from-emerald-500/[0.06] dark:to-transparent' : 'border-slate-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.02]'}`}>
+        <div className={`relative overflow-hidden rounded-2xl border p-4 sm:p-5 ${gwRunning ? 'border-mac-green/20 bg-gradient-to-r from-emerald-50/80 to-white dark:from-emerald-500/[0.06] dark:to-transparent glow-border-green' : 'border-slate-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] sci-card'}`}>
           <div className="flex items-start sm:items-center gap-3 sm:gap-4">
-            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${gwRunning ? 'bg-mac-green/15' : 'bg-slate-100 dark:bg-white/5'}`}>
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shadow-inner shrink-0 ${gwRunning ? 'bg-mac-green/15 animate-glow-breathe' : 'bg-slate-100 dark:bg-white/5'}`}>
               <span className={`material-symbols-outlined text-[28px] ${gwRunning ? 'text-mac-green' : 'text-slate-400'}`}>router</span>
             </div>
             <div className="flex-1 min-w-0">
@@ -703,11 +703,11 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
             { icon: 'devices', label: d.instances, value: data !== null ? instances.length : '--', color: '#0ea5e9', gradient: 'from-sky-50/50 dark:from-sky-500/[0.06]', target: 'gateway' },
           ].map(kpi => (
             <button key={kpi.label} onClick={() => openWindow(kpi.target)} title={(d.navigateTo || '').replace('{{page}}', kpi.label)}
-              className={`relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br ${kpi.gradient} to-white dark:to-transparent p-3.5 text-start hover:shadow-md hover:border-slate-300 dark:hover:border-white/10 transition-all cursor-pointer group`}>
+              className={`relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br ${kpi.gradient} to-white dark:to-transparent p-3.5 text-start hover:shadow-md hover:border-slate-300 dark:hover:border-white/10 transition-all cursor-pointer group sci-card`}>
               <div className="flex items-start justify-between">
                 <div>
                   <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 uppercase tracking-wider">{kpi.label}</p>
-                  <p className="text-base sm:text-lg font-black tabular-nums mt-0.5 dark:text-white text-slate-800">{kpi.value}</p>
+                  <p className="text-base sm:text-lg font-black tabular-nums mt-0.5 dark:text-white text-slate-800 text-glow-cyan">{kpi.value}</p>
                 </div>
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform" style={{ background: `${kpi.color}15` }}>
                   <span className="material-symbols-outlined text-[16px]" style={{ color: kpi.color }}>{kpi.icon}</span>
@@ -784,9 +784,9 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
           const mainDisk = disks.length > 0 ? disks[0] : null;
           const osIcon = hostInfo.os === 'darwin' ? 'laptop_mac' : hostInfo.os === 'linux' ? 'dns' : hostInfo.os === 'windows' ? 'laptop_windows' : 'computer';
           return (
-            <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-slate-100 dark:border-white/5 flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/15 to-blue-600/15 flex items-center justify-center border border-cyan-500/10">
+            <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] overflow-hidden sci-card">
+              <div className="px-5 py-3.5 border-b border-slate-100 dark:border-white/5 flex items-center gap-3 neon-divider">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/15 to-blue-600/15 flex items-center justify-center border border-cyan-500/10 animate-glow-breathe">
                   <span className="material-symbols-outlined text-cyan-500 text-[20px]">{osIcon}</span>
                 </div>
                 <div className="flex-1 min-w-0">
@@ -840,11 +840,11 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
                 {/* Quick Stats Row */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
                   <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3 text-center">
-                    <p className="text-lg font-black text-emerald-500 tabular-nums">{hostInfo.numGoroutine || 0}</p>
+                    <p className="text-lg font-black text-emerald-500 tabular-nums text-glow-green">{hostInfo.numGoroutine || 0}</p>
                     <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase mt-0.5">{hi?.goroutines || 'Goroutines'}</p>
                   </div>
                   <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3 text-center">
-                    <p className="text-lg font-black text-amber-500 tabular-nums">{fmtUptime(hostInfo.uptimeMs || 0, uptimeUnits)}</p>
+                    <p className="text-lg font-black text-amber-500 tabular-nums text-glow-cyan">{fmtUptime(hostInfo.uptimeMs || 0, uptimeUnits)}</p>
                     <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase mt-0.5">{hi?.uptime || 'Uptime'}</p>
                   </div>
                   <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3 text-center">
@@ -878,7 +878,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
 
         {/* System Health + Doctor Score + Alerts */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
-          <div className="lg:col-span-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
+          <div className="lg:col-span-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sci-card">
             <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[14px] text-primary">monitoring</span>
               {d.systemHealth}
@@ -1019,7 +1019,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
             )}
           </div>
           {/* Alerts + Token summary */}
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 flex flex-col">
+          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 flex flex-col sci-card">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
                 <span className="material-symbols-outlined text-[14px] text-mac-yellow">notifications_active</span>
@@ -1073,7 +1073,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
 
         {/* Connected Instances - full width like gateway status */}
         {instances.length > 0 ? (
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
+          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sci-card">
             <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[14px] text-sky-500">devices</span>
               {d.connectedInstances} ({instances.length})
@@ -1135,7 +1135,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
 
         {/* Recent Sessions - clickable */}
         {sessions.length > 0 ? (
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
+          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sci-card">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
                 <span className="material-symbols-outlined text-[14px] text-indigo-500">forum</span>

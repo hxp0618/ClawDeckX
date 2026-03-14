@@ -683,7 +683,7 @@ const UsageWizard: React.FC<UsageWizardProps> = ({ language, onOpenEditor, onOpe
                 <div className="px-3 py-2 border-b border-slate-100 dark:border-white/[0.04]">
                   <p className="text-[11px] font-bold text-slate-400 dark:text-white/40 uppercase tracking-wider">{o?.templateSidebar}</p>
                 </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1.5">
+                <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-2 space-y-1.5">
                   {available.map(tpl => {
                     const resolved = resolveI18n(tpl);
                     return (
@@ -707,7 +707,7 @@ const UsageWizard: React.FC<UsageWizardProps> = ({ language, onOpenEditor, onOpe
             <textarea
               value={editingFile.content}
               onChange={e => setEditingFile({ ...editingFile, content: e.target.value })}
-              className="flex-1 p-4 md:p-5 text-[11px] md:text-xs font-mono text-slate-700 dark:text-white/70 bg-transparent resize-none focus:outline-none custom-scrollbar leading-relaxed"
+              className="flex-1 p-4 md:p-5 text-[11px] md:text-xs font-mono text-slate-700 dark:text-white/70 bg-transparent resize-none focus:outline-none custom-scrollbar neon-scrollbar leading-relaxed"
               spellCheck={false}
             />
           </div>
@@ -1330,7 +1330,7 @@ const UsageWizard: React.FC<UsageWizardProps> = ({ language, onOpenEditor, onOpe
         </div>
 
         {/* Step nav — with mobile tooltip via title attribute */}
-        <div className="flex items-center gap-1 mt-3 overflow-x-auto custom-scrollbar pb-1 -mx-1 px-1">
+        <div className="flex items-center gap-1 mt-3 overflow-x-auto custom-scrollbar neon-scrollbar pb-1 -mx-1 px-1">
           {STEPS.map((step, idx) => {
             const isActive = activeStep === step.key;
             const labelKey = `step${step.key.charAt(0).toUpperCase() + step.key.slice(1)}` as string;
@@ -1359,7 +1359,7 @@ const UsageWizard: React.FC<UsageWizardProps> = ({ language, onOpenEditor, onOpe
       </div>
 
       {/* Content — with tab transition */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6">
+      <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-4 md:p-6">
         <div className={`max-w-6xl mx-auto transition-opacity duration-150 ${tabTransition ? 'opacity-0' : 'opacity-100'}`}>
           {stepContent[activeStep]?.()}
         </div>
@@ -1385,7 +1385,7 @@ const UsageWizard: React.FC<UsageWizardProps> = ({ language, onOpenEditor, onOpe
                 <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-3">
+            <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-5 space-y-3">
               <div className="rounded-lg bg-slate-50 dark:bg-white/[0.02] p-3">
                 <p className="text-[10px] font-bold text-primary mb-1">IDENTITY.md</p>
                 <pre className="text-[11px] text-slate-600 dark:text-white/50 whitespace-pre-wrap font-mono leading-relaxed">{presetPreview.content.identityContent || ''}</pre>

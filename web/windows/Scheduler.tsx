@@ -456,7 +456,7 @@ const Scheduler: React.FC<SchedulerProps> = ({ language }) => {
   // Gateway not ready screen
   if (gwChecked && !gwReady) {
     return (
-      <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-slate-50/50 dark:bg-transparent">
+      <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar bg-slate-50/50 dark:bg-transparent">
         <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-white/30">
           <span className="material-symbols-outlined text-[48px] mb-4 text-mac-yellow">cloud_off</span>
           <p className="text-sm font-bold mb-1">{s.gwNotReady}</p>
@@ -470,7 +470,7 @@ const Scheduler: React.FC<SchedulerProps> = ({ language }) => {
   // Skeleton loading
   if (!gwChecked || (loading && jobs.length === 0 && !status)) {
     return (
-      <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-slate-50/50 dark:bg-transparent">
+      <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar bg-slate-50/50 dark:bg-transparent">
         <div className="space-y-4 max-w-6xl animate-pulse">
           <div className="h-8 bg-slate-200/50 dark:bg-white/5 rounded-lg w-48" />
           <div className="grid grid-cols-3 gap-3">{[0, 1, 2].map(i => <div key={i} className="h-20 bg-slate-200/30 dark:bg-white/[0.03] rounded-xl" />)}</div>
@@ -481,7 +481,7 @@ const Scheduler: React.FC<SchedulerProps> = ({ language }) => {
   }
 
   return (
-    <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-slate-50/50 dark:bg-transparent">
+    <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar bg-slate-50/50 dark:bg-transparent">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div className="flex-1 min-w-0">
@@ -505,7 +505,7 @@ const Scheduler: React.FC<SchedulerProps> = ({ language }) => {
       <div className="space-y-4 max-w-6xl">
         {/* Status Card - full width when no form */}
         <div className={`grid grid-cols-1 ${showForm ? 'lg:grid-cols-2' : ''} gap-4`}>
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
+          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sci-card">
             <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
               <span className="material-symbols-outlined text-[14px] text-primary">schedule</span>
               {s.scheduler}
@@ -534,7 +534,7 @@ const Scheduler: React.FC<SchedulerProps> = ({ language }) => {
 
           {/* Form Modal (add / edit) */}
           {showForm && (
-            <div className="rounded-2xl border border-primary/20 bg-white dark:bg-white/[0.02] p-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="rounded-2xl border border-primary/20 bg-white dark:bg-white/[0.02] p-4 max-h-[70vh] overflow-y-auto custom-scrollbar neon-scrollbar sci-card">
               <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3 flex items-center gap-2">
                 <span className="material-symbols-outlined text-[14px] text-primary">{editingJobId ? 'edit' : 'add_task'}</span>
                 {editingJobId ? s.editJob : s.newJob}

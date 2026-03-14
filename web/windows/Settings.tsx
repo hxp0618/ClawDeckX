@@ -342,7 +342,7 @@ const Settings: React.FC<SettingsProps> = ({ language, onLogout }) => {
       </aside>
 
       {/* ── 右侧内容区 ── */}
-      <main className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
+      <main className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar flex flex-col">
         {/* Mobile header with hamburger */}
         <div className="md:hidden flex items-center gap-2.5 px-4 pt-3 pb-1 shrink-0">
           <button onClick={() => setDrawerOpen(true)} className="p-1.5 -ms-1 rounded-lg text-slate-500 dark:text-white/50 hover:text-primary hover:bg-primary/5 transition-all">

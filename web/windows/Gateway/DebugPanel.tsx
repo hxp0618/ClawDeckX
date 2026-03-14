@@ -36,7 +36,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
   debugStatus, debugHealth, debugLoading, fetchDebugData,
 }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar space-y-4">
+    <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar space-y-4">
       {/* System Event */}
       <div className="rounded-xl border border-white/5 bg-white/[0.02] overflow-hidden">
         <div className="px-4 py-2.5 border-b border-white/5 flex items-center gap-2">
@@ -105,7 +105,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
           {rpcResult && (
             <div className="p-3 rounded-lg bg-white/[0.03] border border-white/5">
               <p className="text-[11px] font-bold text-white/30 uppercase tracking-wider mb-1">{gw.rpcResult}</p>
-              <pre className="text-[10px] text-emerald-400/80 font-mono whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto custom-scrollbar">{rpcResult}</pre>
+              <pre className="text-[10px] text-emerald-400/80 font-mono whitespace-pre-wrap break-all max-h-[300px] overflow-y-auto custom-scrollbar neon-scrollbar">{rpcResult}</pre>
             </div>
           )}
         </div>
@@ -126,13 +126,13 @@ const DebugPanel: React.FC<DebugPanelProps> = ({
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <p className="text-[11px] font-bold text-white/30 uppercase tracking-wider mb-1.5">{gw.status}</p>
-            <pre className="text-[10px] text-white/50 font-mono whitespace-pre-wrap break-all bg-white/[0.02] rounded-lg p-3 max-h-[200px] overflow-y-auto custom-scrollbar border border-white/5">
+            <pre className="text-[10px] text-white/50 font-mono whitespace-pre-wrap break-all bg-white/[0.02] rounded-lg p-3 max-h-[200px] overflow-y-auto custom-scrollbar neon-scrollbar border border-white/5">
               {debugStatus ? JSON.stringify(debugStatus, null, 2) : '{}'}
             </pre>
           </div>
           <div>
             <p className="text-[11px] font-bold text-white/30 uppercase tracking-wider mb-1.5">{gw.gwHealth}</p>
-            <pre className="text-[10px] text-white/50 font-mono whitespace-pre-wrap break-all bg-white/[0.02] rounded-lg p-3 max-h-[200px] overflow-y-auto custom-scrollbar border border-white/5">
+            <pre className="text-[10px] text-white/50 font-mono whitespace-pre-wrap break-all bg-white/[0.02] rounded-lg p-3 max-h-[200px] overflow-y-auto custom-scrollbar neon-scrollbar border border-white/5">
               {debugHealth ? JSON.stringify(debugHealth, null, 2) : '{}'}
             </pre>
           </div>

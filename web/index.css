@@ -49,6 +49,17 @@
   /* ── Typography ── */
   --font-sans: 'Inter', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+
+  /* ── Sci-Tech Glow (light defaults) ── */
+  --glow-cyan: rgba(0, 200, 255, 0.15);
+  --glow-blue: rgba(0, 123, 255, 0.12);
+  --glow-purple: rgba(139, 92, 246, 0.10);
+  --glow-green: rgba(34, 197, 94, 0.12);
+  --glow-amber: rgba(245, 158, 11, 0.10);
+  --glow-red: rgba(239, 68, 68, 0.10);
+  --color-neon-cyan: #00c8ff;
+  --color-neon-blue: #3b82f6;
+  --color-neon-purple: #8b5cf6;
 }
 
 @variant dark (&:where(.dark, .dark *));
@@ -65,6 +76,17 @@
   --color-text-secondary: rgba(255, 255, 255, 0.6);
   --color-text-muted: rgba(255, 255, 255, 0.35);
   --color-text-disabled: rgba(255, 255, 255, 0.15);
+
+  /* ── Sci-Tech Glow (dark — vibrant) ── */
+  --glow-cyan: rgba(0, 210, 255, 0.35);
+  --glow-blue: rgba(59, 130, 246, 0.30);
+  --glow-purple: rgba(139, 92, 246, 0.25);
+  --glow-green: rgba(34, 197, 94, 0.30);
+  --glow-amber: rgba(245, 158, 11, 0.25);
+  --glow-red: rgba(239, 68, 68, 0.25);
+  --color-neon-cyan: #00d4ff;
+  --color-neon-blue: #60a5fa;
+  --color-neon-purple: #a78bfa;
 }
 
 .material-symbols-outlined {
@@ -319,4 +341,279 @@ body {
 
 .dark .mac-window-shadow-inactive {
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* ── Markdown body styles ── */
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+  font-weight: 700;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+.markdown-body h1 { font-size: 1.25em; }
+.markdown-body h2 { font-size: 1.1em; }
+.markdown-body h3 { font-size: 1em; }
+.markdown-body p { margin: 0.4em 0; }
+.markdown-body ul, .markdown-body ol { padding-inline-start: 1.5em; margin: 0.4em 0; }
+.markdown-body li { margin: 0.15em 0; }
+.markdown-body blockquote {
+  border-inline-start: 3px solid rgba(0, 0, 0, 0.1);
+  padding-inline-start: 0.8em;
+  margin: 0.5em 0;
+  opacity: 0.8;
+}
+.dark .markdown-body blockquote {
+  border-inline-start-color: rgba(255, 255, 255, 0.1);
+}
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  margin: 0.8em 0;
+}
+.dark .markdown-body hr {
+  border-top-color: rgba(255, 255, 255, 0.06);
+}
+
+/* ── Streaming cursor blink ── */
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.animate-cursor-blink {
+  animation: cursor-blink 0.8s step-end infinite;
+}
+
+/* ── Card grid entrance animation ── */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+.animate-card-enter {
+  animation: card-enter 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* ── Image gallery fade-in ── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+/* ═══════════════════════════════════════════
+   Sci-Tech Glow System
+   Pure CSS — zero JS overhead
+   ═══════════════════════════════════════════ */
+
+/* ── Glow border utilities ── */
+.glow-border-cyan {
+  box-shadow: 0 0 0 1px var(--glow-cyan), 0 0 12px var(--glow-cyan), inset 0 0 8px rgba(0, 210, 255, 0.03);
+}
+.glow-border-blue {
+  box-shadow: 0 0 0 1px var(--glow-blue), 0 0 12px var(--glow-blue), inset 0 0 8px rgba(59, 130, 246, 0.03);
+}
+.glow-border-purple {
+  box-shadow: 0 0 0 1px var(--glow-purple), 0 0 12px var(--glow-purple);
+}
+.glow-border-green {
+  box-shadow: 0 0 0 1px var(--glow-green), 0 0 12px var(--glow-green);
+}
+.glow-border-amber {
+  box-shadow: 0 0 0 1px var(--glow-amber), 0 0 10px var(--glow-amber);
+}
+.glow-border-red {
+  box-shadow: 0 0 0 1px var(--glow-red), 0 0 10px var(--glow-red);
+}
+
+/* Subtle glow — for hover/focus states */
+.glow-subtle-cyan {
+  box-shadow: 0 0 8px var(--glow-cyan);
+}
+.glow-subtle-blue {
+  box-shadow: 0 0 8px var(--glow-blue);
+}
+
+/* ── Focus glow for inputs ── */
+.glow-focus-ring:focus-within {
+  box-shadow: 0 0 0 2px var(--glow-cyan), 0 0 16px var(--glow-cyan), 0 0 32px rgba(0, 210, 255, 0.08);
+}
+
+/* ── Text glow ── */
+.text-glow-cyan {
+  text-shadow: 0 0 8px var(--glow-cyan), 0 0 16px rgba(0, 210, 255, 0.15);
+}
+.text-glow-blue {
+  text-shadow: 0 0 6px var(--glow-blue);
+}
+.text-glow-green {
+  text-shadow: 0 0 6px var(--glow-green);
+}
+
+/* ── Breathing glow animation ── */
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.animate-glow-breathe {
+  animation: glow-breathe 2.5s ease-in-out infinite;
+}
+
+/* ── Glow pulse (for status indicators) ── */
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 4px var(--glow-cyan); }
+  50% { box-shadow: 0 0 12px var(--glow-cyan), 0 0 24px rgba(0, 210, 255, 0.15); }
+}
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+@keyframes glow-pulse-green {
+  0%, 100% { box-shadow: 0 0 4px var(--glow-green); }
+  50% { box-shadow: 0 0 12px var(--glow-green), 0 0 20px rgba(34, 197, 94, 0.12); }
+}
+.animate-glow-pulse-green {
+  animation: glow-pulse-green 2s ease-in-out infinite;
+}
+
+/* ── Neon underline sweep ── */
+@keyframes neon-sweep {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.neon-underline {
+  background: linear-gradient(90deg, transparent 0%, var(--color-neon-cyan) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: neon-sweep 3s linear infinite;
+}
+
+/* ── Scan line overlay (ultra-subtle, CSS-only) ── */
+.scan-lines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 210, 255, 0.015) 2px,
+    rgba(0, 210, 255, 0.015) 4px
+  );
+  z-index: 1;
+  mix-blend-mode: overlay;
+}
+
+/* ── Sci-tech card (reusable) ── */
+.sci-card {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.sci-card:hover {
+  border-color: rgba(0, 123, 255, 0.15);
+  box-shadow: 0 0 8px var(--glow-blue);
+}
+.dark .sci-card {
+  background: linear-gradient(135deg, rgba(30, 32, 40, 0.85), rgba(21, 23, 28, 0.85));
+  border-color: rgba(255, 255, 255, 0.06);
+}
+.dark .sci-card:hover {
+  border-color: rgba(0, 210, 255, 0.2);
+  box-shadow: 0 0 12px var(--glow-cyan), 0 0 24px rgba(0, 210, 255, 0.06);
+}
+
+/* ── Sci-tech input ── */
+.sci-input {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.sci-input:focus, .sci-input:focus-within {
+  border-color: rgba(0, 123, 255, 0.3);
+  box-shadow: 0 0 8px var(--glow-blue);
+}
+.dark .sci-input:focus, .dark .sci-input:focus-within {
+  border-color: rgba(0, 210, 255, 0.25);
+  box-shadow: 0 0 12px var(--glow-cyan), 0 0 24px rgba(0, 210, 255, 0.06);
+}
+
+/* ── Neon scrollbar (dark mode) ── */
+.dark .neon-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 210, 255, 0.15);
+  border-radius: 10px;
+}
+.dark .neon-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 210, 255, 0.3);
+}
+
+/* ── Sci-tech badge glow ── */
+.sci-badge {
+  transition: box-shadow 0.2s ease;
+}
+.dark .sci-badge:hover {
+  box-shadow: 0 0 8px var(--glow-cyan);
+}
+
+/* ── Assistant message glow accent (left edge) ── */
+.msg-glow-accent {
+  position: relative;
+}
+.msg-glow-accent::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--color-neon-cyan);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.dark .msg-glow-accent::before {
+  opacity: 0.6;
+  box-shadow: 0 0 6px var(--glow-cyan);
+}
+
+/* ── Send button glow ── */
+@keyframes send-glow {
+  0%, 100% { box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); }
+  50% { box-shadow: 0 4px 20px rgba(0, 123, 255, 0.5), 0 0 30px rgba(0, 123, 255, 0.15); }
+}
+.dark .send-btn-glow {
+  animation: send-glow 2s ease-in-out infinite;
+}
+
+/* ── Streaming dot glow ── */
+@keyframes stream-dot-glow {
+  0%, 100% { box-shadow: 0 0 4px var(--glow-cyan); opacity: 0.6; }
+  50% { box-shadow: 0 0 10px var(--glow-cyan); opacity: 1; }
+}
+.dark .stream-dot {
+  animation: stream-dot-glow 1.2s ease-in-out infinite;
+}
+
+/* ── Header divider neon line ── */
+.neon-divider {
+  position: relative;
+}
+.neon-divider::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--color-neon-cyan), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.dark .neon-divider::after {
+  opacity: 0.3;
 }

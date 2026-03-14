@@ -348,7 +348,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
   }, [phase, gwRetryCount]);
 
   return (
-    <main className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar bg-slate-50 dark:bg-transparent transition-colors">
+    <main className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar neon-scrollbar bg-slate-50 dark:bg-transparent transition-colors">
       <div className="max-w-3xl mx-auto">
         {/* 标题 */}
         <div className="text-center mb-8">
@@ -896,7 +896,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
             </div>
 
             {/* 日志输出 */}
-            <div className="h-48 overflow-y-auto bg-slate-900 dark:bg-black/50 rounded-lg p-3 font-mono text-xs text-green-400 custom-scrollbar">
+            <div className="h-48 overflow-y-auto bg-slate-900 dark:bg-black/50 rounded-lg p-3 font-mono text-xs text-green-400 custom-scrollbar neon-scrollbar">
               {logs.map((log, i) => (
                 <div key={i} className="whitespace-pre-wrap">{log}</div>
               ))}

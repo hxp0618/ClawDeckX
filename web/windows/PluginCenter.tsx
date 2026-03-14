@@ -346,7 +346,7 @@ const PluginCenter: React.FC<PluginCenterProps> = ({ language }) => {
             <h4 className="text-[11px] font-bold text-mac-red">{sk.pluginDiagnostics || 'Diagnostics'} ({diagnostics.length})</h4>
             <button onClick={() => setShowDiagnostics(false)} className="text-slate-400 hover:text-slate-600"><span className="material-symbols-outlined text-[14px]">close</span></button>
           </div>
-          <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar">
+          <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar neon-scrollbar">
             {diagnostics.map((d, i) => (
               <div key={i} className="flex items-start gap-1.5 text-[10px]">
                 <span className={`material-symbols-outlined text-[12px] mt-0.5 ${d.level === 'error' ? 'text-mac-red' : 'text-amber-500'}`}>{d.level === 'error' ? 'error' : 'warning'}</span>
@@ -379,7 +379,7 @@ const PluginCenter: React.FC<PluginCenterProps> = ({ language }) => {
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar neon-scrollbar">
         <div className="max-w-6xl mx-auto">
           {/* Skeleton loading (no cache) */}
           {loading && (
@@ -538,7 +538,7 @@ const PluginCenter: React.FC<PluginCenterProps> = ({ language }) => {
               </button>
             </div>
             {/* Modal body */}
-            <div className="flex-1 overflow-y-auto px-5 py-4 custom-scrollbar space-y-3">
+            <div className="flex-1 overflow-y-auto px-5 py-4 custom-scrollbar neon-scrollbar space-y-3">
               {/* Basic info rows */}
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <div><span className="text-slate-400 dark:text-white/30">{sk.pluginDetailStatus || 'Status'}:</span> <span className={`font-bold ${detailPlugin.status === 'loaded' ? 'text-mac-green' : detailPlugin.status === 'error' ? 'text-mac-red' : 'text-slate-500'}`}>{statusLabel(detailPlugin.status)}</span></div>

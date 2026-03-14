@@ -241,7 +241,7 @@ export const LiveConfigSection: React.FC<LiveConfigSectionProps> = ({ language }
                 <span className="material-symbols-outlined text-[14px]">close</span>
               </button>
             </div>
-            <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar">
+            <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto custom-scrollbar neon-scrollbar">
               {topLevelKeys.map(key => {
                 const sectionHint = hints[key];
                 const sectionLabel = sectionHint?.label || key;
@@ -292,7 +292,7 @@ export const LiveConfigSection: React.FC<LiveConfigSectionProps> = ({ language }
               <span className="material-symbols-outlined text-[14px]">close</span>
             </button>
           </div>
-          <pre className="p-4 text-[10px] font-mono text-slate-600 dark:text-white/50 overflow-auto max-h-64 custom-scrollbar">
+          <pre className="p-4 text-[10px] font-mono text-slate-600 dark:text-white/50 overflow-auto max-h-64 custom-scrollbar neon-scrollbar">
             {JSON.stringify(schema, null, 2)}
           </pre>
         </div>
@@ -365,7 +365,7 @@ export const LiveConfigSection: React.FC<LiveConfigSectionProps> = ({ language }
               </div>
             )}
             {wizardStep.result && (
-              <pre className="p-2 bg-black/5 dark:bg-black/30 rounded-lg text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-32 custom-scrollbar">
+              <pre className="p-2 bg-black/5 dark:bg-black/30 rounded-lg text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-32 custom-scrollbar neon-scrollbar">
                 {typeof wizardStep.result === 'string' ? wizardStep.result : JSON.stringify(wizardStep.result, null, 2)}
               </pre>
             )}

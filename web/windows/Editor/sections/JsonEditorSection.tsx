@@ -98,7 +98,7 @@ export const JsonEditorSection: React.FC<JsonEditorSectionProps> = ({ config, to
             value={text}
             onChange={e => handleChange(e.target.value)}
             spellCheck={false}
-            className="flex-1 p-3 bg-transparent text-[11px] md:text-[12px] leading-[1.65] font-mono text-slate-800 dark:text-[#d4d4d4] outline-none resize-none overflow-auto custom-scrollbar"
+            className="flex-1 p-3 bg-transparent text-[11px] md:text-[12px] leading-[1.65] font-mono text-slate-800 dark:text-[#d4d4d4] outline-none resize-none overflow-auto custom-scrollbar neon-scrollbar"
             style={{ minHeight: '400px', tabSize: 2 }}
           />
         </div>

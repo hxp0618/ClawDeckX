@@ -88,7 +88,7 @@ const Editor: React.FC<EditorProps> = ({ language }) => {
 
       <div className="flex-1 overflow-hidden flex flex-col">
         {tab === 'models' ? (
-          <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
+          <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar neon-scrollbar">
             <div className="max-w-5xl mx-auto space-y-6 md:space-y-8 animate-in fade-in slide-in-from-bottom-2">
               <section>
                 <div className="flex items-center justify-between mb-3 md:mb-4">
@@ -145,7 +145,7 @@ const Editor: React.FC<EditorProps> = ({ language }) => {
             <div className="w-8 md:w-12 border-e border-white/5 bg-[#1a1a1a] flex flex-col items-center py-4 text-white/20 select-none">
               {[...Array(30)].map((_, i) => <span key={i} className="leading-[1.6]">{i + 1}</span>)}
             </div>
-            <div className="flex-1 p-2 md:p-4 overflow-y-auto custom-scrollbar text-[#9cdcfe]">
+            <div className="flex-1 p-2 md:p-4 overflow-y-auto custom-scrollbar neon-scrollbar text-[#9cdcfe]">
                <div className="leading-[1.6]">
                 <div><span className="text-white">{"{"}</span></div>
                 <div className="ps-4">

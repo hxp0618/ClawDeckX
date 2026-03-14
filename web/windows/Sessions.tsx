@@ -8,6 +8,14 @@ import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import { copyToClipboard } from '../utils/clipboard';
+import CustomSelect from '../components/CustomSelect';
+import { MarkdownRenderer } from '../components/MarkdownRenderer';
+import { ImageGallery } from '../components/ImageGallery';
+import { ThinkingBlock } from '../components/ThinkingBlock';
+import { ToolCallCard } from '../components/ToolCallCard';
+import { UsagePanel } from '../components/UsagePanel';
+import { extractImages, extractThinking, hasImages, hasThinking } from '../utils/content-blocks';
+import { groupMessages, isFirstInGroup, isLastInGroup } from '../utils/message-grouping';
 
 interface SessionsProps {
   language: Language;
@@ -28,9 +36,14 @@ interface GwSession {
   inputTokens?: number;
   outputTokens?: number;
   thinkingLevel?: string;
+  verboseLevel?: string;
+  reasoningLevel?: string;
+  sendPolicy?: string;
   derivedTitle?: string;
   maxContextTokens?: number;
   compacted?: boolean;
+  activeRun?: boolean;
+  isStreaming?: boolean;
 }
 
 interface ChatMsg {
@@ -78,11 +91,23 @@ function extractText(content: unknown): string {
   return '';
 }
 
-function extractToolCalls(content: unknown): Array<{ name: string; input?: string }> {
+function extractToolCalls(content: unknown): Array<{ id?: string; name: string; input?: string }> {
   if (!Array.isArray(content)) return [];
   return content
     .filter((b: any) => b?.type === 'tool_use')
-    .map((b: any) => ({ name: b.name || 'tool', input: b.input ? JSON.stringify(b.input, null, 2) : undefined }));
+    .map((b: any) => ({ id: b.id, name: b.name || 'tool', input: b.input ? JSON.stringify(b.input, null, 2) : undefined }));
+}
+
+function extractToolResultText(content: unknown): string {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .filter((b: any) => b?.type === 'tool_result' || b?.type === 'text')
+      .map((b: any) => b?.text || (typeof b?.content === 'string' ? b.content : JSON.stringify(b?.content)))
+      .filter(Boolean)
+      .join('\n');
+  }
+  return '';
 }
 
 function fmtTime(ts?: number): string {
@@ -160,8 +185,6 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   // Scroll to bottom visibility
   const [showScrollBtn, setShowScrollBtn] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  // Tool call expand state
-  const [expandedTools, setExpandedTools] = useState<Set<string>>(new Set());
   // Long message expand state
   const [expandedMsgs, setExpandedMsgs] = useState<Set<number>>(new Set());
   // Sidebar collapse (desktop)
@@ -171,11 +194,28 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   // Stream throttle ref
   const streamTextRef = useRef('');
   const streamRafRef = useRef<number | null>(null);
+  // Latency tracking
+  const [lastLatencyMs, setLastLatencyMs] = useState<number | null>(null);
+  const [liveElapsed, setLiveElapsed] = useState<number>(0);
+  // File/image attachments
+  const [pendingAttachments, setPendingAttachments] = useState<Array<{ dataUrl: string; mimeType: string; fileName: string; isImage: boolean; fileSize: number }>>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   // Message feedback
   const [feedbackMap, setFeedbackMap] = useState<Record<number, 'up' | 'down'>>({});
+  // Message search
+  const [msgSearchOpen, setMsgSearchOpen] = useState(false);
+  const [msgSearchQuery, setMsgSearchQuery] = useState('');
+  const msgSearchRef = useRef<HTMLInputElement>(null);
+  // Message context menu
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number; idx: number; text: string; isUser: boolean } | null>(null);
   // Reconnect banner
   const [showReconnectBanner, setShowReconnectBanner] = useState(false);
   const wasConnectedRef = useRef(false);
+
+  // Session override settings panel
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [patchBusy, setPatchBusy] = useState(false);
+  const [savedField, setSavedField] = useState<string | null>(null);
 
   // Inject system message
   const [injectOpen, setInjectOpen] = useState(false);
@@ -209,6 +249,25 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const [slashOpen, setSlashOpen] = useState(false);
   const [slashHighlight, setSlashHighlight] = useState(0);
   const slashRef = useRef<HTMLDivElement>(null);
+
+  // Highlight search matches in text
+  const highlightSearch = useCallback((text: string): React.ReactNode => {
+    if (!msgSearchQuery || msgSearchQuery.length < 2) return text;
+    const q = msgSearchQuery.toLowerCase();
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx === -1) return text;
+    const parts: React.ReactNode[] = [];
+    let pos = 0;
+    let searchIdx = text.toLowerCase().indexOf(q, pos);
+    while (searchIdx !== -1) {
+      if (searchIdx > pos) parts.push(text.slice(pos, searchIdx));
+      parts.push(<mark key={searchIdx} className="bg-yellow-300/80 dark:bg-yellow-500/40 text-inherit rounded-sm px-0.5">{text.slice(searchIdx, searchIdx + msgSearchQuery.length)}</mark>);
+      pos = searchIdx + msgSearchQuery.length;
+      searchIdx = text.toLowerCase().indexOf(q, pos);
+    }
+    if (pos < text.length) parts.push(text.slice(pos));
+    return <>{parts}</>;
+  }, [msgSearchQuery]);
 
   const SLASH_COMMANDS = useMemo(() => [
     { cmd: '/help', desc: c.quickHelp, icon: 'help', cat: 'status' },
@@ -281,6 +340,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const isStreaming = runPhase === 'streaming';
   const renderedMessages = useMemo(() => messages.slice(-200), [messages]);
   const omittedMessageCount = Math.max(0, messages.length - renderedMessages.length);
+  const msgGroups = useMemo(() => groupMessages(renderedMessages), [renderedMessages]);
 
   // Check GW proxy connectivity + connect Manager WS for chat streaming events
   useEffect(() => {
@@ -428,6 +488,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       setRunId(null);
       setRunPhase('idle');
       setError(null);
+      if (pendingRunRef.current?.startedAt) setLastLatencyMs(Date.now() - pendingRunRef.current.startedAt);
       pendingRunRef.current = null;
     } else if (payload.state === 'aborted') {
       // If there was partial stream text, keep it as a message
@@ -459,6 +520,19 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     handleChatEventRef.current = handleChatEvent;
   }, [handleChatEvent]);
 
+  // Live elapsed timer during streaming
+  useEffect(() => {
+    if (runPhase !== 'streaming' && runPhase !== 'sending') {
+      setLiveElapsed(0);
+      return;
+    }
+    const started = pendingRunRef.current?.startedAt || Date.now();
+    const tick = () => setLiveElapsed(Date.now() - started);
+    tick();
+    const id = setInterval(tick, 200);
+    return () => clearInterval(id);
+  }, [runPhase]);
+
   // Load sessions list (via REST proxy)
   const loadSessions = useCallback(async () => {
     if (!gwReady) return;
@@ -484,6 +558,9 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         inputTokens: s.inputTokens || 0,
         outputTokens: s.outputTokens || 0,
         thinkingLevel: s.thinkingLevel || '',
+        verboseLevel: s.verboseLevel || '',
+        reasoningLevel: s.reasoningLevel || '',
+        sendPolicy: s.sendPolicy || '',
         derivedTitle: s.derivedTitle || '',
         maxContextTokens: s.maxContextTokens || s.contextWindow || s.maxTokens || 0,
         compacted: !!s.compacted,
@@ -683,20 +760,85 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     }
   }, []);
 
+  // Read file as data URL (for attachments)
+  const readFileAsDataUrl = useCallback((file: File): Promise<{ dataUrl: string; mimeType: string; fileName: string; isImage: boolean; fileSize: number }> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ dataUrl: reader.result as string, mimeType: file.type || 'application/octet-stream', fileName: file.name, isImage: file.type.startsWith('image/'), fileSize: file.size });
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
+  // Handle paste (intercept pasted files/images)
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const pastedFiles: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const file = items[i].getAsFile();
+      if (file && (items[i].type.startsWith('image/') || items[i].type.startsWith('application/') || items[i].type.startsWith('text/'))) {
+        pastedFiles.push(file);
+      }
+    }
+    if (pastedFiles.length === 0) return;
+    e.preventDefault();
+    const results = await Promise.all(pastedFiles.map(readFileAsDataUrl));
+    setPendingAttachments(prev => [...(prev || []), ...results].slice(0, 5));
+  }, [readFileAsDataUrl]);
+
+  // Handle file input change
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const validFiles = Array.from(files).filter(f => f.size <= MAX_FILE_SIZE);
+    const results = await Promise.all(validFiles.map(readFileAsDataUrl));
+    setPendingAttachments(prev => [...(prev || []), ...results].slice(0, 5));
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  }, [readFileAsDataUrl]);
+
+  // Remove pending attachment
+  const removePendingAttachment = useCallback((idx: number) => {
+    setPendingAttachments(prev => (prev || []).filter((_, i) => i !== idx));
+  }, []);
+
   // Send message (via REST proxy; streaming events come via Manager WS)
   const sendMessage = useCallback(async () => {
     if (!gwReady || sending || isStreaming) return;
     const msg = input.trim();
-    if (!msg) return;
+    const attachments_ = pendingAttachments || [];
+    if (!msg && attachments_.length === 0) return;
 
     // Track input history for ↑ recall
-    setInputHistory(prev => [msg, ...prev.slice(0, 49)]);
-    setHistoryIdx(-1);
+    if (msg) {
+      setInputHistory(prev => [msg, ...prev.slice(0, 49)]);
+      setHistoryIdx(-1);
+    }
     saveDraft(sessionKey, '');
 
-    // Optimistic user message
-    setMessages(prev => [...prev, { role: 'user', content: [{ type: 'text', text: msg }], timestamp: Date.now() }]);
+    // Build optimistic user message content blocks
+    const contentBlocks: Array<{ type: string; text?: string; source?: { type: string; media_type: string; data: string } }> = [];
+    if (msg) contentBlocks.push({ type: 'text', text: msg });
+    for (const att of attachments_) {
+      if (att.isImage) {
+        contentBlocks.push({ type: 'image', source: { type: 'base64', media_type: att.mimeType, data: att.dataUrl } });
+      } else {
+        contentBlocks.push({ type: 'text', text: `📎 ${att.fileName}` });
+      }
+    }
+    setMessages(prev => [...prev, { role: 'user', content: contentBlocks.length === 1 && contentBlocks[0].type === 'text' ? contentBlocks : contentBlocks, timestamp: Date.now() }]);
+
+    // Build attachments for API
+    const attachments = attachments_.map(att => ({
+      type: att.isImage ? 'image' as const : 'file' as const,
+      mimeType: att.mimeType,
+      fileName: att.fileName,
+      content: att.dataUrl,
+    }));
+
     setInput('');
+    setPendingAttachments([]);
     setSending(true);
     setRunPhase('sending');
     setError(null);
@@ -709,6 +851,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         sessionKey,
         message: msg,
         idempotencyKey,
+        ...(attachments.length > 0 ? { attachments } : {}),
       }) as any;
       const nextRunId = res?.runId || idempotencyKey;
       setRunId(nextRunId);
@@ -732,7 +875,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     } finally {
       setSending(false);
     }
-  }, [gwReady, input, sending, isStreaming, sessionKey, messages.length, c.error]);
+  }, [gwReady, input, sending, isStreaming, sessionKey, messages.length, c.error, pendingAttachments]);
 
   // Abort (via REST proxy)
   const handleAbort = useCallback(async () => {
@@ -895,7 +1038,6 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     // Clear unread
     setUnreadMap(prev => { const next = { ...prev }; delete next[key]; return next; });
     setExpandedMsgs(new Set());
-    setExpandedTools(new Set());
   }, [sessionKey, input, saveDraft, loadDraft]);
 
   // New session
@@ -1029,21 +1171,27 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   }, []);
 
   // Export chat as Markdown
-  const exportChat = useCallback(() => {
-    const lines = messages.map(m => {
-      const text = extractText(m.content);
-      const role = m.role === 'user' ? '**You**' : m.role === 'assistant' ? '**AI**' : `**${m.role}**`;
-      const ts = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
-      return `${role} ${ts ? `(${ts})` : ''}\n\n${text}\n`;
-    });
-    const md = `# Chat: ${sessionKey}\n\n${lines.join('\n---\n\n')}`;
-    const blob = new Blob([md], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `chat-${sessionKey}-${new Date().toISOString().split('T')[0]}.md`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportChat = useCallback((format: 'md' | 'json' = 'md') => {
+    const dateStr = new Date().toISOString().split('T')[0];
+    if (format === 'json') {
+      const data = { session: sessionKey, exportedAt: new Date().toISOString(), messages: messages.map(m => ({ role: m.role, content: extractText(m.content), timestamp: m.timestamp })) };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `chat-${sessionKey}-${dateStr}.json`; a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      const lines = messages.map(m => {
+        const text = extractText(m.content);
+        const role = m.role === 'user' ? '**You**' : m.role === 'assistant' ? '**AI**' : `**${m.role}**`;
+        const ts = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
+        return `${role} ${ts ? `(${ts})` : ''}\n\n${text}\n`;
+      });
+      const md = `# Chat: ${sessionKey}\n\n${lines.join('\n---\n\n')}`;
+      const blob = new Blob([md], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `chat-${sessionKey}-${dateStr}.md`; a.click();
+      URL.revokeObjectURL(url);
+    }
   }, [messages, sessionKey]);
 
   // Resend a user message (edit + resend)
@@ -1063,6 +1211,29 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   // Current session meta
   const activeSession = sessions.find(s => s.key === sessionKey);
   const activeLabel = activeSession?.label || sessionKey;
+
+  // Override option constants
+  const THINK_LEVELS = useMemo(() => ['', 'off', 'minimal', 'low', 'medium', 'high', 'xhigh'], []);
+  const VERBOSE_VALUES = useMemo(() => ['', 'off', 'on', 'full'], []);
+  const REASONING_LEVELS = useMemo(() => ['', 'off', 'on', 'stream'], []);
+  const SEND_POLICIES = useMemo(() => ['', 'allow', 'deny'], []);
+
+  // Patch session override (real-time)
+  const patchSession = useCallback(async (field: string, patch: Record<string, unknown>) => {
+    if (!sessionKey || patchBusy) return;
+    setPatchBusy(true);
+    setSavedField(null);
+    try {
+      await gwApi.sessionsPatch(sessionKey, patch as any);
+      setSessions(prev => prev.map(s => s.key === sessionKey ? { ...s, ...patch } as GwSession : s));
+      setSavedField(field);
+      setTimeout(() => setSavedField(f => f === field ? null : f), 2000);
+    } catch (e: any) {
+      toast('error', e?.message || 'Patch failed');
+    } finally {
+      setPatchBusy(false);
+    }
+  }, [sessionKey, patchBusy, toast]);
 
   // Not connected state: only block UI when gateway itself is unreachable
   // AND we've actually checked (avoid flashing disconnected before first REST check).
@@ -1094,7 +1265,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       <aside className={`fixed md:static top-[32px] bottom-[72px] md:top-auto md:bottom-auto start-0 z-50 ${sidebarCollapsed ? 'w-0 md:w-0 overflow-hidden' : 'w-72 md:w-64 lg:w-72'} border-e border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0d1117] md:bg-slate-50/80 md:dark:bg-black/20 flex flex-col shrink-0 transform transition-all duration-200 ease-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full md:translate-x-0'}`}>
         <div className="p-3 border-b border-slate-200 dark:border-white/5">
           <button onClick={handleNewSession}
-            className="w-full bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-[0.98]">
+            className="w-full bg-primary text-white text-xs font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all active:scale-[0.98] send-btn-glow">
             <span className="material-symbols-outlined text-sm">add</span> {c.new}
           </button>
         </div>
@@ -1105,19 +1276,19 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             <span className="material-symbols-outlined absolute start-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20 text-[14px]">key</span>
             <input value={sessionKey} onChange={e => setSessionKey(e.target.value)}
               onBlur={() => loadHistory()}
-              className="w-full h-9 ps-7 pe-3 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-[12px] font-mono text-slate-700 dark:text-white/70 focus:ring-1 focus:ring-primary/50 outline-none"
+              className="w-full h-9 ps-7 pe-3 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-[12px] font-mono text-slate-700 dark:text-white/70 focus:ring-1 focus:ring-primary/50 outline-none sci-input"
               placeholder={c.sessionKey} />
           </div>
           <div className="relative">
             <span className="material-symbols-outlined absolute start-2 top-1/2 -translate-y-1/2 text-slate-400 dark:text-white/20 text-[13px]">search</span>
             <input value={sidebarSearch} onChange={e => setSidebarSearch(e.target.value)}
-              className="w-full h-8 ps-7 pe-3 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-[12px] text-slate-700 dark:text-white/70 focus:ring-1 focus:ring-primary/50 outline-none"
+              className="w-full h-8 ps-7 pe-3 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-[12px] text-slate-700 dark:text-white/70 focus:ring-1 focus:ring-primary/50 outline-none sci-input"
               placeholder={c.searchSessions || 'Search...'} />
           </div>
         </div>
 
         {/* Sessions List — grouped by time */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+        <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-2 space-y-1">
           {initialDetecting && (
             <div className="mb-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-[14px] text-primary animate-spin">progress_activity</span>
@@ -1147,9 +1318,15 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 <div key={s.key} className="relative group">
                   <button onClick={() => selectSession(s.key)}
                     className={`w-full text-start p-2.5 rounded-xl transition-all border ${sessionKey === s.key
-                      ? 'bg-primary/10 border-primary/20 shadow-sm'
+                      ? 'bg-primary/10 border-primary/20 shadow-sm glow-subtle-blue'
                       : 'border-transparent hover:bg-slate-200/50 dark:hover:bg-white/5'
                       }`}>
+                    <div className="flex items-start gap-2">
+                      <div className={`relative w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${s.kind === 'direct' ? 'bg-blue-500/10 text-blue-500' : s.kind === 'group' ? 'bg-purple-500/10 text-purple-500' : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/30'} ${(s.activeRun || s.isStreaming) ? 'ring-1 ring-primary/40 animate-pulse' : ''}`}>
+                        <span className="material-symbols-outlined text-[12px]">{s.kind === 'group' ? 'group' : s.kind === 'global' ? 'public' : 'person'}</span>
+                        {(s.activeRun || s.isStreaming) && <span className="absolute -top-0.5 -end-0.5 w-2 h-2 rounded-full bg-primary border border-white dark:border-[#0d1117]" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-0.5">
                       <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${s.kind === 'direct' ? 'bg-blue-500/10 text-blue-500' :
                         s.kind === 'group' ? 'bg-purple-500/10 text-purple-500' :
@@ -1190,6 +1367,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                         </div>
                       );
                     })() : null}
+                      </div>
+                    </div>
                   </button>
                   {/* Hover actions */}
                   <div className="absolute end-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1216,15 +1395,16 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
 
         {/* Connection Status */}
         <div className="px-3 py-2 border-t border-slate-200 dark:border-white/5 flex items-center gap-2">
-          <div className={`w-1.5 h-1.5 rounded-full ${gwReady ? 'bg-mac-green animate-pulse' : wsConnecting ? 'bg-mac-yellow animate-pulse' : 'bg-slate-300'}`} />
+          <div className={`w-1.5 h-1.5 rounded-full ${gwReady ? 'bg-mac-green animate-glow-pulse-green' : wsConnecting ? 'bg-mac-yellow animate-pulse' : 'bg-slate-300'}`} />
           <span className="text-[11px] font-medium text-slate-400 dark:text-white/40">
             {gwReady ? c.connected : wsConnecting ? c.connecting : c.disconnected}
           </span>
         </div>
       </aside>
 
-      {/* Chat Area */}
-      <div className="flex-1 flex flex-col overflow-hidden relative">
+      {/* Chat Area + Usage Panel */}
+      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex flex-col overflow-hidden">
         {/* Reconnect banner */}
         {showReconnectBanner && (
           <div className="px-4 py-1.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-center gap-2 shrink-0 z-20">
@@ -1234,7 +1414,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         )}
 
         {/* Header */}
-        <header className="px-4 md:px-6 py-2.5 md:py-3 border-b border-slate-200 dark:border-white/10 flex items-center justify-between shrink-0 bg-white/80 dark:bg-black/40 backdrop-blur-xl z-10">
+        <header className="px-4 md:px-6 py-2.5 md:py-3 border-b border-slate-200 dark:border-white/10 flex items-center justify-between shrink-0 bg-white/80 dark:bg-black/40 backdrop-blur-xl z-10 neon-divider">
           <div className="flex items-center gap-2 md:gap-3 min-w-0">
             {/* Sidebar collapse toggle (desktop) */}
             <button onClick={() => setSidebarCollapsed(v => !v)}
@@ -1246,29 +1426,28 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               className="md:hidden p-1.5 -ms-1 text-slate-500 dark:text-white/50 hover:text-primary hover:bg-primary/5 rounded-lg transition-all">
               <span className="material-symbols-outlined text-[20px]">menu</span>
             </button>
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0">
+            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20 shrink-0 animate-glow-breathe">
               <span className="material-symbols-outlined text-[18px] md:text-[20px]">smart_toy</span>
             </div>
             <div className="truncate">
               <h2 className="text-xs md:text-sm font-bold text-slate-900 dark:text-white truncate">{activeLabel}</h2>
               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                 <span className={`w-1 h-1 rounded-full ${gwReady ? 'bg-mac-green' : 'bg-slate-300'}`} />
-                <span className="text-[11px] text-slate-400 font-medium font-mono">{sessionKey}</span>
-                <span className="text-slate-300 dark:text-white/15">|</span>
+                <span className="text-[11px] text-slate-400 font-medium font-mono hidden sm:inline">{sessionKey}</span>
                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${runPhaseMeta.textClass}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${runPhaseMeta.dot}`} />
                   {runPhaseMeta.text}
                 </span>
                 {activeSession?.model && (
                   <>
-                    <span className="text-slate-300 dark:text-white/15">|</span>
-                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono truncate max-w-[120px]">{activeSession.model}</span>
+                    <span className="text-slate-300 dark:text-white/15 hidden sm:inline">|</span>
+                    <span className="text-[10px] font-medium font-mono truncate max-w-[100px] sm:max-w-[120px] px-1.5 py-0.5 rounded bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/10">{activeSession.model}</span>
                   </>
                 )}
                 {activeSession?.totalTokens ? (
                   <>
-                    <span className="text-slate-300 dark:text-white/15">|</span>
-                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono">{(activeSession.totalTokens / 1000).toFixed(1)}k tok</span>
+                    <span className="text-slate-300 dark:text-white/15 hidden md:inline">|</span>
+                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono hidden md:inline">{(activeSession.totalTokens / 1000).toFixed(1)}k tok</span>
                   </>
                 ) : null}
                 {activeSession?.totalTokens && activeSession?.maxContextTokens ? (() => {
@@ -1279,7 +1458,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                     <>
                       <span className="text-slate-300 dark:text-white/15">|</span>
                       <div className="flex items-center gap-1" title={`${(activeSession.totalTokens / 1000).toFixed(1)}k / ${(activeSession.maxContextTokens / 1000).toFixed(0)}k`}>
-                        <div className="w-12 h-1.5 rounded-full bg-slate-200/60 dark:bg-white/10 overflow-hidden">
+                        <div className="w-10 sm:w-12 h-1.5 rounded-full bg-slate-200/60 dark:bg-white/10 overflow-hidden">
                           <div className={`h-full rounded-full ${clr} transition-all`} style={{ width: `${pct}%` }} />
                         </div>
                         <span className={`text-[9px] font-bold tabular-nums ${txtClr}`}>{pct.toFixed(0)}%</span>
@@ -1288,15 +1467,51 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                     </>
                   );
                 })() : null}
+                {messages.length > 0 && (
+                  <>
+                    <span className="text-slate-300 dark:text-white/15 hidden md:inline">|</span>
+                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono tabular-nums hidden md:inline" title={c.messages || 'Messages'}>{messages.length} msg</span>
+                  </>
+                )}
+                {(runPhase === 'streaming' || runPhase === 'sending') && liveElapsed > 0 ? (
+                  <>
+                    <span className="text-slate-300 dark:text-white/15">|</span>
+                    <span className="text-[10px] text-primary font-mono tabular-nums">{(liveElapsed / 1000).toFixed(1)}s</span>
+                  </>
+                ) : lastLatencyMs && runPhase === 'idle' ? (
+                  <>
+                    <span className="text-slate-300 dark:text-white/15 hidden sm:inline">|</span>
+                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono tabular-nums hidden sm:inline" title={c.latency || 'Latency'}>{(lastLatencyMs / 1000).toFixed(1)}s</span>
+                  </>
+                ) : null}
               </div>
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <button onClick={exportChat} disabled={messages.length === 0}
-              className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600 rounded-lg transition-colors disabled:opacity-30"
-              title={c.exportChat || 'Export'}>
-              <span className="material-symbols-outlined text-[18px]">download</span>
+            <button onClick={() => setSettingsOpen(v => !v)}
+              className={`p-2 rounded-lg transition-colors ${settingsOpen ? 'text-primary bg-primary/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
+              title={c.overrides || 'Overrides'}>
+              <span className="material-symbols-outlined text-[18px]">tune</span>
             </button>
+            <div className="relative group/export">
+              <button onClick={() => exportChat('md')} disabled={messages.length === 0}
+                className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600 rounded-lg transition-colors disabled:opacity-30"
+                title={c.exportChat || 'Export Markdown'}>
+                <span className="material-symbols-outlined text-[18px]">download</span>
+              </button>
+              <div className="absolute top-full end-0 mt-1 hidden group-hover/export:block z-30">
+                <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a1c20] shadow-xl py-1 min-w-[120px]">
+                  <button onClick={() => exportChat('md')} disabled={messages.length === 0}
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
+                    <span className="material-symbols-outlined text-[13px]">description</span>Markdown
+                  </button>
+                  <button onClick={() => exportChat('json')} disabled={messages.length === 0}
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
+                    <span className="material-symbols-outlined text-[13px]">data_object</span>JSON
+                  </button>
+                </div>
+              </div>
+            </div>
             <button onClick={() => setInjectOpen(true)} disabled={!gwReady}
               className="p-2 text-slate-400 hover:bg-purple-100 dark:hover:bg-purple-500/10 hover:text-purple-500 rounded-lg transition-colors disabled:opacity-30"
               title={c.inject}>
@@ -1317,6 +1532,11 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               title={c.repair}>
               <span className={`material-symbols-outlined text-[18px] ${repairScanning ? 'animate-spin' : ''}`}>{repairScanning ? 'progress_activity' : 'healing'}</span>
             </button>
+            <button onClick={() => { setMsgSearchOpen(v => !v); if (!msgSearchOpen) setTimeout(() => msgSearchRef.current?.focus(), 100); }}
+              className={`p-2 rounded-lg transition-colors ${msgSearchOpen ? 'text-primary bg-primary/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
+              title={c.searchMessages || 'Search Messages'}>
+              <span className="material-symbols-outlined text-[18px]">search</span>
+            </button>
             <button onClick={() => { loadSessions(); loadHistory(); }}
               className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors">
               <span className="material-symbols-outlined text-[18px]">refresh</span>
@@ -1324,8 +1544,114 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           </div>
         </header>
 
+        {/* Collapsible message search bar */}
+        {msgSearchOpen && (
+          <div className="shrink-0 border-b border-slate-200/60 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.015] px-4 py-2 animate-fade-in">
+            <div className="flex items-center gap-2 max-w-2xl mx-auto">
+              <span className="material-symbols-outlined text-[16px] text-slate-400">search</span>
+              <input ref={msgSearchRef} type="text" value={msgSearchQuery} onChange={e => setMsgSearchQuery(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Escape') { setMsgSearchOpen(false); setMsgSearchQuery(''); } }}
+                className="flex-1 bg-transparent text-[12px] text-slate-700 dark:text-white/70 placeholder:text-slate-400 dark:placeholder:text-white/25 outline-none"
+                placeholder={c.searchPlaceholder || 'Search in messages...'} />
+              {msgSearchQuery && (
+                <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono tabular-nums shrink-0">
+                  {renderedMessages.filter(m => extractText(m.content).toLowerCase().includes(msgSearchQuery.toLowerCase())).length} {c.matches || 'matches'}
+                </span>
+              )}
+              <button onClick={() => { setMsgSearchOpen(false); setMsgSearchQuery(''); }}
+                className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-white/60 rounded transition-colors">
+                <span className="material-symbols-outlined text-[14px]">close</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Collapsible Session Override Settings Panel */}
+        {settingsOpen && activeSession && (
+          <div className="shrink-0 border-b border-slate-200/60 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.015] px-4 py-3 animate-fade-in">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[14px] text-primary">tune</span>
+                  {c.overrides || 'Session Overrides'}
+                </h3>
+                <button onClick={() => setSettingsOpen(false)} className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-white/60 rounded transition-colors">
+                  <span className="material-symbols-outlined text-[16px]">close</span>
+                </button>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                {/* Label */}
+                <label className="block">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
+                    {c.sessionLabel || 'Label'}
+                    {savedField === 'label' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
+                  </span>
+                  <input defaultValue={activeSession.label || ''} disabled={patchBusy} key={`ol-${sessionKey}`}
+                    onBlur={e => { const v = e.target.value.trim(); if (v !== (activeSession.label || '')) patchSession('label', { label: v || null }); }}
+                    className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70 focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                </label>
+                {/* Thinking */}
+                <label className="block">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
+                    {c.thinking || 'Thinking'}
+                    {savedField === 'thinking' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
+                  </span>
+                  <CustomSelect value={activeSession.thinkingLevel || ''} disabled={patchBusy}
+                    onChange={v => patchSession('thinking', { thinkingLevel: v || null })}
+                    options={THINK_LEVELS.map(lv => ({ value: lv, label: lv || (c.inherit || 'Inherit') }))}
+                    className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70" />
+                </label>
+                {/* Verbose */}
+                <label className="block">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
+                    {c.verbose || 'Verbose'}
+                    {savedField === 'verbose' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
+                  </span>
+                  <CustomSelect value={activeSession.verboseLevel || ''} disabled={patchBusy}
+                    onChange={v => patchSession('verbose', { verboseLevel: v || null })}
+                    options={VERBOSE_VALUES.map(lv => ({ value: lv, label: lv || (c.inherit || 'Inherit') }))}
+                    className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70" />
+                </label>
+                {/* Reasoning */}
+                <label className="block">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
+                    {c.reasoning || 'Reasoning'}
+                    {savedField === 'reasoning' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
+                  </span>
+                  <CustomSelect value={activeSession.reasoningLevel || ''} disabled={patchBusy}
+                    onChange={v => patchSession('reasoning', { reasoningLevel: v || null })}
+                    options={REASONING_LEVELS.map(lv => ({ value: lv, label: lv || (c.inherit || 'Inherit') }))}
+                    className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70" />
+                </label>
+                {/* Send Policy */}
+                <label className="block">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
+                    {c.sendPolicy || 'Policy'}
+                    {savedField === 'sendPolicy' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
+                  </span>
+                  <CustomSelect value={activeSession.sendPolicy || ''} disabled={patchBusy}
+                    onChange={v => patchSession('sendPolicy', { sendPolicy: v || null })}
+                    options={SEND_POLICIES.map(lv => ({ value: lv, label: lv || (c.inherit || 'Inherit') }))}
+                    className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70" />
+                </label>
+                {/* Model Override */}
+                <label className="block">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
+                    {c.modelOverride || 'Model'}
+                    {savedField === 'model' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
+                  </span>
+                  <input defaultValue={activeSession.model || ''} disabled={patchBusy} key={`om-${sessionKey}`}
+                    placeholder={c.modelPlaceholder || 'e.g. anthropic/claude-sonnet-4-5'}
+                    onBlur={e => { const v = e.target.value.trim(); if (v !== (activeSession.model || '')) patchSession('model', { model: v || null }); }}
+                    className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70 focus:outline-none focus:ring-1 focus:ring-primary/30" />
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Messages */}
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar relative">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar relative">
           <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-4">
             {/* Session history cleared notice */}
             {sessionNotice && (
@@ -1342,32 +1668,44 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
 
             {/* Welcome + Quick Start */}
             {messages.length === 0 && !chatLoading && !stream && (
-              <div className="flex flex-col items-center justify-center py-10 md:py-16">
-                <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <span className="material-symbols-outlined text-[32px] text-primary">chat</span>
+              <div className="flex flex-col items-center justify-center py-10 md:py-16 relative">
+                {/* Decorative gradient orbs */}
+                <div className="absolute top-0 left-1/4 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                <div className="absolute bottom-0 right-1/4 w-36 h-36 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+
+                <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-5 border border-primary/10 shadow-lg shadow-primary/5">
+                  <span className="material-symbols-outlined text-[36px] text-primary">chat</span>
+                  <div className="absolute -bottom-1 -end-1 w-5 h-5 rounded-full bg-mac-green border-2 border-white dark:border-[#0d1117] flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[10px] text-white">check</span>
+                  </div>
                 </div>
-                <p className="text-sm font-medium text-slate-600 dark:text-white/40 mb-1">{c.welcome}</p>
-                <p className="text-[10px] text-slate-400 dark:text-white/20 mb-6">{c.slashHint}</p>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full max-w-lg">
+                <p className="text-base font-bold text-slate-700 dark:text-white/60 mb-1">{c.welcome}</p>
+                <p className="text-[11px] text-slate-400 dark:text-white/25 mb-7">{c.slashHint}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 w-full max-w-lg">
                   {[
-                    { cmd: '/status', icon: 'info', label: c.quickStatus, color: 'text-blue-500 bg-blue-500/10' },
-                    { cmd: '/model', icon: 'smart_toy', label: c.quickModel, color: 'text-emerald-500 bg-emerald-500/10' },
-                    { cmd: '/think', icon: 'psychology', label: c.quickThink, color: 'text-purple-500 bg-purple-500/10' },
-                    { cmd: '/compact', icon: 'compress', label: c.quickCompact, color: 'text-amber-500 bg-amber-500/10' },
-                    { cmd: '/new', icon: 'restart_alt', label: c.quickReset, color: 'text-red-400 bg-red-500/10' },
-                    { cmd: '/help', icon: 'help', label: c.quickHelp, color: 'text-slate-500 bg-slate-500/10' },
+                    { cmd: '/status', icon: 'info', label: c.quickStatus, color: 'text-blue-500 bg-gradient-to-br from-blue-500/15 to-blue-400/5 border-blue-500/10' },
+                    { cmd: '/model', icon: 'smart_toy', label: c.quickModel, color: 'text-emerald-500 bg-gradient-to-br from-emerald-500/15 to-emerald-400/5 border-emerald-500/10' },
+                    { cmd: '/think', icon: 'psychology', label: c.quickThink, color: 'text-purple-500 bg-gradient-to-br from-purple-500/15 to-purple-400/5 border-purple-500/10' },
+                    { cmd: '/compact', icon: 'compress', label: c.quickCompact, color: 'text-amber-500 bg-gradient-to-br from-amber-500/15 to-amber-400/5 border-amber-500/10' },
+                    { cmd: '/new', icon: 'restart_alt', label: c.quickReset, color: 'text-red-400 bg-gradient-to-br from-red-500/15 to-red-400/5 border-red-500/10' },
+                    { cmd: '/help', icon: 'help', label: c.quickHelp, color: 'text-slate-500 bg-gradient-to-br from-slate-500/10 to-slate-400/5 border-slate-400/10' },
                   ].map(q => (
                     <button key={q.cmd} onClick={() => selectSlashCommand(q.cmd)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] hover:border-primary/30 hover:shadow-sm transition-all text-start group">
-                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${q.color}`}>
+                      className="flex items-center gap-2.5 px-3 py-3 rounded-xl border border-slate-200/60 dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.02] hover:border-primary/30 hover:shadow-md hover:-translate-y-0.5 transition-all text-start group backdrop-blur-sm">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${q.color}`}>
                         <span className="material-symbols-outlined text-[16px]">{q.icon}</span>
                       </div>
                       <div className="min-w-0">
                         <span className="text-[11px] font-bold text-slate-700 dark:text-white/70 block truncate">{q.cmd}</span>
-                        <span className="text-[11px] text-slate-400 dark:text-white/35 block truncate">{q.label}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-white/30 block truncate">{q.label}</span>
                       </div>
                     </button>
                   ))}
+                </div>
+                <div className="hidden sm:flex flex-wrap justify-center gap-4 mt-7 text-[9px] text-slate-400 dark:text-white/20">
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[8px] border border-slate-200/60 dark:border-white/[0.06] shadow-sm">↑</kbd> {c.historyRecall || 'History'}</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[8px] border border-slate-200/60 dark:border-white/[0.06] shadow-sm">/</kbd> {c.slashCommands || 'Commands'}</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[8px] border border-slate-200/60 dark:border-white/[0.06] shadow-sm">Shift+Enter</kbd> {c.newLine || 'New line'}</span>
                 </div>
               </div>
             )}
@@ -1389,38 +1727,69 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             {renderedMessages.map((msg, idx) => {
               const text = extractText(msg.content);
               const tools = extractToolCalls(msg.content);
+              const images = extractImages(msg.content);
+              const thinkingBlocks = extractThinking(msg.content);
               const isUser = msg.role === 'user';
               const isSystem = msg.role === 'system';
               const isTool = msg.role === 'tool';
+              const showAvatar = isFirstInGroup(msgGroups, idx);
+              const isLast = isLastInGroup(msgGroups, idx);
 
               // Filter empty bubbles (P0 fix)
-              if (!text.trim() && tools.length === 0 && !isTool) return null;
+              if (!text.trim() && tools.length === 0 && !isTool && images.length === 0) return null;
+
+              // Date separator between messages on different days
+              let dateSeparator: React.ReactNode = null;
+              if (msg.timestamp) {
+                const msgDate = new Date(msg.timestamp);
+                const prevMsg = idx > 0 ? renderedMessages[idx - 1] : null;
+                const prevDate = prevMsg?.timestamp ? new Date(prevMsg.timestamp) : null;
+                const isDiffDay = !prevDate || msgDate.toDateString() !== prevDate.toDateString();
+                if (isDiffDay) {
+                  const today = new Date();
+                  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+                  const label = msgDate.toDateString() === today.toDateString() ? (c.today || 'Today')
+                    : msgDate.toDateString() === yesterday.toDateString() ? (c.yesterday || 'Yesterday')
+                    : msgDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: msgDate.getFullYear() !== today.getFullYear() ? 'numeric' : undefined });
+                  dateSeparator = (
+                    <div className="flex items-center gap-3 my-3">
+                      <div className="flex-1 h-px bg-slate-200/60 dark:bg-white/[0.06]" />
+                      <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 shrink-0">{label}</span>
+                      <div className="flex-1 h-px bg-slate-200/60 dark:bg-white/[0.06]" />
+                    </div>
+                  );
+                }
+              }
 
               if (isSystem) {
                 return (
-                  <div key={idx} className="flex justify-center">
-                    <div className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 text-[10px] text-slate-500 dark:text-white/40 font-medium max-w-md truncate">
-                      {text}
+                  <React.Fragment key={idx}>
+                    {dateSeparator}
+                    <div className="flex justify-center">
+                      <div className="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 text-[10px] text-slate-500 dark:text-white/40 font-medium max-w-md truncate">
+                        {text}
+                      </div>
                     </div>
-                  </div>
+                  </React.Fragment>
                 );
               }
 
               if (isTool) {
-                const toolKey = `tool-${idx}`;
-                const isExpanded = expandedTools.has(toolKey);
+                const toolName = (msg as any).name || (msg as any).tool_use_id || c.toolResult || 'Tool Result';
+                const isErr = (msg as any).is_error === true;
                 return (
-                  <div key={idx} className="ms-10 md:ms-12">
-                    <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/5 p-3.5 text-[11px]">
-                      <button onClick={() => setExpandedTools(prev => { const next = new Set(prev); next.has(toolKey) ? next.delete(toolKey) : next.add(toolKey); return next; })}
-                        className="flex items-center gap-1.5 mb-1.5 text-slate-500 dark:text-white/40 hover:text-primary transition-colors w-full text-start">
-                        <span className="material-symbols-outlined text-[13px]">build</span>
-                        <span className="font-bold uppercase tracking-wider">{c.toolResult}</span>
-                        <span className="material-symbols-outlined text-[13px] ms-auto">{isExpanded ? 'expand_less' : 'expand_more'}</span>
-                      </button>
-                      <pre className={`text-[11px] font-mono text-slate-600 dark:text-white/40 whitespace-pre-wrap break-all overflow-y-auto custom-scrollbar transition-all ${isExpanded ? 'max-h-96' : 'max-h-12 overflow-hidden'}`}>{text}</pre>
+                  <React.Fragment key={idx}>
+                    {dateSeparator}
+                    <div className="ms-10 md:ms-12">
+                      <ToolCallCard
+                        name={toolName}
+                        input={undefined}
+                        result={text}
+                        isError={isErr}
+                        labels={{ toolCall: c.toolInput, toolResult: c.toolOutput }}
+                      />
                     </div>
-                  </div>
+                  </React.Fragment>
                 );
               }
 
@@ -1430,21 +1799,48 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               const displayText = isLong && !isMsgExpanded ? text.slice(0, 1500) : text;
 
               return (
-                <div key={idx} className={`flex items-start gap-2.5 md:gap-3 ${isUser ? 'flex-row-reverse' : ''}`}>
-                  <div className={`w-7 h-7 md:w-8 md:h-8 shrink-0 rounded-xl flex items-center justify-center border mt-0.5 ${isUser
-                    ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-black border-slate-700 dark:border-slate-300'
-                    : 'bg-primary/10 border-primary/20 text-primary'
-                    }`}>
-                    <span className="material-symbols-outlined text-[14px] md:text-[16px]">
-                      {isUser ? 'person' : 'smart_toy'}
-                    </span>
-                  </div>
-                  <div className={`max-w-[85%] md:max-w-[75%] group ${isUser ? 'text-end' : ''}`}>
-                    <div className={`p-3.5 md:p-4 rounded-2xl shadow-sm border ${isUser
-                      ? 'bg-primary text-white border-primary/30 rounded-se-sm'
-                      : 'bg-white dark:bg-white/[0.03] text-slate-800 dark:text-slate-200 border-slate-200 dark:border-white/[0.06] rounded-ss-sm'
+                <React.Fragment key={idx}>
+                {dateSeparator}
+                <div className={`flex items-start gap-2.5 md:gap-3 ${isUser ? 'flex-row-reverse' : ''} ${!showAvatar ? 'mt-0.5' : ''}`}>
+                  {showAvatar ? (
+                    <div className={`w-7 h-7 md:w-8 md:h-8 shrink-0 rounded-xl flex items-center justify-center border mt-0.5 ${isUser
+                      ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-black border-slate-700 dark:border-slate-300'
+                      : 'bg-primary/10 border-primary/20 text-primary'
                       }`}>
-                      <div className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap break-words">{displayText}</div>
+                      <span className="material-symbols-outlined text-[14px] md:text-[16px]">
+                        {isUser ? 'person' : 'smart_toy'}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="w-7 md:w-8 shrink-0" />
+                  )}
+                  <div className={`max-w-[85%] md:max-w-[75%] group ${isUser ? 'ms-auto' : ''}`}
+                    onContextMenu={e => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY, idx, text, isUser }); }}>
+                    <div className={`p-3.5 md:p-4 shadow-sm border backdrop-blur-sm select-text cursor-text ${isUser
+                      ? `bg-primary/95 text-white border-primary/30 ${showAvatar ? 'rounded-2xl rounded-se-sm' : isLast ? 'rounded-2xl rounded-se-sm' : 'rounded-xl rounded-se-sm'}`
+                      : `bg-white/80 dark:bg-white/[0.05] text-slate-800 dark:text-slate-200 border-slate-200/70 dark:border-white/[0.08] msg-glow-accent ${showAvatar ? 'rounded-2xl rounded-ss-sm' : isLast ? 'rounded-2xl rounded-ss-sm' : 'rounded-xl rounded-ss-sm'}`
+                      }`}>
+                      {/* Thinking blocks (folded) */}
+                      {thinkingBlocks.length > 0 && (
+                        <div className="mb-2">
+                          {thinkingBlocks.map((tb, ti) => (
+                            <ThinkingBlock key={`think-${idx}-${ti}`} content={tb} labels={{ thinking: c.thinkingLabel }} />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Main text — Markdown for assistant, plain for user */}
+                      {isUser ? (
+                        <div className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap break-words">{highlightSearch(displayText)}</div>
+                      ) : (
+                        <MarkdownRenderer content={displayText} labels={{ copyCode: c.copyCode }} />
+                      )}
+
+                      {/* Images */}
+                      {images.length > 0 && (
+                        <ImageGallery images={images} labels={{ imageUnavailable: c.imageUnavailable }} />
+                      )}
+
                       {/* Expand/collapse long messages */}
                       {isLong && (
                         <button onClick={() => setExpandedMsgs(prev => { const next = new Set(prev); next.has(idx) ? next.delete(idx) : next.add(idx); return next; })}
@@ -1453,24 +1849,32 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                         </button>
                       )}
 
-                      {/* Tool calls — expandable */}
+                      {/* Tool calls — ToolCallCard with paired results */}
                       {tools.length > 0 && (
                         <div className="mt-2 space-y-1.5">
                           {tools.map((tool, ti) => {
-                            const tKey = `msg-${idx}-tool-${ti}`;
-                            const tExpanded = expandedTools.has(tKey);
+                            // Look ahead for matching tool_result in subsequent tool-role messages
+                            let result: string | undefined;
+                            let isErr = false;
+                            if (tool.id) {
+                              for (let j = idx + 1; j < renderedMessages.length && j <= idx + tools.length + 2; j++) {
+                                const nm = renderedMessages[j];
+                                if (nm?.role === 'tool' && (nm as any).tool_use_id === tool.id) {
+                                  result = extractToolResultText(nm.content);
+                                  isErr = (nm as any).is_error === true;
+                                  break;
+                                }
+                              }
+                            }
                             return (
-                              <div key={ti} className="rounded-lg bg-black/5 dark:bg-white/5 p-2 text-[10px]">
-                                <button onClick={() => setExpandedTools(prev => { const next = new Set(prev); next.has(tKey) ? next.delete(tKey) : next.add(tKey); return next; })}
-                                  className="flex items-center gap-1 text-primary font-bold w-full text-start">
-                                  <span className="material-symbols-outlined text-[11px]">build</span>
-                                  {tool.name}
-                                  <span className="material-symbols-outlined text-[10px] ms-auto">{tExpanded ? 'expand_less' : 'expand_more'}</span>
-                                </button>
-                                {tool.input && tExpanded && (
-                                  <pre className="font-mono text-[11px] text-slate-500 dark:text-white/40 whitespace-pre-wrap break-all max-h-60 overflow-y-auto custom-scrollbar mt-1">{tool.input}</pre>
-                                )}
-                              </div>
+                              <ToolCallCard
+                                key={ti}
+                                name={tool.name}
+                                input={tool.input}
+                                result={result}
+                                isError={isErr}
+                                labels={{ toolCall: c.toolInput, toolResult: c.toolOutput }}
+                              />
                             );
                           })}
                         </div>
@@ -1497,7 +1901,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                           {c.resend || 'Edit'}
                         </button>
                       )}
-                      {/* Feedback for assistant messages */}
+                      {/* Feedback + latency for assistant messages */}
                       {!isUser && !isSystem && !isTool && (
                         <div className="flex items-center gap-1">
                           <button onClick={() => setFeedbackMap(prev => ({ ...prev, [idx]: 'up' }))}
@@ -1508,11 +1912,24 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                             className={`p-0.5 rounded transition-colors ${feedbackMap[idx] === 'down' ? 'text-red-500' : 'text-slate-300 dark:text-white/15 hover:text-red-500'}`}>
                             <span className="material-symbols-outlined text-[12px]">thumb_down</span>
                           </button>
+                          {(() => {
+                            const prevUserMsg = renderedMessages.slice(0, idx).reverse().find(m => m.role === 'user');
+                            if (prevUserMsg?.timestamp && msg.timestamp) {
+                              const latMs = msg.timestamp - prevUserMsg.timestamp;
+                              if (latMs > 0 && latMs < 300_000) return (
+                                <span className="text-[9px] text-slate-300 dark:text-white/15 font-mono tabular-nums ms-1" title={c.latency || 'Response time'}>
+                                  {latMs >= 1000 ? `${(latMs / 1000).toFixed(1)}s` : `${latMs}ms`}
+                                </span>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       )}
                     </div>
                   </div>
                 </div>
+                </React.Fragment>
               );
             })}
 
@@ -1525,14 +1942,12 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 <div className="max-w-[85%] md:max-w-[75%]">
                   <div className="p-3.5 md:p-4 rounded-2xl rounded-ss-sm shadow-sm border bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.06]">
                     {stream ? (
-                      <div className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap break-words text-slate-800 dark:text-slate-200">
-                        {stream}
-                        <span className="inline-block w-0.5 h-4 bg-primary animate-pulse ms-0.5 align-text-bottom" />
-                      </div>
+                      <MarkdownRenderer content={stream} streaming labels={{ copyCode: c.copyCode }} />
                     ) : (
-                      <div className="flex items-center gap-2 text-slate-400">
-                        <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                        <span className="text-[11px]">{c.thinking}</span>
+                      <div className="flex items-center gap-1.5 py-1">
+                        {[0, 1, 2].map(i => (
+                          <span key={i} className="w-2 h-2 rounded-full bg-slate-400 dark:bg-[var(--color-neon-cyan)] animate-bounce stream-dot" style={{ animationDelay: `${i * 150}ms`, animationDuration: '0.8s' }} />
+                        ))}
                       </div>
                     )}
                   </div>
@@ -1564,6 +1979,54 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             </button>
           )}
         </div>
+
+        {/* Message context menu */}
+        {ctxMenu && (
+          <div className="fixed inset-0 z-50" onClick={() => setCtxMenu(null)} onContextMenu={e => { e.preventDefault(); setCtxMenu(null); }}>
+            <div className="absolute rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a1c20] shadow-2xl shadow-black/15 dark:shadow-black/40 py-1 min-w-[140px] animate-in fade-in zoom-in-95 duration-100"
+              style={{ top: Math.min(ctxMenu.y, window.innerHeight - 180), left: Math.min(ctxMenu.x, window.innerWidth - 160) }}>
+              <button onClick={() => { navigator.clipboard.writeText(ctxMenu.text); setCtxMenu(null); }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                {c.copy}
+              </button>
+              <button onClick={() => { setInput(prev => prev + (prev ? '\n' : '') + '> ' + ctxMenu.text.slice(0, 200)); setCtxMenu(null); }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                <span className="material-symbols-outlined text-[14px]">format_quote</span>
+                {c.quote || 'Quote'}
+              </button>
+              {ctxMenu.isUser && (
+                <button onClick={() => { resendMessage(ctxMenu.idx); setCtxMenu(null); }}
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                  <span className="material-symbols-outlined text-[14px]">replay</span>
+                  {c.resend || 'Edit & Resend'}
+                </button>
+              )}
+              <div className="border-t border-slate-100 dark:border-white/5 my-0.5" />
+              <button onClick={() => { setMessages(prev => prev.filter((_, i) => i !== ctxMenu.idx)); setCtxMenu(null); }}
+                className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-red-500 hover:bg-red-50 dark:hover:bg-red-500/5 transition-colors">
+                <span className="material-symbols-outlined text-[14px]">delete</span>
+                {c.delete}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Token context bar above input */}
+        {activeSession?.totalTokens && activeSession?.maxContextTokens ? (() => {
+          const pct = Math.min(100, (activeSession.totalTokens / activeSession.maxContextTokens) * 100);
+          const clr = pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-amber-500' : 'bg-emerald-500';
+          return (
+            <div className="shrink-0 px-4 py-1 border-t border-slate-100/50 dark:border-white/[0.03] flex items-center gap-2">
+              <div className="flex-1 h-1 rounded-full bg-slate-200/40 dark:bg-white/5 overflow-hidden">
+                <div className={`h-full rounded-full ${clr} transition-all duration-500`} style={{ width: `${pct}%` }} />
+              </div>
+              <span className="text-[8px] font-mono text-slate-400 dark:text-white/25 tabular-nums shrink-0">
+                {(activeSession.totalTokens / 1000).toFixed(1)}k / {(activeSession.maxContextTokens / 1000).toFixed(0)}k
+              </span>
+            </div>
+          );
+        })() : null}
 
         {/* Input Area */}
         <div className="p-3 md:p-4 shrink-0 border-t border-slate-100 dark:border-white/5 bg-white/80 dark:bg-[#0d1117]/80 backdrop-blur-xl">
@@ -1608,34 +2071,66 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 )}
               </div>
             )}
-            <div className="relative flex items-end gap-1.5 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-2xl md:rounded-[22px] p-1.5 md:p-2 shadow-xl shadow-black/5 dark:shadow-black/20 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
-              <textarea
-                ref={textareaRef}
-                rows={1}
-                className="flex-1 bg-transparent border-none text-[13px] md:text-sm text-slate-800 dark:text-white py-2 px-2 focus:ring-0 outline-none resize-none max-h-40 placeholder:text-slate-400 dark:placeholder:text-white/25"
-                placeholder={c.inputPlaceholder}
-                value={input}
-                onChange={handleInputChange}
-                onKeyDown={handleKeyDown}
-                disabled={!gwReady}
-              />
-              {isStreaming ? (
-                <button onClick={handleAbort}
-                  className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0 shadow-lg transition-all hover:bg-red-600 active:scale-95">
-                  <span className="material-symbols-outlined text-[18px]">stop</span>
-                </button>
-              ) : (
-                <button onClick={sendMessage}
-                  disabled={!input.trim() || sending || !gwReady}
-                  className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-95 ${input.trim() && !sending && gwReady
-                    ? 'bg-primary text-white shadow-lg shadow-primary/30'
-                    : 'bg-slate-100 dark:bg-white/5 text-slate-400'
-                    }`}>
-                  <span className="material-symbols-outlined text-[18px] md:text-[20px]">
-                    {sending ? 'progress_activity' : 'arrow_upward'}
-                  </span>
-                </button>
+            <div className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1c22] dark:to-[#14161a] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl md:rounded-[22px] p-1.5 md:p-2 shadow-xl shadow-black/5 dark:shadow-black/30 transition-all sci-input">
+              {/* Pending attachment previews */}
+              {(pendingAttachments?.length || 0) > 0 && (
+                <div className="flex gap-1.5 px-1.5 pt-1 pb-1.5 overflow-x-auto">
+                  {(pendingAttachments || []).map((att, i) => (
+                    <div key={i} className="relative shrink-0 group/img">
+                      {att.isImage ? (
+                        <img src={att.dataUrl} alt={att.fileName}
+                          className="w-14 h-14 rounded-lg object-cover border border-slate-200 dark:border-white/10" />
+                      ) : (
+                        <div className="w-14 h-14 rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] flex flex-col items-center justify-center gap-0.5">
+                          <span className="material-symbols-outlined text-[16px] text-slate-400">description</span>
+                          <span className="text-[7px] text-slate-500 dark:text-white/40 truncate max-w-[48px] px-0.5">{att.fileName.split('.').pop()}</span>
+                        </div>
+                      )}
+                      <button onClick={() => removePendingAttachment(i)}
+                        className="absolute -top-1 -end-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity">
+                        <span className="material-symbols-outlined text-[10px]">close</span>
+                      </button>
+                      <span className="absolute bottom-0.5 start-0.5 text-[7px] bg-black/50 text-white px-1 rounded truncate max-w-[52px]">{att.isImage ? att.mimeType.split('/')[1] : att.fileName.length > 8 ? att.fileName.slice(0, 6) + '..' : att.fileName}</span>
+                    </div>
+                  ))}
+                </div>
               )}
+              <div className="flex items-end gap-1.5">
+                <input ref={fileInputRef} type="file" accept="image/*,.pdf,.txt,.csv,.md,.json,.xml,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.tar,.gz" multiple className="hidden" onChange={handleFileSelect} />
+                <button onClick={() => fileInputRef.current?.click()} disabled={!gwReady || (pendingAttachments?.length || 0) >= 5}
+                  className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0 text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-30"
+                  title={c.attachFile || 'Attach File'}>
+                  <span className="material-symbols-outlined text-[18px]">attach_file</span>
+                </button>
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  className="flex-1 bg-transparent border-none text-[13px] md:text-sm text-slate-800 dark:text-white py-2 px-2 focus:ring-0 outline-none resize-none max-h-40 placeholder:text-slate-400 dark:placeholder:text-white/25"
+                  placeholder={(pendingAttachments?.length || 0) > 0 ? (c.attachCaption || c.imageCaption || 'Add a caption...') : c.inputPlaceholder}
+                  value={input}
+                  onChange={handleInputChange}
+                  onKeyDown={handleKeyDown}
+                  onPaste={handlePaste}
+                  disabled={!gwReady}
+                />
+                {isStreaming ? (
+                  <button onClick={handleAbort}
+                    className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-red-500 text-white flex items-center justify-center shrink-0 shadow-lg transition-all hover:bg-red-600 active:scale-95">
+                    <span className="material-symbols-outlined text-[18px]">stop</span>
+                  </button>
+                ) : (
+                  <button onClick={sendMessage}
+                    disabled={(!input.trim() && !(pendingAttachments?.length)) || sending || !gwReady}
+                    className={`w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 ${(input.trim() || (pendingAttachments?.length || 0) > 0) && !sending && gwReady
+                      ? 'bg-gradient-to-br from-primary to-primary/80 text-white shadow-lg shadow-primary/30 hover:shadow-primary/40 hover:scale-105 send-btn-glow'
+                      : 'bg-slate-100 dark:bg-white/5 text-slate-400'
+                      }`}>
+                    <span className={`material-symbols-outlined text-[18px] md:text-[20px] ${sending ? 'animate-spin' : ''}`}>
+                      {sending ? 'progress_activity' : 'arrow_upward'}
+                    </span>
+                  </button>
+                )}
+              </div>
             </div>
             <div className="hidden md:flex items-center justify-between text-[11px] text-slate-400 dark:text-white/20 mt-2 px-1">
               <span>{c.poweredBy}</span>
@@ -1647,6 +2142,17 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           </div>
         </div>
       </div>
+      </div>
+      {/* Usage Panel */}
+      <UsagePanel
+        sessionKey={sessionKey}
+        gwReady={gwReady}
+        loadUsage={async (key) => {
+          const res = await gwApi.sessionsUsageTimeseries(key);
+          return res;
+        }}
+        labels={c}
+      />
       {/* Inject System Message Modal */}
       {injectOpen && (
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 dark:bg-black/50 backdrop-blur-sm">

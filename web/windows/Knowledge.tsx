@@ -10,7 +10,7 @@ interface KnowledgeProps {
 
 const Knowledge: React.FC<KnowledgeProps> = ({ language, pendingExpandItem, onExpandItemConsumed }) => {
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar p-4">
+    <div className="h-full overflow-y-auto custom-scrollbar neon-scrollbar p-4">
       <TemplateManager
         language={language}
         pendingExpandItem={pendingExpandItem}

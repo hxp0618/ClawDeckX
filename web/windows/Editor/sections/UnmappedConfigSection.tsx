@@ -168,7 +168,7 @@ export const UnmappedConfigSection: React.FC<UnmappedConfigSectionProps> = ({
           </p>
         </div>
 
-        <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar">
+        <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar neon-scrollbar">
           {unmappedGroups.map(group => (
             <details key={group.prefix} className="group">
               <summary className="flex items-center gap-2 cursor-pointer select-none py-1.5 px-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/[0.03] transition-colors">

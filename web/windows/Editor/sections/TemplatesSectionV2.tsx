@@ -267,7 +267,7 @@ export const TemplatesSectionV2: React.FC<TemplatesSectionV2Props> = ({ language
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4">
+      <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-4">
         <div className="max-w-6xl mx-auto">
           {loading ? (
             <div className="flex items-center justify-center h-32 text-slate-400 dark:text-white/30 text-[11px]">
@@ -414,7 +414,7 @@ export const TemplatesSectionV2: React.FC<TemplatesSectionV2Props> = ({ language
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-5">
+            <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-5">
               {previewTab === 'raw' ? (
                 <pre className="text-[11px] font-mono text-slate-700 dark:text-white/70 whitespace-pre-wrap">
                   {templateSystem.resolveI18n(previewTemplate, language).content}
@@ -470,7 +470,7 @@ export const TemplatesSectionV2: React.FC<TemplatesSectionV2Props> = ({ language
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4">
+            <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-5 space-y-4">
               <div>
                 <label className="block text-[10px] font-bold text-slate-600 dark:text-white/60 mb-1.5">{ts.templateName || '模板名称'}</label>
                 <input

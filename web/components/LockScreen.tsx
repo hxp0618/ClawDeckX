@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { authApi } from '../services/api';
 import { Language } from '../types';
 import { getTranslation } from '../locales';
@@ -31,6 +31,36 @@ const LockScreen: React.FC<LockScreenProps> = ({
   const [needsSetup, setNeedsSetup] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Login rate limiting: progressive lockout after consecutive failures
+  const failCountRef = useRef(0);
+  const lockUntilRef = useRef(0);
+  const [lockCountdown, setLockCountdown] = useState(0);
+
+  useEffect(() => {
+    if (lockCountdown <= 0) return;
+    const id = setInterval(() => setLockCountdown(v => Math.max(0, v - 1)), 1000);
+    return () => clearInterval(id);
+  }, [lockCountdown > 0]);
+
+  const checkRateLimit = useCallback((): boolean => {
+    const now = Date.now();
+    if (lockUntilRef.current > now) {
+      setLockCountdown(Math.ceil((lockUntilRef.current - now) / 1000));
+      return false;
+    }
+    return true;
+  }, []);
+
+  const recordFailure = useCallback(() => {
+    failCountRef.current += 1;
+    const fails = failCountRef.current;
+    const delaySec = fails >= 8 ? 30 : fails >= 5 ? 15 : fails >= 3 ? 5 : 0;
+    if (delaySec > 0) {
+      lockUntilRef.current = Date.now() + delaySec * 1000;
+      setLockCountdown(delaySec);
+    }
+  }, []);
+
   // Setup form states
   const [setupData, setSetupData] = useState({
     adminUser: 'admin',
@@ -52,12 +82,16 @@ const LockScreen: React.FC<LockScreenProps> = ({
   const handleUnlock = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (loading) return;
+    if (!checkRateLimit()) return;
     setLoading(true);
     setErrorMsg('');
     try {
       await authApi.login(username, password);
+      failCountRef.current = 0;
+      lockUntilRef.current = 0;
       onUnlock();
     } catch (err: any) {
+      recordFailure();
       setError(true);
       setErrorMsg(err.message || t.loginFailed);
       setTimeout(() => setError(false), 500);
@@ -140,8 +174,9 @@ const LockScreen: React.FC<LockScreenProps> = ({
       {/* Login / Setup Area - Added mb-24 for spacing */}
       <div className={`relative z-10 flex flex-col items-center w-full max-w-sm transition-all duration-300 mb-24 ${error ? 'animate-shake' : ''}`}>
         {!needsSetup && (
-          <div className="w-[112px] h-[112px] rounded-full overflow-hidden border border-white/30 shadow-2xl mac-glass mb-6 flex items-center justify-center bg-gradient-to-br from-primary/20 to-orange-500/20">
-            <span className="text-[56px] leading-none select-none drop-shadow-lg" role="img" aria-label="ClawDeckX">🦀</span>
+          <div className="relative w-[112px] h-[112px] rounded-full overflow-hidden border border-white/30 shadow-2xl mac-glass mb-6 flex items-center justify-center bg-gradient-to-br from-primary/30 via-orange-500/20 to-purple-500/15">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+            <span className="text-[56px] leading-none select-none drop-shadow-lg relative z-10" role="img" aria-label="ClawDeckX">🦀</span>
           </div>
         )}
 
@@ -208,8 +243,14 @@ const LockScreen: React.FC<LockScreenProps> = ({
                 onChange={(e) => setPassword(e.target.value)}
               />
               {errorMsg && <p className="text-mac-red text-xs text-center">{errorMsg}</p>}
-              <button type="submit" disabled={loading} className="w-full h-10 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-all disabled:opacity-50">
-                {loading ? t.signingIn : t.signIn}
+              {lockCountdown > 0 && (
+                <div className="flex items-center justify-center gap-2 text-amber-400 text-xs">
+                  <span className="material-symbols-outlined text-[14px]">lock_clock</span>
+                  <span className="tabular-nums">{lockCountdown}s</span>
+                </div>
+              )}
+              <button type="submit" disabled={loading || lockCountdown > 0} className="w-full h-10 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-all disabled:opacity-50">
+                {loading ? t.signingIn : lockCountdown > 0 ? `${lockCountdown}s` : t.signIn}
               </button>
             </form>
             <p className="text-white/40 text-[11px] mt-8 cursor-default hover:text-white/60 transition-colors">

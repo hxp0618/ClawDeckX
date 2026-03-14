@@ -24,7 +24,7 @@ const Market: React.FC = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+      <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-6">
         <h2 className="text-lg font-bold tracking-tight mb-4 px-1 text-slate-800 dark:text-white">Featured Skills</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {MARKET_ITEMS.map(item => (

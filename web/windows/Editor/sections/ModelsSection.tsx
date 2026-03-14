@@ -356,7 +356,7 @@ const ModelPathSearch: React.FC<ModelPathSearchProps> = ({ value, onChange, opti
           className="w-full h-8 ps-8 pe-3 bg-white dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-md text-xs font-mono text-slate-800 dark:text-slate-200 outline-none focus:border-primary" />
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute start-0 end-0 mt-1 max-h-48 overflow-y-auto custom-scrollbar rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#2a2a2e] shadow-xl z-50">
+        <div className="absolute start-0 end-0 mt-1 max-h-48 overflow-y-auto custom-scrollbar neon-scrollbar rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#2a2a2e] shadow-xl z-50">
           {filtered.map((o, idx) => (
             <button key={o.path}
               onMouseEnter={() => setHl(idx)}
@@ -1022,7 +1022,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
                       </button>
                     </div>
                     {modelSearchOpen && filtered.length > 0 && (
-                      <div ref={modelListRef} className="mt-1 max-h-52 overflow-y-auto custom-scrollbar rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#2a2a2e] shadow-xl" style={{ position: 'relative', zIndex: 50 }}>
+                      <div ref={modelListRef} className="mt-1 max-h-52 overflow-y-auto custom-scrollbar neon-scrollbar rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#2a2a2e] shadow-xl" style={{ position: 'relative', zIndex: 50 }}>
                         {filtered.map((m, idx) => (
                           <button key={m.id}
                             onMouseEnter={() => setModelHighlight(idx)}
@@ -1418,7 +1418,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
                     !existingModels.includes(m.id)
                   );
                   return filtered.length > 0 ? (
-                    <div className="mt-1 max-h-48 overflow-y-auto custom-scrollbar rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#2a2a2e] shadow-xl z-50 relative">
+                    <div className="mt-1 max-h-48 overflow-y-auto custom-scrollbar neon-scrollbar rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#2a2a2e] shadow-xl z-50 relative">
                       {filtered.map((m, idx) => (
                         <button key={m.id}
                           onMouseEnter={() => setAddModelHighlight(idx)}

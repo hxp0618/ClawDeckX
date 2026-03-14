@@ -389,7 +389,7 @@ const Editor: React.FC<EditorProps> = ({ language, pendingSection, onSectionCons
           </div>
 
           {/* 瀵艰埅鍒楄〃 */}
-          <nav className="flex-1 overflow-y-auto custom-scrollbar px-2 pb-2.5">
+          <nav className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar px-2 pb-2.5">
             {filteredSections.map(s => (
               <button
                 key={s.id}
@@ -415,7 +415,7 @@ const Editor: React.FC<EditorProps> = ({ language, pendingSection, onSectionCons
         {/* 涓荤紪杈戝尯 */}
         <main
           ref={mainScrollRef}
-          className={`flex-1 overflow-y-auto custom-scrollbar ${showMobileSaveBar ? 'pb-16 md:pb-0' : ''}`}
+          className={`flex-1 overflow-y-auto custom-scrollbar neon-scrollbar ${showMobileSaveBar ? 'pb-16 md:pb-0' : ''}`}
           style={{ scrollPaddingBottom: showMobileSaveBar ? 84 : 16 }}
         >
           {editor.loading ? (

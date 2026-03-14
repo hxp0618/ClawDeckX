@@ -599,7 +599,7 @@ const Alerts: React.FC<AlertsProps> = ({ language }) => {
   const showSaveButton = tab === 'policy' || tab === 'allowlist';
 
   return (
-    <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar bg-slate-50/50 dark:bg-transparent">
+    <main className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar bg-slate-50/50 dark:bg-transparent">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div className="flex-1 min-w-0">
@@ -609,7 +609,7 @@ const Alerts: React.FC<AlertsProps> = ({ language }) => {
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
           {/* WS connection status */}
           <div className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-            <div className={`w-2 h-2 rounded-full shrink-0 ${wsConnected ? 'bg-mac-green animate-pulse' : wsConnecting ? 'bg-mac-yellow animate-pulse' : 'bg-slate-300 dark:bg-white/20'
+            <div className={`w-2 h-2 rounded-full shrink-0 ${wsConnected ? 'bg-mac-green animate-glow-pulse-green' : wsConnecting ? 'bg-mac-yellow animate-pulse' : 'bg-slate-300 dark:bg-white/20'
               }`} />
             <span className="text-[11px] font-medium text-slate-500 dark:text-white/40 hidden sm:inline">
               {wsConnected ? a.wsLive : wsConnecting ? a.wsConnecting : a.wsDisconnected}
@@ -696,14 +696,14 @@ const Alerts: React.FC<AlertsProps> = ({ language }) => {
       <div className="max-w-6xl space-y-4">
         {/* ==================== Pending Approval Queue ==================== */}
         {tab === 'pending' && (
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
+          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sci-card">
             {/* #3: Search + #2: Batch + #14: Hide expired toolbar */}
             {pendingQueue.length > 0 && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
                 <div className="flex-1 min-w-0">
                   <input type="text" value={pendingSearch} onChange={e => setPendingSearch(e.target.value)}
                     placeholder={a.searchPending}
-                    className="w-full sm:w-64 h-9 px-3 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[12px] text-slate-700 dark:text-white/70 placeholder:text-slate-300 dark:placeholder:text-white/15 outline-none focus:ring-1 focus:ring-primary/30" />
+                    className="w-full sm:w-64 h-9 px-3 rounded-lg bg-slate-50 dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[12px] text-slate-700 dark:text-white/70 placeholder:text-slate-300 dark:placeholder:text-white/15 outline-none focus:ring-1 focus:ring-primary/30 sci-input" />
                 </div>
                 <div className="flex items-center gap-1.5 flex-wrap shrink-0">
                   {expiredCount > 0 && (
@@ -735,7 +735,7 @@ const Alerts: React.FC<AlertsProps> = ({ language }) => {
             </h3>
             {pendingQueue.length === 0 ? (
               <div className="flex flex-col items-center py-10 text-slate-400 dark:text-white/30">
-                <span className="material-symbols-outlined text-4xl mb-3">task_alt</span>
+                <span className="material-symbols-outlined text-4xl mb-3 animate-glow-breathe">task_alt</span>
                 <p className="text-sm font-bold mb-1">{a.noPending}</p>
                 <p className="text-[11px] text-center max-w-xs">{a.noPendingHint || a.wsLiveDesc}</p>
                 {wsConnected && (
@@ -815,7 +815,7 @@ const Alerts: React.FC<AlertsProps> = ({ language }) => {
 
         {/* ==================== History Tab (#1) ==================== */}
         {tab === 'history' && (
-          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
+          <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sci-card">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
                 <span className="material-symbols-outlined text-[14px] text-primary">history</span>
@@ -871,7 +871,7 @@ const Alerts: React.FC<AlertsProps> = ({ language }) => {
               ))}
             </div>
 
-            <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
+            <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4 sci-card">
               <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-4">{a.policy} — {isDefaults ? a.defaults : selectedScope}</h3>
               <div className="space-y-3">
                 {/* Security — #15: uses handleSecurityChange with confirm for 'full' */}

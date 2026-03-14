@@ -541,7 +541,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
 
       {/* Sidebar — desktop: static, mobile: slide-out drawer */}
       <div className={`fixed md:static top-[32px] bottom-[72px] md:top-auto md:bottom-auto start-0 z-50 w-64 md:w-56 lg:w-64 shrink-0 border-e border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-[#1a1c22] md:dark:bg-white/[0.02] flex flex-col transform transition-transform duration-200 ease-out ${drawerOpen ? 'translate-x-0' : '-translate-x-full rtl:translate-x-full md:translate-x-0'}`}>
-        <div className="p-3 border-b border-slate-200/60 dark:border-white/[0.06]">
+        <div className="p-3 border-b border-slate-200/60 dark:border-white/[0.06] neon-divider">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xs font-bold text-slate-700 dark:text-white/80">{a.title}</h2>
@@ -559,7 +559,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
             </div>
           </div>
         </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-1.5 space-y-0.5">
+        <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-1.5 space-y-0.5">
           {agents.length === 0 ? (
             <p className="text-[10px] text-slate-400 dark:text-white/20 text-center py-8">{a.noAgents}</p>
           ) : agents.map((ag: any) => {
@@ -569,7 +569,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
             const isSelected = ag.id === selectedId;
             return (
               <button key={ag.id} onClick={() => selectAgent(ag.id)}
-                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-start transition-all ${isSelected ? 'bg-primary/10 border border-primary/20' : 'hover:bg-slate-100 dark:hover:bg-white/[0.03] border border-transparent'}`}>
+                className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-start transition-all ${isSelected ? 'bg-primary/10 border border-primary/20 glow-border' : 'hover:bg-slate-100 dark:hover:bg-white/[0.03] border border-transparent'}`}>
                 <div className={`relative w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${isSelected ? 'bg-primary/20 text-primary' : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40'}`}>
                   {emoji || label.slice(0, 1).toUpperCase()}
                   {lastHeartbeat && (Date.now() - lastHeartbeat.ts < 120000) && (
@@ -599,7 +599,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
             </div>
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center text-slate-400 dark:text-white/20">
-                <span className="material-symbols-outlined text-4xl mb-2">smart_toy</span>
+                <span className="material-symbols-outlined text-4xl mb-2 animate-glow-breathe">smart_toy</span>
                 <p className="text-sm">{a.selectAgent}</p>
               </div>
             </div>
@@ -613,7 +613,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
                 <button onClick={() => setDrawerOpen(true)} className="md:hidden p-1.5 -ms-1 rounded-lg text-slate-500 dark:text-white/50 hover:text-primary hover:bg-primary/5 transition-all shrink-0">
                   <span className="material-symbols-outlined text-[20px]">menu</span>
                 </button>
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-lg font-bold text-primary shrink-0 animate-glow-breathe">
                   {resolveEmoji(selected) || resolveLabel(selected).slice(0, 1).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -668,7 +668,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
               </div>
 
               {/* Tabs — horizontally scrollable on mobile */}
-              <div className="flex gap-0.5 mt-3 border-b border-slate-200/60 dark:border-white/[0.06] overflow-x-auto no-scrollbar">
+              <div className="flex gap-0.5 mt-3 border-b border-slate-200/60 dark:border-white/[0.06] overflow-x-auto no-scrollbar neon-divider">
                 {TABS.map(tab => (
                   <button key={tab.id} onClick={() => selectPanel(tab.id)}
                     className={`px-3 py-2 text-[11px] font-medium border-b-2 transition-all whitespace-nowrap shrink-0 flex items-center gap-1 ${panel === tab.id ? 'border-primary text-primary' : 'border-transparent text-slate-500 dark:text-white/40 hover:text-slate-700 dark:hover:text-white/60'}`}>
@@ -679,7 +679,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
             </div>
 
             {/* Panel Content */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-5">
+            <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar p-4 md:p-5">
               {/* Overview Panel */}
               {panel === 'overview' && (() => {
                 const cfg = resolveAgentConfig(selected.id);
@@ -696,7 +696,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
                         { label: a.isDefault, value: selected.id === defaultId ? a.yes : a.no, icon: 'star' },
                         { label: a.skills, value: cfg.skills ? `${cfg.skills.length} selected` : (t as any).menu?.all, icon: 'extension' },
                       ].map((kv: any) => (
-                        <div key={kv.label} className="rounded-xl bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] p-3">
+                        <div key={kv.label} className="rounded-xl bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] p-3 sci-card">
                           <div className="flex items-center gap-1.5 mb-1.5">
                             <span className={`material-symbols-outlined text-[13px] ${kv.statusColor || 'text-slate-400 dark:text-white/40'}`}>{kv.icon}</span>
                             <span className="text-[11px] font-bold text-slate-400 dark:text-white/40 uppercase">{kv.label}</span>
@@ -1011,7 +1011,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
                         </div>
                       )}
                       {/* Messages */}
-                      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 mb-4">
+                      <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar space-y-3 mb-4">
                         {runMessages.length === 0 && !runStream && (
                           <div className="flex flex-col items-center py-12 text-slate-400 dark:text-white/20">
                             <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-3">

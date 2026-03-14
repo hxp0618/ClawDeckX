@@ -420,7 +420,7 @@ const Desktop: React.FC<DesktopProps> = ({
               <div key={group.id} onMouseEnter={() => setHoverIndex(index)} onClick={() => setActiveGroupId(isGroupActive ? null : group.id)}
                 className={`relative flex flex-col items-center justify-center md:justify-end px-1 md:px-1 pb-1 origin-bottom ${bouncingGroups.has(group.id) ? 'animate-dock-bounce' : ''}`}
                 style={{ transform: `scale(${scale})`, width: window.innerWidth < 768 ? 'auto' : `${scale * 54}px`, flex: window.innerWidth < 768 ? '1' : 'none', transition: 'transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1)' }}>
-                <div className={`relative w-[42px] md:w-[48px] h-[42px] md:h-[48px] rounded-[0.9rem] md:rounded-[1rem] bg-gradient-to-b ${group.gradient} flex items-center justify-center shadow-lg border-[0.5px] border-black/10`}>
+                <div className={`relative w-[42px] md:w-[48px] h-[42px] md:h-[48px] rounded-[0.9rem] md:rounded-[1rem] bg-gradient-to-b ${group.gradient} flex items-center justify-center shadow-lg border-[0.5px] border-black/10 transition-shadow duration-300 group-hover:shadow-[0_0_12px_var(--glow-cyan)]`}>
                   <span className="material-symbols-outlined text-[24px] md:text-[28px] text-white">{group.icon}</span>
                   <Badge count={group.apps.reduce((sum, app) => sum + ((badges as any)[app.id] || 0), 0)} />
                 </div>
@@ -430,7 +430,7 @@ const Desktop: React.FC<DesktopProps> = ({
               </div>
             );
           })}
-          <div className={`w-[1px] h-8 mx-2 md:mx-2 self-center shrink-0 ${theme === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}></div>
+          <div className={`w-[1px] h-8 mx-2 md:mx-2 self-center shrink-0 ${theme === 'dark' ? 'bg-[var(--color-neon-cyan)]/20' : 'bg-black/10'}`}></div>
           <div className="relative flex items-center justify-center md:justify-end px-1 pb-1 group" style={{ flex: window.innerWidth < 768 ? '1' : 'none', width: window.innerWidth < 768 ? 'auto' : '54px' }}>
             <div onClick={handleTrashClick} title={(t as any).menu?.clearWorkspace} className={`w-[42px] md:w-[48px] h-[42px] md:h-[48px] rounded-[0.9rem] md:rounded-[1rem] flex items-center justify-center transition-all cursor-pointer active:scale-75 ${theme === 'dark' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/5 hover:bg-black/10'} ${isTrashCleaning ? 'animate-bounce' : ''}`}>
               <span className={`material-symbols-outlined text-[24px] md:text-[28px] transition-colors ${isTrashCleaning ? 'text-mac-green' : 'text-mac-red/80'}`}>delete</span>

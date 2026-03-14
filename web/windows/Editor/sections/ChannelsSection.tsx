@@ -1702,7 +1702,7 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
                             {cw.copyPermJson}
                           </button>
                         </div>
-                        <pre className="text-[11px] text-slate-500 dark:text-white/40 bg-slate-100 dark:bg-black/20 p-2 rounded overflow-x-auto max-h-20 overflow-y-auto custom-scrollbar font-mono leading-relaxed select-text">{cw.feishuPermJson}</pre>
+                        <pre className="text-[11px] text-slate-500 dark:text-white/40 bg-slate-100 dark:bg-black/20 p-2 rounded overflow-x-auto max-h-20 overflow-y-auto custom-scrollbar neon-scrollbar font-mono leading-relaxed select-text">{cw.feishuPermJson}</pre>
                       </div>
                     )}
                     {pitfall && (

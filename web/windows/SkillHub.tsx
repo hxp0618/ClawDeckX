@@ -80,7 +80,7 @@ const SkillDetailModal: React.FC<{
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-6 custom-scrollbar neon-scrollbar">
           {/* Description */}
           <div className="mb-6">
             <h3 className="text-sm font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-2">{sk.description || 'Description'}</h3>
@@ -662,7 +662,7 @@ const SkillHub: React.FC<SkillHubProps> = ({ language }) => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar neon-scrollbar">
         <div className="max-w-6xl mx-auto">
           {/* CLI Banner */}
           <CLIBanner status={cliStatus} onInstall={handleInstallCLI} onDismiss={handleDismissBanner} error={cliError} sk={sk} />

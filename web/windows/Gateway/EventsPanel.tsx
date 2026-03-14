@@ -61,7 +61,7 @@ const EventsPanel: React.FC<EventsPanelProps> = ({
   }, []);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar neon-scrollbar">
       {presetExceptionFilter && (
         <div className="mb-2 flex items-center gap-2">
           <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-500/10 text-amber-300 text-[10px] font-bold">
@@ -157,7 +157,7 @@ const EventsPanel: React.FC<EventsPanelProps> = ({
                     <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${riskCls}`}>{risk}</span>
                   </div>
                   {isExpanded && ev?.payload && (
-                    <pre className="mt-2 text-[10px] text-white/30 font-mono bg-white/[0.02] rounded p-2 max-h-[200px] overflow-y-auto custom-scrollbar break-all whitespace-pre-wrap">{JSON.stringify(ev.payload, null, 2)}</pre>
+                    <pre className="mt-2 text-[10px] text-white/30 font-mono bg-white/[0.02] rounded p-2 max-h-[200px] overflow-y-auto custom-scrollbar neon-scrollbar break-all whitespace-pre-wrap">{JSON.stringify(ev.payload, null, 2)}</pre>
                   )}
                   <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-white/35">
                     <span>{gw.eventSource}: {ev?.source || na}</span>

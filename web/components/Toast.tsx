@@ -26,11 +26,11 @@ const ICON_MAP: Record<ToastType, string> = {
   info: 'info',
 };
 
-const ACCENT_MAP: Record<ToastType, { icon: string; bar: string }> = {
-  success: { icon: 'text-mac-green', bar: 'bg-mac-green' },
-  error: { icon: 'text-mac-red', bar: 'bg-mac-red' },
-  warning: { icon: 'text-mac-yellow', bar: 'bg-mac-yellow' },
-  info: { icon: 'text-primary', bar: 'bg-primary' },
+const ACCENT_MAP: Record<ToastType, { icon: string; bar: string; bg: string }> = {
+  success: { icon: 'text-mac-green', bar: 'bg-mac-green', bg: 'bg-gradient-to-br from-green-500/15 to-green-400/5 border border-green-500/15' },
+  error: { icon: 'text-mac-red', bar: 'bg-mac-red', bg: 'bg-gradient-to-br from-red-500/15 to-red-400/5 border border-red-500/15' },
+  warning: { icon: 'text-mac-yellow', bar: 'bg-mac-yellow', bg: 'bg-gradient-to-br from-amber-500/15 to-amber-400/5 border border-amber-500/15' },
+  info: { icon: 'text-primary', bar: 'bg-primary', bg: 'bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/15' },
 };
 
 const MacToast: React.FC<{ item: ToastItem; onDismiss: (id: number) => void }> = ({ item, onDismiss }) => {
@@ -80,7 +80,7 @@ const MacToast: React.FC<{ item: ToastItem; onDismiss: (id: number) => void }> =
       {/* Content */}
       <div className="flex items-start gap-3 px-4 py-3">
         {/* Icon */}
-        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${accent.icon} bg-current/10`}>
+        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${accent.bg}`}>
           <span className={`material-symbols-outlined text-[18px] ${accent.icon}`}>{ICON_MAP[item.type]}</span>
         </div>
         {/* Text */}

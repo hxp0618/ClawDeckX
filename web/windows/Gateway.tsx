@@ -1006,7 +1006,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
         )}
         {/* Row 1: 状态信息 + 心跳 */}
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20 shrink-0">
+          <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20 shrink-0 animate-glow-breathe">
             <span className="material-symbols-outlined text-[20px]">router</span>
           </div>
           <div className="flex-1 min-w-0 flex items-center gap-2 flex-wrap">
@@ -1125,7 +1125,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
       </div>
 
       {/* 日志 & 调试区 */}
-      <div className="flex-1 flex flex-col bg-slate-900 dark:bg-[#0a0f14] border-t border-slate-200 dark:border-white/10 md:mx-4 md:mb-4 md:rounded-xl overflow-hidden shadow-inner">
+      <div className="flex-1 flex flex-col bg-slate-900 dark:bg-[#0a0f14] border-t border-slate-200 dark:border-white/10 md:mx-4 md:mb-4 md:rounded-xl overflow-hidden shadow-inner sci-card">
         {/* Tab Bar + Search + Filters — 单行紧凑 */}
         <div className="shrink-0 h-9 flex items-center gap-1.5 px-3 bg-white/5 border-b border-white/5">
           {/* Tabs */}
@@ -1163,7 +1163,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
               <div className="relative flex-1 min-w-[100px] max-w-[200px]">
                 <span className="material-symbols-outlined absolute start-1.5 top-1/2 -translate-y-1/2 text-white/20 text-[12px]">search</span>
                 <input value={logSearch} onChange={e => setLogSearch(e.target.value)} placeholder={gw.search}
-                  className="w-full h-6 ps-6 pe-2 bg-white/5 border border-white/5 rounded text-[11px] text-white/80 placeholder:text-white/20 focus:ring-1 focus:ring-primary/50 outline-none" />
+                  className="w-full h-6 ps-6 pe-2 bg-white/5 border border-white/5 rounded text-[11px] text-white/80 placeholder:text-white/20 focus:ring-1 focus:ring-primary/50 outline-none sci-input" />
               </div>
               {/* Level Filters */}
               <div className="flex items-center gap-px">
@@ -1206,7 +1206,7 @@ const Gateway: React.FC<GatewayProps> = ({ language }) => {
         {/* Content Area */}
         {activeTab === 'logs' ? (
           <>
-            <div className="flex-1 overflow-y-auto font-mono text-[11px] md:text-[12px] p-4 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto font-mono text-[11px] md:text-[12px] p-4 custom-scrollbar neon-scrollbar">
               {filteredLogs.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-white/15">
                   <span className="material-symbols-outlined text-[32px] mb-2">terminal</span>

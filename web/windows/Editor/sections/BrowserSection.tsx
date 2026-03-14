@@ -98,7 +98,7 @@ export const BrowserSection: React.FC<SectionProps> = ({ setField, getField, lan
             <div className={`rounded-lg text-[10px] ${reqResult.ok ? 'bg-mac-green/10 border border-mac-green/20' : 'bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-500/20'}`}>
               <div className={`px-2 py-1.5 font-bold ${reqResult.ok ? 'text-mac-green' : 'text-red-500'}`}>{reqResult.text}</div>
               {reqResult.body && (
-                <pre className="px-2 pb-2 text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-32 custom-scrollbar whitespace-pre-wrap">{reqResult.body}</pre>
+                <pre className="px-2 pb-2 text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-32 custom-scrollbar neon-scrollbar whitespace-pre-wrap">{reqResult.body}</pre>
               )}
             </div>
           )}

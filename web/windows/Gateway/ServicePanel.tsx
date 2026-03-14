@@ -190,7 +190,7 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
   }, [gw, toast]);
 
   return (
-    <div className="p-4 space-y-4 text-white/80 overflow-y-auto custom-scrollbar h-full">
+    <div className="p-4 space-y-4 text-white/80 overflow-y-auto custom-scrollbar neon-scrollbar h-full">
       {/* Process Info */}
       <div className="space-y-2">
         <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">

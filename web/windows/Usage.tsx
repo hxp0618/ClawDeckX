@@ -717,7 +717,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
           </div>
         </div>
         {/* Sub-tabs */}
-        <div className="px-5 flex gap-0.5">
+        <div className="px-5 flex gap-0.5 neon-divider">
           {(['overview', 'models', 'sessions', 'timeseries', 'logs'] as const).map(tb => (
             <button key={tb} onClick={() => setTab(tb)}
               className={`px-4 py-2 text-[11px] font-bold border-b-2 transition-all ${
@@ -732,7 +732,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-5 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-5 custom-scrollbar neon-scrollbar">
         {error && (
           <div className="mb-4 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 text-[11px] text-red-600 dark:text-red-400">
             {error}
@@ -760,7 +760,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
         {!loading && !usageData && !error && (
           <div className="flex items-center justify-center h-64 text-slate-400 dark:text-white/40">
             <div className="flex flex-col items-center gap-3 text-center max-w-xs">
-              <span className="material-symbols-outlined text-4xl">analytics</span>
+              <span className="material-symbols-outlined text-4xl animate-glow-breathe">analytics</span>
               <span className="text-[12px] font-bold">{u.noData}</span>
               <p className="text-[10px] text-slate-400 dark:text-white/30">{u?.noDataHint || 'Start a conversation with your AI to see usage data here.'}</p>
             </div>
@@ -772,12 +772,12 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
             {/* KPI Cards Row */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {/* Total Tokens */}
-              <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br from-indigo-50/50 to-white dark:from-indigo-500/[0.06] dark:to-transparent p-4">
+              <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br from-indigo-50/50 to-white dark:from-indigo-500/[0.06] dark:to-transparent p-4 sci-card">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 uppercase tracking-wider">{u.totalTokens}</p>
                     <div className="flex items-baseline gap-1.5 mt-1">
-                      <p className="text-xl font-black tabular-nums dark:text-white text-slate-800">{fmtTokens(totals.totalTokens)}</p>
+                      <p className="text-xl font-black tabular-nums dark:text-white text-slate-800 text-glow-cyan">{fmtTokens(totals.totalTokens)}</p>
                       {periodChange.tokens !== 0 && (
                         <span className={`text-[10px] font-bold ${periodChange.tokens > 0 ? 'text-red-400' : 'text-emerald-500'}`}>
                           {periodChange.tokens > 0 ? '↑' : '↓'}{Math.abs(periodChange.tokens).toFixed(0)}%
@@ -795,12 +795,12 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
               </div>
 
               {/* Total Cost */}
-              <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-500/[0.06] dark:to-transparent p-4">
+              <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br from-amber-50/50 to-white dark:from-amber-500/[0.06] dark:to-transparent p-4 sci-card">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 uppercase tracking-wider">{u.totalCost}</p>
                     <div className="flex items-baseline gap-1.5 mt-1">
-                      <p className="text-xl font-black tabular-nums dark:text-white text-slate-800">{fmtCost(totals.totalCost)}</p>
+                      <p className="text-xl font-black tabular-nums dark:text-white text-slate-800 text-glow-cyan">{fmtCost(totals.totalCost)}</p>
                       {periodChange.cost !== 0 && (
                         <span className={`text-[10px] font-bold ${periodChange.cost > 0 ? 'text-red-400' : 'text-emerald-500'}`}>
                           {periodChange.cost > 0 ? '↑' : '↓'}{Math.abs(periodChange.cost).toFixed(0)}%
@@ -821,7 +821,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
               </div>
 
               {/* Messages — with error rate warning */}
-              <div className={`relative overflow-hidden rounded-2xl border p-4 ${
+              <div className={`relative overflow-hidden rounded-2xl border p-4 sci-card ${
                 errorRate > 20
                   ? 'border-red-300 dark:border-red-500/30 bg-gradient-to-br from-red-50/50 to-white dark:from-red-500/[0.08] dark:to-transparent'
                   : 'border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br from-emerald-50/50 to-white dark:from-emerald-500/[0.06] dark:to-transparent'
@@ -829,7 +829,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 uppercase tracking-wider">{u.messages}</p>
-                    <p className="text-xl font-black tabular-nums mt-1 dark:text-white text-slate-800">{fmtTokens(agg?.messages?.total || 0)}</p>
+                    <p className="text-xl font-black tabular-nums mt-1 dark:text-white text-slate-800 text-glow-cyan">{fmtTokens(agg?.messages?.total || 0)}</p>
                   </div>
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${errorRate > 20 ? 'bg-red-500/10' : 'bg-emerald-500/10'}`}>
                     <span className={`material-symbols-outlined text-[18px] ${errorRate > 20 ? 'text-red-500' : 'text-emerald-500'}`}>
@@ -851,11 +851,11 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
               </div>
 
               {/* Latency — with sparkline from daily messages */}
-              <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br from-violet-50/50 to-white dark:from-violet-500/[0.06] dark:to-transparent p-4">
+              <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-gradient-to-br from-violet-50/50 to-white dark:from-violet-500/[0.06] dark:to-transparent p-4 sci-card">
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="text-[10px] font-medium text-slate-400 dark:text-white/40 uppercase tracking-wider">{u.avgLatency}</p>
-                    <p className="text-xl font-black tabular-nums mt-1 dark:text-white text-slate-800">{agg?.latency ? fmtMs(agg.latency.avgMs) : '—'}</p>
+                    <p className="text-xl font-black tabular-nums mt-1 dark:text-white text-slate-800 text-glow-cyan">{agg?.latency ? fmtMs(agg.latency.avgMs) : '—'}</p>
                   </div>
                   <div className="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center">
                     <span className="material-symbols-outlined text-violet-500 text-[18px]">speed</span>

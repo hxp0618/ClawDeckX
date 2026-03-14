@@ -25,7 +25,7 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
   fetchChannels, handleChannelLogout,
 }) => {
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar">
+    <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-[12px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-primary">cell_tower</span>

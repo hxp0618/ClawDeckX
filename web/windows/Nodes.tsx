@@ -1028,7 +1028,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
       </div>
 
       {/* 内容区 */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 overflow-y-auto custom-scrollbar neon-scrollbar">
         <div className="max-w-6xl mx-auto p-4 md:p-6">
 
           {/* ===== NODES TAB ===== */}
@@ -1407,7 +1407,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                                         <div className={`p-2 rounded-lg text-[10px] ${invokeResult.ok ? 'bg-mac-green/10 border border-mac-green/20' : 'bg-red-50 dark:bg-red-500/5 border border-red-200 dark:border-red-500/20'}`}>
                                           <div className={`font-bold mb-1 ${invokeResult.ok ? 'text-mac-green' : 'text-red-500'}`}>{invokeResult.text}</div>
                                           {invokeResult.payload != null && (
-                                            <pre className="p-1.5 bg-black/5 dark:bg-black/30 rounded text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-32 custom-scrollbar">
+                                            <pre className="p-1.5 bg-black/5 dark:bg-black/30 rounded text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-32 custom-scrollbar neon-scrollbar">
                                               {typeof invokeResult.payload === 'string' ? invokeResult.payload : JSON.stringify(invokeResult.payload, null, 2)}
                                             </pre>
                                           )}
@@ -1419,7 +1419,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                               )}
 
                               {!detailLoading && !nodeDetail && (
-                                <pre className="p-2 bg-black/5 dark:bg-black/30 rounded-lg text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-40 custom-scrollbar">
+                                <pre className="p-2 bg-black/5 dark:bg-black/30 rounded-lg text-[11px] font-mono text-slate-500 dark:text-white/40 overflow-x-auto max-h-40 custom-scrollbar neon-scrollbar">
                                   {JSON.stringify(node, null, 2)}
                                 </pre>
                               )}
@@ -1903,7 +1903,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                   {bindingHistory.length === 0 ? (
                     <p className="text-[10px] text-slate-400 dark:text-white/30">{nd.bindingHistoryEmpty}</p>
                   ) : (
-                    <div className="space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1.5 max-h-32 overflow-y-auto custom-scrollbar neon-scrollbar">
                       {bindingHistory.map((entry, i) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-white/[0.02] text-[10px]">
                           <span className="text-slate-500 dark:text-white/50">{nd.bindingChangedAt} {fmtTs(entry.ts)}</span>
@@ -2146,7 +2146,7 @@ const Nodes: React.FC<NodesProps> = ({ language }) => {
                       {nd.clearEventLog}
                     </button>
                   </div>
-                  <div className="space-y-0.5 max-h-32 overflow-y-auto custom-scrollbar">
+                  <div className="space-y-0.5 max-h-32 overflow-y-auto custom-scrollbar neon-scrollbar">
                     {eventLog.map((e, i) => (
                       <p key={i} className="text-[10px] sm:text-[11px] font-mono text-slate-400 dark:text-white/35 break-all">{e}</p>
                     ))}
