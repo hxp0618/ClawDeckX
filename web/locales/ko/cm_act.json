@@ -128,6 +128,13 @@
     "retry": "재시도",
     "noData": "데이터 없음",
     "modelDist": "모델 분포",
-    "costTrend": "7일 비용"
+    "costTrend": "7일 비용",
+    "toolUsage": "도구 사용",
+    "uniqueTools": "종류",
+    "userMsg": "사용자",
+    "assistantMsg": "어시스턴트",
+    "toolCallsLabel": "도구",
+    "errors": "오류",
+    "latencyStats": "지연 시간"
   }
 }

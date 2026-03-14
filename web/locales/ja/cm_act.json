@@ -128,6 +128,13 @@
     "retry": "再試行",
     "noData": "データなし",
     "modelDist": "モデル分布",
-    "costTrend": "7日コスト"
+    "costTrend": "7日コスト",
+    "toolUsage": "ツール使用",
+    "uniqueTools": "種類",
+    "userMsg": "ユーザー",
+    "assistantMsg": "アシスタント",
+    "toolCallsLabel": "ツール",
+    "errors": "エラー",
+    "latencyStats": "レイテンシ"
   }
 }

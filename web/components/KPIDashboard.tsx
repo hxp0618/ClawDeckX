@@ -9,6 +9,7 @@ interface KPIDashboardProps {
   sessions: Record<string, any>[];
   labels: Record<string, string>;
   costTrend?: Array<{ date: string; totalCost: number }>;
+  usageAggregates?: any;
 }
 
 const fmtTok = (n: number) => {
@@ -20,7 +21,7 @@ const fmtTok = (n: number) => {
 const CHANNEL_COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#6366f1'];
 const kpiCard = 'rounded-2xl p-3 shadow-sm sci-card';
 
-export const KPIDashboard: React.FC<KPIDashboardProps> = ({ stats, sessions, labels: a, costTrend }) => {
+export const KPIDashboard: React.FC<KPIDashboardProps> = ({ stats, sessions, labels: a, costTrend, usageAggregates: agg }) => {
   // Channel distribution
   const channelCounts: Record<string, number> = {};
   sessions.forEach(s => {
@@ -151,6 +152,52 @@ export const KPIDashboard: React.FC<KPIDashboardProps> = ({ stats, sessions, lab
           </div>
         );
       })()}
+
+      {/* Messages Breakdown */}
+      {agg?.messages && agg.messages.total > 0 && (
+        <div className={kpiCard}>
+          <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.messages || 'Messages'}</div>
+          <div className="text-base font-extrabold text-slate-800 dark:text-white/85 tabular-nums leading-none mb-1">{agg.messages.total}</div>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-0.5 text-[8px]">
+            <div className="text-slate-400 dark:text-white/25">{a.userMsg || 'User'}: <b className="text-slate-600 dark:text-white/50">{agg.messages.user}</b></div>
+            <div className="text-slate-400 dark:text-white/25">{a.assistantMsg || 'Asst'}: <b className="text-slate-600 dark:text-white/50">{agg.messages.assistant}</b></div>
+            <div className="text-slate-400 dark:text-white/25">{a.toolCallsLabel || 'Tools'}: <b className="text-slate-600 dark:text-white/50">{agg.messages.toolCalls}</b></div>
+            {agg.messages.errors > 0 && <div className="text-red-400">{a.errors || 'Errors'}: <b>{agg.messages.errors}</b></div>}
+          </div>
+        </div>
+      )}
+
+      {/* Tool Usage */}
+      {agg?.tools && agg.tools.totalCalls > 0 && (
+        <div className={kpiCard}>
+          <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.toolUsage || 'Tool Usage'}</div>
+          <div className="flex items-baseline gap-1.5 mb-1">
+            <span className="text-base font-extrabold text-slate-800 dark:text-white/85 tabular-nums leading-none">{agg.tools.totalCalls}</span>
+            <span className="text-[8px] text-slate-400 dark:text-white/25">{agg.tools.uniqueTools} {a.uniqueTools || 'unique'}</span>
+          </div>
+          <div className="space-y-0.5">
+            {agg.tools.tools?.slice(0, 4).map((t: any) => (
+              <div key={t.name} className="flex items-center justify-between text-[8px]">
+                <span className="text-slate-400 dark:text-white/25 font-mono truncate flex-1 min-w-0">{t.name}</span>
+                <span className="text-slate-500 dark:text-white/35 font-bold tabular-nums shrink-0 ms-1">{t.count}×</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Latency Stats */}
+      {agg?.latency && agg.latency.count > 0 && (
+        <div className={kpiCard}>
+          <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.latencyStats || 'Latency'}</div>
+          <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[9px]">
+            <div className="text-slate-400 dark:text-white/25">Avg: <b className="text-slate-600 dark:text-white/50">{(agg.latency.avgMs / 1000).toFixed(1)}s</b></div>
+            <div className="text-slate-400 dark:text-white/25">P95: <b className="text-slate-600 dark:text-white/50">{(agg.latency.p95Ms / 1000).toFixed(1)}s</b></div>
+            <div className="text-slate-400 dark:text-white/25">Min: <b className="text-slate-600 dark:text-white/50">{(agg.latency.minMs / 1000).toFixed(1)}s</b></div>
+            <div className="text-slate-400 dark:text-white/25">Max: <b className="text-slate-600 dark:text-white/50">{(agg.latency.maxMs / 1000).toFixed(1)}s</b></div>
+          </div>
+        </div>
+      )}
 
       {/* Aborted */}
       {stats.abortedCount > 0 && (

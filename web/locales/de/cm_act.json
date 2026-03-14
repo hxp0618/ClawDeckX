@@ -128,6 +128,13 @@
     "retry": "Wiederholen",
     "noData": "Keine Daten",
     "modelDist": "Modelle",
-    "costTrend": "Kosten 7T"
+    "costTrend": "Kosten 7T",
+    "toolUsage": "Werkzeugnutzung",
+    "uniqueTools": "einzigartig",
+    "userMsg": "Benutzer",
+    "assistantMsg": "Assistent",
+    "toolCallsLabel": "Werkzeuge",
+    "errors": "Fehler",
+    "latencyStats": "Latenz"
   }
 }

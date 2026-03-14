@@ -128,6 +128,13 @@
     "retry": "重試",
     "noData": "暫無資料",
     "modelDist": "模型分佈",
-    "costTrend": "7日成本"
+    "costTrend": "7日成本",
+    "toolUsage": "工具使用",
+    "uniqueTools": "個不同",
+    "userMsg": "使用者",
+    "assistantMsg": "助手",
+    "toolCallsLabel": "工具",
+    "errors": "錯誤",
+    "latencyStats": "延遲"
   }
 }

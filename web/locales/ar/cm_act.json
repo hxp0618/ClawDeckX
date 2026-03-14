@@ -128,6 +128,13 @@
     "retry": "إعادة المحاولة",
     "noData": "لا توجد بيانات",
     "modelDist": "النماذج",
-    "costTrend": "التكلفة 7 أيام"
+    "costTrend": "التكلفة 7 أيام",
+    "toolUsage": "استخدام الأدوات",
+    "uniqueTools": "فريد",
+    "userMsg": "المستخدم",
+    "assistantMsg": "المساعد",
+    "toolCallsLabel": "الأدوات",
+    "errors": "الأخطاء",
+    "latencyStats": "زمن الاستجابة"
   }
 }

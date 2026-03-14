@@ -128,6 +128,13 @@
     "retry": "Réessayer",
     "noData": "Aucune donnée",
     "modelDist": "Modèles",
-    "costTrend": "Coût 7j"
+    "costTrend": "Coût 7j",
+    "toolUsage": "Utilisation des outils",
+    "uniqueTools": "uniques",
+    "userMsg": "Utilisateur",
+    "assistantMsg": "Assistant",
+    "toolCallsLabel": "Outils",
+    "errors": "Erreurs",
+    "latencyStats": "Latence"
   }
 }

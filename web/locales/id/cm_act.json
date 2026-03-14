@@ -128,6 +128,13 @@
     "retry": "Coba lagi",
     "noData": "Tidak ada data",
     "modelDist": "Model",
-    "costTrend": "Biaya 7h"
+    "costTrend": "Biaya 7h",
+    "toolUsage": "Penggunaan Alat",
+    "uniqueTools": "unik",
+    "userMsg": "Pengguna",
+    "assistantMsg": "Asisten",
+    "toolCallsLabel": "Alat",
+    "errors": "Kesalahan",
+    "latencyStats": "Latensi"
   }
 }

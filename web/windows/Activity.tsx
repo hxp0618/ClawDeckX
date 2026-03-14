@@ -38,6 +38,8 @@ const Activity: React.FC<ActivityProps> = ({ language, onNavigateToSession }) =>
 
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const hasLoadedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [kindFilter, setKindFilter] = useState('');
   const [busy, setBusy] = useState(false);
@@ -49,16 +51,22 @@ const Activity: React.FC<ActivityProps> = ({ language, onNavigateToSession }) =>
   const [lastRefresh, setLastRefresh] = useState<number>(0);
   const [costTrend, setCostTrend] = useState<Array<{ date: string; totalCost: number }>>([]);
   const [cardDensity, setCardDensity] = useState<'compact' | 'normal' | 'large'>('normal');
+  const [usageAggregates, setUsageAggregates] = useState<any>(null);
 
 
   const loadSessions = useCallback(async () => {
-    setLoading(true); setError(null);
+    const isInitial = !hasLoadedRef.current;
+    if (isInitial) setLoading(true);
+    else setRefreshing(true);
+    setError(null);
     try {
       const data = await gwApi.sessions();
       setResult(data);
       setLastRefresh(Date.now());
+      hasLoadedRef.current = true;
     } catch (e: any) { setError(String(e)); }
-    setLoading(false);
+    if (isInitial) setLoading(false);
+    else setRefreshing(false);
   }, []);
 
   const loadCostTrend = useCallback(async () => {
@@ -70,6 +78,13 @@ const Activity: React.FC<ActivityProps> = ({ language, onNavigateToSession }) =>
     } catch { /* non-critical */ }
   }, []);
 
+  const loadUsageAggregates = useCallback(async () => {
+    try {
+      const data = await gwApi.sessionsUsage({ limit: 50 }) as any;
+      if (data?.aggregates) setUsageAggregates(data.aggregates);
+    } catch { /* non-critical */ }
+  }, []);
+
   useEffect(() => {
     const timer = setTimeout(() => setSearchKeyword(searchInput.trim().toLowerCase()), 140);
     return () => clearTimeout(timer);
@@ -77,15 +92,15 @@ const Activity: React.FC<ActivityProps> = ({ language, onNavigateToSession }) =>
 
   // Initial load
   useEffect(() => {
-    const raf = requestAnimationFrame(() => { loadSessions(); loadCostTrend(); });
+    const raf = requestAnimationFrame(() => { loadSessions(); loadCostTrend(); loadUsageAggregates(); });
     return () => cancelAnimationFrame(raf);
-  }, [loadSessions, loadCostTrend]);
+  }, [loadSessions, loadCostTrend, loadUsageAggregates]);
 
   // Auto-refresh every 30s
   useEffect(() => {
-    const iv = setInterval(() => { loadSessions(); loadCostTrend(); }, AUTO_REFRESH_MS);
+    const iv = setInterval(() => { loadSessions(); loadCostTrend(); loadUsageAggregates(); }, AUTO_REFRESH_MS);
     return () => clearInterval(iv);
-  }, [loadSessions, loadCostTrend]);
+  }, [loadSessions, loadCostTrend, loadUsageAggregates]);
 
   const sessions: any[] = result?.sessions || [];
   const storePath = result?.path || '';
@@ -292,15 +307,15 @@ const Activity: React.FC<ActivityProps> = ({ language, onNavigateToSession }) =>
               title={a.cardDensity || `Density: ${cardDensity}`}>
               <span className="material-symbols-outlined text-[16px]">{cardDensity === 'compact' ? 'density_small' : cardDensity === 'large' ? 'density_large' : 'density_medium'}</span>
             </button>
-            <button onClick={loadSessions} disabled={loading} className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-all disabled:opacity-40" title={a.refresh}>
-              <span className={`material-symbols-outlined text-[16px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
+            <button onClick={loadSessions} disabled={loading || refreshing} className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/5 transition-all disabled:opacity-40" title={a.refresh}>
+              <span className={`material-symbols-outlined text-[16px] ${loading || refreshing ? 'animate-spin' : ''}`}>refresh</span>
             </button>
           </div>
         </div>
 
         {/* KPI Dashboard */}
-        {sessions.length > 0 && !loading && (
-          <KPIDashboard stats={kpiStats} sessions={sessions} labels={a} costTrend={costTrend} />
+        {sessions.length > 0 && (
+          <KPIDashboard stats={kpiStats} sessions={sessions} labels={a} costTrend={costTrend} usageAggregates={usageAggregates} />
         )}
 
         {/* Search + Filter + Sort */}

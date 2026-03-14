@@ -128,6 +128,13 @@
     "retry": "Повторить",
     "noData": "Нет данных",
     "modelDist": "Модели",
-    "costTrend": "Стоимость 7д"
+    "costTrend": "Стоимость 7д",
+    "toolUsage": "Использование инструментов",
+    "uniqueTools": "уникальных",
+    "userMsg": "Пользователь",
+    "assistantMsg": "Ассистент",
+    "toolCallsLabel": "Инструменты",
+    "errors": "Ошибки",
+    "latencyStats": "Задержка"
   }
 }
