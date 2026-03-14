@@ -117,6 +117,17 @@
     "hoursAgo": "घंटे पहले",
     "daysAgo": "दिन पहले",
     "showList": "सूची दिखाएं",
-    "hideList": "सूची छुपाएं"
+    "hideList": "सूची छुपाएं",
+    "viewCards": "कार्ड",
+    "viewList": "सूची",
+    "activity7d": "7 दिन गतिविधि",
+    "contextUsage": "संदर्भ उपयोग",
+    "tokenDist": "टोकन वितरण",
+    "channels": "चैनल",
+    "imageUnavailable": "अनुपलब्ध",
+    "retry": "पुनः प्रयास",
+    "noData": "कोई डेटा नहीं",
+    "modelDist": "मॉडल",
+    "costTrend": "लागत 7 दिन"
   }
 }

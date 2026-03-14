@@ -117,6 +117,17 @@
     "hoursAgo": "시간 전",
     "daysAgo": "일 전",
     "showList": "목록 표시",
-    "hideList": "목록 숨기기"
+    "hideList": "목록 숨기기",
+    "viewCards": "카드",
+    "viewList": "목록",
+    "activity7d": "7일 활동",
+    "contextUsage": "컨텍스트 사용량",
+    "tokenDist": "토큰 분포",
+    "channels": "채널",
+    "imageUnavailable": "사용 불가",
+    "retry": "재시도",
+    "noData": "데이터 없음",
+    "modelDist": "모델 분포",
+    "costTrend": "7일 비용"
   }
 }

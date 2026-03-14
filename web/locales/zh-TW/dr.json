@@ -621,5 +621,12 @@
   "saRem.gateway.control_ui.device_auth_disabled": "移除 gateway.controlUi.dangerouslyDisableDeviceAuth",
   "saRem.config.secrets.gateway_password_in_config": "使用秘密參考而非明文值",
   "saRem.fs.synced_dir": "將狀態/設定目錄移出同步資料夾",
-  "relatedFaq": "相關 FAQ"
+  "relatedFaq": "相關 FAQ",
+  "memoryTitle": "記憶狀態",
+  "memoryProvider": "記憶提供者",
+  "memoryEmbedding": "嵌入模型",
+  "memoryEmbeddingOk": "嵌入正常",
+  "memoryEmbeddingFail": "嵌入異常",
+  "memoryAgent": "記憶代理",
+  "memoryUnavailable": "記憶不可用"
 }

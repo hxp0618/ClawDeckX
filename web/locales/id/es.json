@@ -43,7 +43,7 @@
   "providerCount": "provider",
   "noProviders": "Belum ada provider, klik wizard di bawah untuk menambah",
   "baseUrlTip": "URL base API provider",
-  "region": "Wilayah",
+  "region": "Region",
   "regionGlobal": "Global (api.minimax.io)",
   "regionCN": "China (api.minimaxi.com)",
   "regionTip": "Pilih wilayah Anda untuk konektivitas optimal",
@@ -1185,7 +1185,6 @@
   "sendReadReceipts": "Kirim Tanda Baca",
   "includeAttachments": "Sertakan Lampiran",
   "remoteHost": "Host Remote",
-  "region": "Region",
   "nativeStreaming": "Streaming Native",
   "signingSecret": "Rahasia Penandatangan",
   "userToken": "Token Pengguna",
@@ -1335,5 +1334,13 @@
   "tipVoiceAllowFrom": "Daftar izin nomor panggilan masuk (format E.164)",
   "tipZaloWebhookUrl": "URL webhook Zalo",
   "tipZaloWebhookSecret": "Rahasia penandatangan webhook Zalo",
-  "tipZaloWebhookPath": "Path callback webhook Zalo"
+  "tipZaloWebhookPath": "Path callback webhook Zalo",
+  "authModePlaceholder": "— Select —",
+  "authModeAmbiguousTitle": "Auth mode required",
+  "authModeAmbiguousDesc": "Both token and password are configured. OpenClaw v2026.3+ requires an explicit auth mode when both are set. Please select one below.",
+  "authModeSetToken": "Use Token",
+  "authModeSetPassword": "Use Password",
+  "tipWecomBotId": "WeCom smart bot Bot ID (auto-generated when creating bot)",
+  "tipWecomBotSecret": "WeCom smart bot Secret (auto-generated when creating bot)",
+  "tipWecomConn": "Long connection mode requires no public IP (recommended); Webhook mode needs public callback URL"
 }

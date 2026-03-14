@@ -117,6 +117,17 @@
     "hoursAgo": "hr ago",
     "daysAgo": "days ago",
     "showList": "Show List",
-    "hideList": "Hide List"
+    "hideList": "Hide List",
+    "viewCards": "Cards",
+    "viewList": "List",
+    "activity7d": "7d Activity",
+    "contextUsage": "Context Usage",
+    "tokenDist": "Token Distribution",
+    "channels": "Channels",
+    "imageUnavailable": "Unavailable",
+    "retry": "Retry",
+    "noData": "No data",
+    "modelDist": "Models",
+    "costTrend": "Cost 7d"
   }
 }

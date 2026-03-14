@@ -1185,7 +1185,6 @@
   "sendReadReceipts": "Lesebestätigungen senden",
   "includeAttachments": "Anhänge einschließen",
   "remoteHost": "Remote-Host",
-  "region": "Region",
   "nativeStreaming": "Natives Streaming",
   "signingSecret": "Signiergeheimnis",
   "userToken": "Benutzer-Token",
@@ -1335,5 +1334,13 @@
   "tipVoiceAllowFrom": "Eingehende Rufnummern-Erlaubnisliste (E.164)",
   "tipZaloWebhookUrl": "Zalo Webhook URL",
   "tipZaloWebhookSecret": "Zalo Webhook-Signiergeheimnis",
-  "tipZaloWebhookPath": "Zalo Webhook-Callback-Pfad"
+  "tipZaloWebhookPath": "Zalo Webhook-Callback-Pfad",
+  "authModePlaceholder": "— Select —",
+  "authModeAmbiguousTitle": "Auth mode required",
+  "authModeAmbiguousDesc": "Both token and password are configured. OpenClaw v2026.3+ requires an explicit auth mode when both are set. Please select one below.",
+  "authModeSetToken": "Use Token",
+  "authModeSetPassword": "Use Password",
+  "tipWecomBotId": "WeCom smart bot Bot ID (auto-generated when creating bot)",
+  "tipWecomBotSecret": "WeCom smart bot Secret (auto-generated when creating bot)",
+  "tipWecomConn": "Long connection mode requires no public IP (recommended); Webhook mode needs public callback URL"
 }

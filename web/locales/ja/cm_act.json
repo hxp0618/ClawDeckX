@@ -117,6 +117,17 @@
     "hoursAgo": "時間前",
     "daysAgo": "日前",
     "showList": "リストを表示",
-    "hideList": "リストを非表示"
+    "hideList": "リストを非表示",
+    "viewCards": "カード",
+    "viewList": "リスト",
+    "activity7d": "7日間アクティブ",
+    "contextUsage": "コンテキスト使用量",
+    "tokenDist": "トークン分布",
+    "channels": "チャネル",
+    "imageUnavailable": "利用不可",
+    "retry": "再試行",
+    "noData": "データなし",
+    "modelDist": "モデル分布",
+    "costTrend": "7日コスト"
   }
 }

@@ -117,6 +117,17 @@
     "hoursAgo": "jam lalu",
     "daysAgo": "hari lalu",
     "showList": "Tampilkan Daftar",
-    "hideList": "Sembunyikan Daftar"
+    "hideList": "Sembunyikan Daftar",
+    "viewCards": "Kartu",
+    "viewList": "Daftar",
+    "activity7d": "Aktivitas 7h",
+    "contextUsage": "Penggunaan konteks",
+    "tokenDist": "Distribusi token",
+    "channels": "Saluran",
+    "imageUnavailable": "Tidak tersedia",
+    "retry": "Coba lagi",
+    "noData": "Tidak ada data",
+    "modelDist": "Model",
+    "costTrend": "Biaya 7h"
   }
 }

@@ -117,6 +117,17 @@
     "hoursAgo": "h",
     "daysAgo": "días",
     "showList": "Mostrar lista",
-    "hideList": "Ocultar lista"
+    "hideList": "Ocultar lista",
+    "viewCards": "Tarjetas",
+    "viewList": "Lista",
+    "activity7d": "Actividad 7d",
+    "contextUsage": "Uso de contexto",
+    "tokenDist": "Distribución de tokens",
+    "channels": "Canales",
+    "imageUnavailable": "No disponible",
+    "retry": "Reintentar",
+    "noData": "Sin datos",
+    "modelDist": "Modelos",
+    "costTrend": "Costo 7d"
   }
 }

@@ -1185,7 +1185,6 @@
   "sendReadReceipts": "पठन रसीद भेजें",
   "includeAttachments": "अटैचमेंट शामिल करें",
   "remoteHost": "रिमोट होस्ट",
-  "region": "क्षेत्र",
   "nativeStreaming": "नेटिव स्ट्रीमिंग",
   "signingSecret": "साइनिंग सीक्रेट",
   "userToken": "उपयोगकर्ता टोकन",
@@ -1335,5 +1334,13 @@
   "tipVoiceAllowFrom": "इनबाउंड कॉल नंबर अनुमति सूची (E.164 प्रारूप)",
   "tipZaloWebhookUrl": "Zalo webhook URL",
   "tipZaloWebhookSecret": "Zalo webhook साइनिंग सीक्रेट",
-  "tipZaloWebhookPath": "Zalo webhook कॉलबैक पथ"
+  "tipZaloWebhookPath": "Zalo webhook कॉलबैक पथ",
+  "authModePlaceholder": "— Select —",
+  "authModeAmbiguousTitle": "Auth mode required",
+  "authModeAmbiguousDesc": "Both token and password are configured. OpenClaw v2026.3+ requires an explicit auth mode when both are set. Please select one below.",
+  "authModeSetToken": "Use Token",
+  "authModeSetPassword": "Use Password",
+  "tipWecomBotId": "WeCom smart bot Bot ID (auto-generated when creating bot)",
+  "tipWecomBotSecret": "WeCom smart bot Secret (auto-generated when creating bot)",
+  "tipWecomConn": "Long connection mode requires no public IP (recommended); Webhook mode needs public callback URL"
 }

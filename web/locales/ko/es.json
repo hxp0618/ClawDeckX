@@ -1185,7 +1185,6 @@
   "sendReadReceipts": "읽음 확인 전송",
   "includeAttachments": "첨부파일 포함",
   "remoteHost": "원격 호스트",
-  "region": "지역",
   "nativeStreaming": "네이티브 스트리밍",
   "signingSecret": "서명 시크릿",
   "userToken": "사용자 토큰",
@@ -1335,5 +1334,13 @@
   "tipVoiceAllowFrom": "수신 통화 번호 허용 목록 (E.164 형식)",
   "tipZaloWebhookUrl": "Zalo Webhook URL",
   "tipZaloWebhookSecret": "Zalo Webhook 서명 시크릿",
-  "tipZaloWebhookPath": "Zalo Webhook 콜백 경로"
+  "tipZaloWebhookPath": "Zalo Webhook 콜백 경로",
+  "authModePlaceholder": "인증 모드 선택",
+  "authModeAmbiguousTitle": "여러 인증 모드 감지됨",
+  "authModeAmbiguousDesc": "사용할 인증 모드를 선택하세요",
+  "authModeSetToken": "토큰 인증 사용",
+  "authModeSetPassword": "비밀번호 인증 사용",
+  "tipWecomBotId": "Bot ID (시스템 자동 생성)",
+  "tipWecomBotSecret": "Bot Secret (시스템 자동 생성)",
+  "tipWecomConn": "연결 모드 (장기 연결 권장)"
 }

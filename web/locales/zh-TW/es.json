@@ -43,7 +43,7 @@
   "providerCount": "個服務商",
   "noProviders": "暫無服務商，點選下方向導新增",
   "baseUrlTip": "服務商 API 的基礎地址",
-  "region": "區域",
+  "region": "地區",
   "regionGlobal": "國際版 (api.minimax.io)",
   "regionCN": "中國版 (api.minimaxi.com)",
   "regionTip": "選擇您所在的區域以獲得最佳連線",
@@ -1185,7 +1185,6 @@
   "sendReadReceipts": "傳送已讀回執",
   "includeAttachments": "包含附件",
   "remoteHost": "遠端主機",
-  "region": "地區",
   "nativeStreaming": "原生串流",
   "signingSecret": "簽章密鑰",
   "userToken": "使用者權杖",
@@ -1335,5 +1334,13 @@
   "tipVoiceAllowFrom": "入站通話號碼白名單 (E.164 格式)",
   "tipZaloWebhookUrl": "Zalo Webhook URL",
   "tipZaloWebhookSecret": "Zalo Webhook 簽章密鑰",
-  "tipZaloWebhookPath": "Zalo Webhook 回呼路徑"
+  "tipZaloWebhookPath": "Zalo Webhook 回呼路徑",
+  "authModePlaceholder": "選擇認證模式",
+  "authModeAmbiguousTitle": "偵測到多種認證模式",
+  "authModeAmbiguousDesc": "請選擇要使用的認證模式",
+  "authModeSetToken": "使用 Token 認證",
+  "authModeSetPassword": "使用密碼認證",
+  "tipWecomBotId": "Bot ID（系統自動產生）",
+  "tipWecomBotSecret": "Bot Secret（系統自動產生）",
+  "tipWecomConn": "連線模式（建議長連線）"
 }

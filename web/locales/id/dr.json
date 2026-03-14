@@ -621,5 +621,12 @@
   "saRem.gateway.control_ui.device_auth_disabled": "Hapus gateway.controlUi.dangerouslyDisableDeviceAuth",
   "saRem.config.secrets.gateway_password_in_config": "Gunakan referensi rahasia daripada nilai plaintext",
   "saRem.fs.synced_dir": "Pindahkan direktori state/konfigurasi keluar dari folder tersinkronisasi",
-  "relatedFaq": "FAQ terkait"
+  "relatedFaq": "FAQ terkait",
+  "memoryTitle": "Memory",
+  "memoryProvider": "Provider",
+  "memoryEmbedding": "Embedding",
+  "memoryEmbeddingOk": "Available",
+  "memoryEmbeddingFail": "Unavailable",
+  "memoryAgent": "Agent",
+  "memoryUnavailable": "Memory not available"
 }

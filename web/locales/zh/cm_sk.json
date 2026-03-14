@@ -279,6 +279,15 @@
     "pluginPathSource": "本地路径",
     "pluginArchiveSource": "归档",
     "pluginLocalOnlyAction": "此操作仅支持本地网关",
-    "pluginClose": "关闭"
+    "pluginClose": "关闭",
+    "serviceUnavailable": "服务不可用",
+    "serverError": "服务器暂时不可用，请稍后重试",
+    "requestTimeout": "请求超时",
+    "timeoutHint": "请求耗时过长，请检查网络后重试",
+    "networkError": "网络错误",
+    "networkErrorHint": "请检查您的网络连接",
+    "description": "描述",
+    "tags": "标签",
+    "installMethods": "安装方式"
   }
 }

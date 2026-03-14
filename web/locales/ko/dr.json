@@ -621,5 +621,12 @@
   "saRem.gateway.control_ui.device_auth_disabled": "gateway.controlUi.dangerouslyDisableDeviceAuth를 제거하세요",
   "saRem.config.secrets.gateway_password_in_config": "평문 값 대신 시크릿 참조를 사용하세요",
   "saRem.fs.synced_dir": "상태/설정 디렉토리를 동기화 폴더 밖으로 이동하세요",
-  "relatedFaq": "관련 FAQ"
+  "relatedFaq": "관련 FAQ",
+  "memoryTitle": "메모리 상태",
+  "memoryProvider": "메모리 프로바이더",
+  "memoryEmbedding": "임베딩 모델",
+  "memoryEmbeddingOk": "임베딩 정상",
+  "memoryEmbeddingFail": "임베딩 오류",
+  "memoryAgent": "메모리 에이전트",
+  "memoryUnavailable": "메모리 사용 불가"
 }

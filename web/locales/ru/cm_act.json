@@ -117,6 +117,17 @@
     "hoursAgo": "ч. назад",
     "daysAgo": "дн. назад",
     "showList": "Показать список",
-    "hideList": "Скрыть список"
+    "hideList": "Скрыть список",
+    "viewCards": "Карточки",
+    "viewList": "Список",
+    "activity7d": "Активность 7д",
+    "contextUsage": "Использование контекста",
+    "tokenDist": "Распределение токенов",
+    "channels": "Каналы",
+    "imageUnavailable": "Недоступно",
+    "retry": "Повторить",
+    "noData": "Нет данных",
+    "modelDist": "Модели",
+    "costTrend": "Стоимость 7д"
   }
 }

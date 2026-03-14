@@ -117,6 +117,17 @@
     "hoursAgo": "Std. her",
     "daysAgo": "Tage her",
     "showList": "Liste anzeigen",
-    "hideList": "Liste ausblenden"
+    "hideList": "Liste ausblenden",
+    "viewCards": "Karten",
+    "viewList": "Liste",
+    "activity7d": "7-Tage-Aktivität",
+    "contextUsage": "Kontextnutzung",
+    "tokenDist": "Token-Verteilung",
+    "channels": "Kanäle",
+    "imageUnavailable": "Nicht verfügbar",
+    "retry": "Wiederholen",
+    "noData": "Keine Daten",
+    "modelDist": "Modelle",
+    "costTrend": "Kosten 7T"
   }
 }

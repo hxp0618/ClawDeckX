@@ -1185,7 +1185,6 @@
   "sendReadReceipts": "既読確認送信",
   "includeAttachments": "添付ファイルを含む",
   "remoteHost": "リモートホスト",
-  "region": "地域",
   "nativeStreaming": "ネイティブストリーミング",
   "signingSecret": "署名シークレット",
   "userToken": "ユーザートークン",
@@ -1335,5 +1334,13 @@
   "tipVoiceAllowFrom": "着信通話番号許可リスト (E.164 形式)",
   "tipZaloWebhookUrl": "Zalo Webhook URL",
   "tipZaloWebhookSecret": "Zalo Webhook 署名シークレット",
-  "tipZaloWebhookPath": "Zalo Webhook コールバックパス"
+  "tipZaloWebhookPath": "Zalo Webhook コールバックパス",
+  "authModePlaceholder": "認証モードを選択",
+  "authModeAmbiguousTitle": "複数の認証モードが検出されました",
+  "authModeAmbiguousDesc": "使用する認証モードを選択してください",
+  "authModeSetToken": "トークン認証を使用",
+  "authModeSetPassword": "パスワード認証を使用",
+  "tipWecomBotId": "Bot ID（システム自動生成）",
+  "tipWecomBotSecret": "Bot Secret（システム自動生成）",
+  "tipWecomConn": "接続モード（長接続推奨）"
 }

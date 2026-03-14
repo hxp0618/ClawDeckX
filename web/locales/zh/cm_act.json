@@ -117,6 +117,17 @@
     "hoursAgo": "小时前",
     "daysAgo": "天前",
     "showList": "显示列表",
-    "hideList": "隐藏列表"
+    "hideList": "隐藏列表",
+    "viewCards": "卡片",
+    "viewList": "列表",
+    "activity7d": "7天活跃",
+    "contextUsage": "上下文使用",
+    "tokenDist": "Token 分布",
+    "channels": "渠道",
+    "imageUnavailable": "不可用",
+    "retry": "重试",
+    "noData": "暂无数据",
+    "modelDist": "模型分布",
+    "costTrend": "7日成本"
   }
 }

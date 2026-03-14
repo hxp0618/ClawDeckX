@@ -621,5 +621,12 @@
   "saRem.gateway.control_ui.device_auth_disabled": "gateway.controlUi.dangerouslyDisableDeviceAuthを削除してください",
   "saRem.config.secrets.gateway_password_in_config": "プレーンテキスト値の代わりにシークレット参照を使用してください",
   "saRem.fs.synced_dir": "状態/設定ディレクトリを同期フォルダから移動してください",
-  "relatedFaq": "関連 FAQ"
+  "relatedFaq": "関連 FAQ",
+  "memoryTitle": "メモリステータス",
+  "memoryProvider": "メモリプロバイダー",
+  "memoryEmbedding": "埋め込みモデル",
+  "memoryEmbeddingOk": "埋め込み正常",
+  "memoryEmbeddingFail": "埋め込み異常",
+  "memoryAgent": "メモリエージェント",
+  "memoryUnavailable": "メモリ利用不可"
 }
