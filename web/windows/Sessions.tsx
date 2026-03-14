@@ -669,6 +669,24 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     return () => clearInterval(timer);
   }, [gwReady, runId, loadHistory, c.error]);
 
+  // Safety net: if stream is empty string for too long without receiving events, reset to idle.
+  // This prevents the "Generating..." indicator from getting stuck when final event is missed.
+  useEffect(() => {
+    if (stream !== '' || runPhase !== 'streaming') return;
+    const timer = setTimeout(() => {
+      setStream(prev => {
+        if (prev === '') {
+          setRunPhase('idle');
+          setRunId(null);
+          pendingRunRef.current = null;
+          return null;
+        }
+        return prev;
+      });
+    }, 8000);
+    return () => clearTimeout(timer);
+  }, [stream, runPhase]);
+
   // Auto-scroll + scroll-to-bottom detection
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: isStreaming ? 'auto' : 'smooth' });
@@ -1486,18 +1504,6 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                   <>
                     <span className="text-slate-300 dark:text-white/15 hidden sm:inline">|</span>
                     <span className="text-[10px] font-medium font-mono truncate max-w-[100px] sm:max-w-[120px] px-1.5 py-0.5 rounded bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/10">{activeSession.model}</span>
-                  </>
-                )}
-                {activeSession?.totalTokens ? (
-                  <>
-                    <span className="text-slate-300 dark:text-white/15 hidden md:inline">|</span>
-                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono hidden md:inline">{(activeSession.totalTokens / 1000).toFixed(1)}k tok</span>
-                  </>
-                ) : null}
-                {messages.length > 0 && (
-                  <>
-                    <span className="text-slate-300 dark:text-white/15 hidden md:inline">|</span>
-                    <span className="text-[10px] text-slate-400 dark:text-white/30 font-mono tabular-nums hidden md:inline" title={c.messages || 'Messages'}>{messages.length} msg</span>
                   </>
                 )}
                 {(runPhase === 'streaming' || runPhase === 'sending') && liveElapsed > 0 ? (

@@ -206,47 +206,83 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           </div>
         )}
 
-        {/* Messages */}
-        {u?.messageCounts && (
-          <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.messages || 'Messages'}</div>
-            <div className="grid grid-cols-2 gap-1 text-[9px]">
-              <div className="text-slate-500 dark:text-white/35">{a.user || 'User'}: <b>{u.messageCounts.user}</b></div>
-              <div className="text-slate-500 dark:text-white/35">{a.assistant || 'Asst'}: <b>{u.messageCounts.assistant}</b></div>
-              <div className="text-slate-500 dark:text-white/35">{a.toolCall || 'Tools'}: <b>{u.messageCounts.toolCalls}</b></div>
-              <div className="text-slate-500 dark:text-white/35">{a.error || 'Errors'}: <b>{u.messageCounts.errors}</b></div>
-            </div>
-          </div>
-        )}
-
-        {/* Tool Usage */}
-        {u?.toolUsage && u.toolUsage.totalCalls > 0 && (
-          <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.tools || 'Tools'}</div>
-            <div className="text-[9px] text-slate-500 dark:text-white/35 mb-1">
-              {u.toolUsage.totalCalls} {a.calls || 'calls'} · {u.toolUsage.uniqueTools} {a.unique || 'unique'}
-            </div>
-            {u.toolUsage.tools?.slice(0, 5).map((t: any, i: number) => (
-              <div key={i} className="flex items-center justify-between text-[8px] text-slate-400 dark:text-white/30 py-0.5">
-                <span className="truncate flex-1 min-w-0 font-mono">{t.name}</span>
-                <span className="shrink-0 ms-1 tabular-nums">{t.count}×</span>
+        {/* Messages — stacked bar chart */}
+        {u?.messageCounts && u.messageCounts.total > 0 && (() => {
+          const mc = u.messageCounts;
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.messages || 'Messages'}</span>
+                <span className="text-[10px] font-extrabold text-slate-600 dark:text-white/60 tabular-nums">{mc.total}</span>
               </div>
-            ))}
-          </div>
-        )}
-
-        {/* Latency */}
-        {u?.latency && u.latency.count > 0 && (
-          <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.latency || 'Latency'}</div>
-            <div className="grid grid-cols-2 gap-1 text-[9px]">
-              <div className="text-slate-500 dark:text-white/35">Avg: <b>{(u.latency.avgMs / 1000).toFixed(1)}s</b></div>
-              <div className="text-slate-500 dark:text-white/35">P95: <b>{(u.latency.p95Ms / 1000).toFixed(1)}s</b></div>
-              <div className="text-slate-500 dark:text-white/35">Min: <b>{(u.latency.minMs / 1000).toFixed(1)}s</b></div>
-              <div className="text-slate-500 dark:text-white/35">Max: <b>{(u.latency.maxMs / 1000).toFixed(1)}s</b></div>
+              <div className="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden flex mb-1">
+                {mc.user > 0 && <div className="h-full bg-blue-400/80" style={{ width: `${(mc.user / mc.total) * 100}%` }} title={`${a.user || 'User'}: ${mc.user}`} />}
+                {mc.assistant > 0 && <div className="h-full bg-emerald-400/80" style={{ width: `${(mc.assistant / mc.total) * 100}%` }} title={`${a.assistant || 'Asst'}: ${mc.assistant}`} />}
+                {mc.toolCalls > 0 && <div className="h-full bg-purple-400/80" style={{ width: `${(mc.toolCalls / mc.total) * 100}%` }} title={`${a.toolCall || 'Tools'}: ${mc.toolCalls}`} />}
+                {mc.errors > 0 && <div className="h-full bg-red-400/80" style={{ width: `${(mc.errors / mc.total) * 100}%` }} title={`${a.error || 'Errors'}: ${mc.errors}`} />}
+              </div>
+              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[7px]">
+                <span className="text-blue-500">● {a.user || 'User'} {mc.user}</span>
+                <span className="text-emerald-500">● {a.assistant || 'Asst'} {mc.assistant}</span>
+                {mc.toolCalls > 0 && <span className="text-purple-500">● {a.toolCall || 'Tools'} {mc.toolCalls}</span>}
+                {mc.errors > 0 && <span className="text-red-500">● {a.error || 'Err'} {mc.errors}</span>}
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
+
+        {/* Tool Usage — horizontal bar chart */}
+        {u?.toolUsage && u.toolUsage.totalCalls > 0 && (() => {
+          const topTools = (u.toolUsage.tools || []).slice(0, 5);
+          const maxCalls = topTools[0]?.count || 1;
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.tools || 'Tools'}</span>
+                <span className="text-[8px] text-slate-400 dark:text-white/25">{u.toolUsage.totalCalls} · {u.toolUsage.uniqueTools} {a.unique || 'unique'}</span>
+              </div>
+              <div className="space-y-1">
+                {topTools.map((t: any, i: number) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-purple-500/80 to-violet-400/60 transition-all" style={{ width: `${(t.count / maxCalls) * 100}%` }} />
+                    </div>
+                    <span className="text-[7px] text-slate-400 dark:text-white/25 font-mono truncate max-w-[50px]" title={t.name}>{t.name}</span>
+                    <span className="text-[7px] text-purple-500 dark:text-purple-400 font-bold tabular-nums shrink-0">{t.count}×</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Latency — range bar visualization */}
+        {u?.latency && u.latency.count > 0 && (() => {
+          const { avgMs, p95Ms, minMs, maxMs } = u.latency;
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.latency || 'Latency'}</span>
+                <span className="text-[10px] font-extrabold text-slate-600 dark:text-white/60 tabular-nums">{(avgMs / 1000).toFixed(1)}s</span>
+              </div>
+              {/* Range bar: min → avg → p95 → max */}
+              <div className="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden relative mb-1">
+                {maxMs > 0 && (
+                  <>
+                    <div className="absolute h-full bg-emerald-400/50 rounded-s-full" style={{ left: `${(minMs / maxMs) * 100}%`, width: `${((avgMs - minMs) / maxMs) * 100}%` }} />
+                    <div className="absolute h-full bg-amber-400/50" style={{ left: `${(avgMs / maxMs) * 100}%`, width: `${((p95Ms - avgMs) / maxMs) * 100}%` }} />
+                    <div className="absolute h-full bg-red-400/30 rounded-e-full" style={{ left: `${(p95Ms / maxMs) * 100}%`, width: `${((maxMs - p95Ms) / maxMs) * 100}%` }} />
+                  </>
+                )}
+              </div>
+              <div className="flex justify-between text-[7px] text-slate-400 dark:text-white/25 tabular-nums">
+                <span>{(minMs / 1000).toFixed(1)}s</span>
+                <span className="text-amber-500 font-bold">p95 {(p95Ms / 1000).toFixed(1)}s</span>
+                <span>{(maxMs / 1000).toFixed(1)}s</span>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Session Duration */}
         {u?.firstActivity && u?.lastActivity && (
@@ -275,18 +311,27 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           </div>
         )}
 
-        {/* Model usage */}
-        {u?.modelUsage?.length > 0 && (
-          <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.models || 'Models'}</div>
-            {u.modelUsage.slice(0, 5).map((m: any, i: number) => (
-              <div key={i} className="flex items-center justify-between text-[8px] text-slate-400 dark:text-white/30 py-0.5">
-                <span className="truncate flex-1 min-w-0">{m.provider ? `${m.provider}/` : ''}{m.model}</span>
-                <span className="shrink-0 ms-1 tabular-nums">{m.count}×</span>
+        {/* Model usage — horizontal bar chart */}
+        {u?.modelUsage?.length > 0 && (() => {
+          const topModels = u.modelUsage.slice(0, 5);
+          const maxCount = topModels[0]?.count || 1;
+          return (
+            <div>
+              <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.models || 'Models'}</div>
+              <div className="space-y-1">
+                {topModels.map((m: any, i: number) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-blue-500/80 to-cyan-400/60 transition-all" style={{ width: `${(m.count / maxCount) * 100}%` }} />
+                    </div>
+                    <span className="text-[7px] text-slate-400 dark:text-white/25 font-mono truncate max-w-[50px]" title={`${m.provider ? m.provider + '/' : ''}${m.model}`}>{m.model}</span>
+                    <span className="text-[7px] text-blue-500 dark:text-blue-400 font-bold tabular-nums shrink-0">{m.count}×</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
+            </div>
+          );
+        })()}
 
         {/* Loading placeholder when no usage data yet */}
         {!u && !error && loading && (
