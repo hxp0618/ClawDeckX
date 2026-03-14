@@ -2196,8 +2196,9 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         sessionKey={sessionKey}
         gwReady={gwReady}
         loadUsage={async (key) => {
-          const res = await gwApi.sessionsUsageTimeseries(key);
-          return res;
+          const res = await gwApi.sessionsUsage({ key, limit: 1 }) as any;
+          const entry = res?.sessions?.[0];
+          return entry?.usage ?? null;
         }}
         labels={c}
         session={{

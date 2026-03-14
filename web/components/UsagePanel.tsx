@@ -219,13 +219,50 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           </div>
         )}
 
+        {/* Tool Usage */}
+        {u?.toolUsage && u.toolUsage.totalCalls > 0 && (
+          <div>
+            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.tools || 'Tools'}</div>
+            <div className="text-[9px] text-slate-500 dark:text-white/35 mb-1">
+              {u.toolUsage.totalCalls} {a.calls || 'calls'} · {u.toolUsage.uniqueTools} {a.unique || 'unique'}
+            </div>
+            {u.toolUsage.tools?.slice(0, 5).map((t: any, i: number) => (
+              <div key={i} className="flex items-center justify-between text-[8px] text-slate-400 dark:text-white/30 py-0.5">
+                <span className="truncate flex-1 min-w-0 font-mono">{t.name}</span>
+                <span className="shrink-0 ms-1 tabular-nums">{t.count}×</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Latency */}
         {u?.latency && u.latency.count > 0 && (
           <div>
             <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.latency || 'Latency'}</div>
+            <div className="grid grid-cols-2 gap-1 text-[9px]">
+              <div className="text-slate-500 dark:text-white/35">Avg: <b>{(u.latency.avgMs / 1000).toFixed(1)}s</b></div>
+              <div className="text-slate-500 dark:text-white/35">P95: <b>{(u.latency.p95Ms / 1000).toFixed(1)}s</b></div>
+              <div className="text-slate-500 dark:text-white/35">Min: <b>{(u.latency.minMs / 1000).toFixed(1)}s</b></div>
+              <div className="text-slate-500 dark:text-white/35">Max: <b>{(u.latency.maxMs / 1000).toFixed(1)}s</b></div>
+            </div>
+          </div>
+        )}
+
+        {/* Session Duration */}
+        {u?.firstActivity && u?.lastActivity && (
+          <div>
+            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.duration || 'Duration'}</div>
             <div className="text-[9px] text-slate-500 dark:text-white/35 space-y-0.5">
-              <div>Avg: <b>{(u.latency.sum / u.latency.count / 1000).toFixed(1)}s</b></div>
-              <div>P95: <b>{(u.latency.p95Max / 1000).toFixed(1)}s</b></div>
+              <div>{a.firstMsg || 'First'}: <b>{new Date(u.firstActivity).toLocaleDateString()}</b></div>
+              <div>{a.lastMsg || 'Last'}: <b>{new Date(u.lastActivity).toLocaleDateString()}</b></div>
+              {u.durationMs > 0 && (
+                <div>{a.span || 'Span'}: <b>{u.durationMs >= 86400000
+                  ? `${(u.durationMs / 86400000).toFixed(1)}d`
+                  : u.durationMs >= 3600000
+                    ? `${(u.durationMs / 3600000).toFixed(1)}h`
+                    : `${(u.durationMs / 60000).toFixed(0)}m`
+                }</b></div>
+              )}
             </div>
           </div>
         )}
@@ -241,9 +278,12 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
         {/* Model usage */}
         {u?.modelUsage?.length > 0 && (
           <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.model || 'Models'}</div>
-            {u.modelUsage.slice(0, 3).map((m: any, i: number) => (
-              <div key={i} className="text-[9px] text-slate-500 dark:text-white/35 truncate">{m.model}: {m.count}x</div>
+            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.models || 'Models'}</div>
+            {u.modelUsage.slice(0, 5).map((m: any, i: number) => (
+              <div key={i} className="flex items-center justify-between text-[8px] text-slate-400 dark:text-white/30 py-0.5">
+                <span className="truncate flex-1 min-w-0">{m.provider ? `${m.provider}/` : ''}{m.model}</span>
+                <span className="shrink-0 ms-1 tabular-nums">{m.count}×</span>
+              </div>
             ))}
           </div>
         )}
