@@ -1511,12 +1511,6 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                   <span className={`w-1.5 h-1.5 rounded-full ${runPhaseMeta.dot}`} />
                   {runPhaseMeta.text}
                 </span>
-                {activeSession?.model && (
-                  <>
-                    <span className="text-slate-300 dark:text-white/15 hidden sm:inline">|</span>
-                    <span className="text-[10px] font-medium font-mono truncate max-w-[100px] sm:max-w-[120px] px-1.5 py-0.5 rounded bg-gradient-to-r from-purple-500/10 to-blue-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/10">{activeSession.model}</span>
-                  </>
-                )}
                 {(runPhase === 'streaming' || runPhase === 'sending') && liveElapsed > 0 ? (
                   <>
                     <span className="text-slate-300 dark:text-white/15">|</span>

@@ -285,8 +285,8 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           <div>
             <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.duration || 'Duration'}</div>
             <div className="text-[9px] text-slate-500 dark:text-white/35 space-y-0.5">
-              <div>{a.firstMsg || 'First'}: <b>{new Date(u.firstActivity).toLocaleDateString()}</b></div>
-              <div>{a.lastMsg || 'Last'}: <b>{new Date(u.lastActivity).toLocaleDateString()}</b></div>
+              <div>{a.firstMsg || 'First'}: <b>{new Date(u.firstActivity).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</b></div>
+              <div>{a.lastMsg || 'Last'}: <b>{new Date(u.lastActivity).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</b></div>
               {u.durationMs > 0 && (
                 <div>{a.span || 'Span'}: <b>{u.durationMs >= 86400000
                   ? `${(u.durationMs / 86400000).toFixed(1)}d`
