@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MiniDonut, MiniBarChart } from './MiniChart';
 
 interface SessionInfo {
@@ -20,16 +20,21 @@ interface UsagePanelProps {
   loadUsage: (key: string) => Promise<any>;
   labels: Record<string, string>;
   session?: SessionInfo;
-  onModelClick?: () => void;
+  onModelChange?: (model: string | null) => void;
+  loadModels?: () => Promise<{ value: string; label: string }[]>;
 }
 
 const fmtTok = (n: number) => n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n || 0);
 const fmtCost = (n: number) => n >= 1 ? `$${n.toFixed(2)}` : n > 0 ? `$${n.toFixed(4)}` : '$0';
 
-export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loadUsage, labels: a, session: s, onModelClick }) => {
+export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loadUsage, labels: a, session: s, onModelChange, loadModels }) => {
   const [usage, setUsage] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modelPickerOpen, setModelPickerOpen] = useState(false);
+  const [modelOptions, setModelOptions] = useState<{ value: string; label: string }[]>([]);
+  const [modelLoading, setModelLoading] = useState(false);
+  const modelPickerRef = useRef<HTMLDivElement>(null);
   const [collapsed, setCollapsed] = useState(() => {
     try { return localStorage.getItem('usage-panel-collapsed') === '1'; } catch { return false; }
   });
@@ -48,6 +53,19 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
   }, [gwReady, sessionKey, loadUsage]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Close model picker on click outside
+  useEffect(() => {
+    if (!modelPickerOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (modelPickerRef.current && !modelPickerRef.current.contains(e.target as Node)) setModelPickerOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [modelPickerOpen]);
+
+  // Close model picker when session changes
+  useEffect(() => { setModelPickerOpen(false); setModelOptions([]); }, [sessionKey]);
 
   const toggle = () => {
     setCollapsed(v => {
@@ -98,11 +116,19 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
       </div>
 
       <div className="p-3 space-y-3">
-        {/* Session Info Section */}
+        {/* Session Info Section — inline model picker */}
         {s?.model && (
-          <div>
+          <div ref={modelPickerRef} className="relative">
             <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1.5">{a.model || 'Model'}</div>
-            <button type="button" onClick={onModelClick}
+            <button type="button" onClick={async () => {
+              if (modelPickerOpen) { setModelPickerOpen(false); return; }
+              if (loadModels && modelOptions.length === 0) {
+                setModelLoading(true);
+                try { setModelOptions(await loadModels()); } catch { /* ignore */ }
+                setModelLoading(false);
+              }
+              setModelPickerOpen(true);
+            }}
               className="w-full text-start px-2 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/10
                          hover:from-purple-500/15 hover:to-blue-500/15 hover:border-purple-500/20 transition-all cursor-pointer group">
               <div className="flex items-center justify-between">
@@ -110,9 +136,27 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
                   <div className="text-[11px] font-bold text-purple-600 dark:text-purple-400 truncate">{s.model}</div>
                   {s.modelProvider && <div className="text-[10px] text-slate-400 dark:text-white/25 mt-0.5">{s.modelProvider}</div>}
                 </div>
-                <span className="material-symbols-outlined text-[12px] text-purple-400/50 group-hover:text-purple-400 transition shrink-0 ms-1">swap_horiz</span>
+                <span className={`material-symbols-outlined text-[12px] text-purple-400/50 group-hover:text-purple-400 transition shrink-0 ms-1 ${modelLoading ? 'animate-spin' : ''}`}>
+                  {modelLoading ? 'progress_activity' : 'swap_horiz'}
+                </span>
               </div>
             </button>
+            {modelPickerOpen && modelOptions.length > 0 && (
+              <div className="absolute z-[100] start-0 end-0 mt-1 max-h-52 overflow-y-auto rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1e2028] shadow-xl shadow-black/10 dark:shadow-black/40 py-1">
+                {modelOptions.map(o => (
+                  <button key={o.value} type="button"
+                    onClick={() => { onModelChange?.(o.value || null); setModelPickerOpen(false); }}
+                    className={`w-full text-start px-3 py-1.5 text-[11px] transition-colors truncate ${
+                      o.value === s.model || o.value === `${s.modelProvider}/${s.model}`
+                        ? 'text-primary font-bold bg-primary/5 dark:bg-primary/10'
+                        : 'text-slate-600 dark:text-white/70 hover:bg-slate-50 dark:hover:bg-white/[0.06]'
+                    }`}
+                    title={o.label}>
+                    {o.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

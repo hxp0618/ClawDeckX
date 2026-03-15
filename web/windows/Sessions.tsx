@@ -2653,7 +2653,34 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           liveElapsed: liveElapsed,
           runPhase: runPhase,
         }}
-        onModelClick={() => setSettingsOpen(true)}
+        onModelChange={async (model) => {
+          try {
+            await gwApi.sessionsPatch(sessionKey, { model } as any);
+            setSessions(prev => prev.map(s => s.key === sessionKey ? { ...s, model: model || '' } as GwSession : s));
+            toast('info', `Model → ${model || 'inherit'}`, 2000);
+          } catch (e: any) {
+            toast('error', e?.message || 'Failed to change model');
+          }
+        }}
+        loadModels={async () => {
+          const cfg = await gwApi.configGet() as any;
+          const providers = cfg?.models?.providers || cfg?.parsed?.models?.providers || cfg?.config?.models?.providers || {};
+          const opts: { value: string; label: string }[] = [{ value: '', label: c.inherit || 'Inherit' }];
+          const seen = new Set<string>();
+          for (const [pName, pCfg] of Object.entries(providers) as [string, any][]) {
+            const pModels = Array.isArray(pCfg?.models) ? pCfg.models : [];
+            for (const m of pModels) {
+              const id = typeof m === 'string' ? m : m?.id;
+              if (!id) continue;
+              const path = `${pName}/${id}`;
+              if (seen.has(path)) continue;
+              seen.add(path);
+              const name = typeof m === 'object' && m?.name ? m.name : id;
+              opts.push({ value: path, label: `${pName} / ${name}` });
+            }
+          }
+          return opts;
+        }}
       />
       {/* Inject System Message Modal */}
       {injectOpen && (
