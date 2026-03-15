@@ -251,6 +251,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   // Fun waiting phrase (picked once per waiting session, rotates)
   const [waitingPhrase, setWaitingPhrase] = useState('');
   const waitingPhraseRef = useRef('');
+  // Btw / side-result inline messages from gateway
+  const [btwMessage, setBtwMessage] = useState<{ question: string; text: string; isError?: boolean } | null>(null);
 
   // Load model capabilities from config (for image support detection)
   useEffect(() => {
@@ -511,6 +513,15 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           handleChatEventRef.current(msg.data);
         } else if (msg.type === 'agent') {
           handleAgentEventRef.current(msg.data);
+        } else if (msg.type === 'chat.side_result') {
+          const d = msg.data;
+          if (d?.kind === 'btw' && d.sessionKey === sessionKeyRef.current) {
+            const question = (d.question || '').trim();
+            const text = (d.text || '').trim();
+            if (question && text) {
+              setBtwMessage({ question, text, isError: d.isError });
+            }
+          }
         } else if (msg.type === 'talk.mode') {
           // Gateway payload: { enabled: boolean, phase?: string, ts: number }
           const d = msg.data;
@@ -1339,6 +1350,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     setRunId(null);
     setRunPhase('idle');
     pendingRunRef.current = null;
+    setBtwMessage(null);
     setDrawerOpen(false);
     // Restore draft for new session
     setInput(loadDraft(key));
@@ -1356,6 +1368,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     setRunId(null);
     setRunPhase('idle');
     pendingRunRef.current = null;
+    setBtwMessage(null);
   }, []);
 
   // Rename session
@@ -2390,6 +2403,29 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 <div className="px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-[11px] text-red-500 font-medium flex items-center gap-2">
                   <span className="material-symbols-outlined text-[14px]">error</span>
                   {error}
+                </div>
+              </div>
+            )}
+
+            {/* Btw / side-result inline message */}
+            {btwMessage && (
+              <div className="flex justify-center animate-in fade-in duration-200">
+                <div className={`relative max-w-lg w-full mx-4 px-3.5 py-2.5 rounded-xl border text-[12px] ${btwMessage.isError
+                  ? 'bg-red-500/5 border-red-500/20 text-red-600 dark:text-red-400'
+                  : 'bg-amber-500/5 border-amber-500/20 text-amber-700 dark:text-amber-300'}`}>
+                  <div className="flex items-start gap-2">
+                    <span className={`material-symbols-outlined text-[14px] mt-0.5 shrink-0 ${btwMessage.isError ? 'text-red-500' : 'text-amber-500'}`}>
+                      {btwMessage.isError ? 'error' : 'info'}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-[11px] opacity-70 mb-0.5">{btwMessage.question}</div>
+                      <div className="whitespace-pre-wrap break-words">{btwMessage.text}</div>
+                    </div>
+                    <button onClick={() => setBtwMessage(null)}
+                      className="shrink-0 w-5 h-5 rounded flex items-center justify-center text-current opacity-40 hover:opacity-80 transition-opacity">
+                      <span className="material-symbols-outlined text-[14px]">close</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
