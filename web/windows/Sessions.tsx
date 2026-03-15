@@ -608,25 +608,36 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       }));
       // Preserve image data from optimistic user messages: the gateway strips
       // image data from chat.history (sets omitted:true), so restore from prev.
+      // IMPORTANT: must be a single setMessages(prev => ...) call so `prev`
+      // contains the original optimistic messages (not the already-stripped mapped).
       setMessages(prev => {
-        const prevUserImages = new Map<number, any[]>();
-        prev.forEach((m, i) => {
+        // Collect image blocks from previous optimistic user messages
+        const prevUserWithImages: Array<{ ts: number; text: string; imgs: any[] }> = [];
+        for (const m of prev) {
           if (m.role === 'user' && Array.isArray(m.content)) {
             const imgs = m.content.filter((b: any) => b?.type === 'image' && b?.source?.data);
-            if (imgs.length > 0) prevUserImages.set(i, imgs);
+            if (imgs.length > 0) {
+              const text = m.content.filter((b: any) => b?.type === 'text').map((b: any) => b.text || '').join('');
+              prevUserWithImages.push({ ts: m.timestamp || 0, text, imgs });
+            }
           }
-        });
-        if (prevUserImages.size === 0) return mapped;
-        return mapped.map((m: ChatMsg, i: number) => {
+        }
+        if (prevUserWithImages.length === 0) return mapped;
+        // For each mapped user message with omitted images, restore from prev
+        return mapped.map((m: ChatMsg) => {
           if (m.role !== 'user' || !Array.isArray(m.content)) return m;
-          const hasOmitted = m.content.some((b: any) => b?.type === 'image' && b?.omitted);
+          const hasOmitted = m.content.some((b: any) => b?.type === 'image' && (b?.omitted || (b?.source && !b?.source?.data)));
           if (!hasOmitted) return m;
-          const prevImgs = prevUserImages.get(i);
-          if (!prevImgs) return m;
+          const mText = m.content.filter((b: any) => b?.type === 'text').map((b: any) => b.text || '').join('');
+          const mTs = m.timestamp || 0;
+          const match = prevUserWithImages.find(p =>
+            p.text === mText && (!mTs || !p.ts || Math.abs(mTs - p.ts) < 60000)
+          );
+          if (!match) return m;
           let imgIdx = 0;
           const restored = m.content.map((b: any) => {
-            if (b?.type === 'image' && b?.omitted && imgIdx < prevImgs.length) {
-              return prevImgs[imgIdx++];
+            if (b?.type === 'image' && (b?.omitted || (b?.source && !b?.source?.data)) && imgIdx < match.imgs.length) {
+              return match.imgs[imgIdx++];
             }
             return b;
           });
@@ -920,7 +931,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     setMessages(prev => [...prev, { role: 'user', content: contentBlocks.length === 1 && contentBlocks[0].type === 'text' ? contentBlocks : contentBlocks, timestamp: Date.now() }]);
 
     // Build attachments for API — strip data URL prefix to send raw base64 (matches OpenClaw webchat protocol)
-    const attachments = attachments_.map(att => {
+    const attachments = attachments_.filter(att => att.isImage).map(att => {
       const match = /^data:([^;]+);base64,(.+)$/.exec(att.dataUrl);
       return {
         type: 'image' as const,
@@ -939,12 +950,19 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     const idempotencyKey = `req_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
     try {
-      const res = await gwApi.proxy('chat.send', {
+      const sendParams: any = {
         sessionKey,
         message: msg,
+        deliver: false,
         idempotencyKey,
-        ...(attachments.length > 0 ? { attachments } : {}),
-      }) as any;
+      };
+      if (attachments.length > 0) {
+        sendParams.attachments = attachments;
+        // DEBUG: temporary logging to diagnose image sending issue
+        console.log('[chat.send] sending with', attachments.length, 'attachment(s), content sizes:', attachments.map(a => a.content?.length ?? 0));
+      }
+      const res = await gwApi.proxy('chat.send', sendParams) as any;
+      if (attachments.length > 0) console.log('[chat.send] OK, runId:', res?.runId, 'status:', res?.status);
       const nextRunId = res?.runId || idempotencyKey;
       setRunId(nextRunId);
       setRunPhase('streaming');
@@ -955,6 +973,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         startedAt: Date.now(),
       };
     } catch (err: any) {
+      // DEBUG: log error
+      console.error('[chat.send] ERROR:', err?.message, err?.code, err);
       setStream(null);
       setRunPhase('error');
       setError(err?.message || c.error);
