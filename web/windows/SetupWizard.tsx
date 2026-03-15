@@ -1032,12 +1032,6 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
                 })}
               </div>
             )}
-
-            {/* 配置提示 */}
-            <p className="text-xs text-slate-500 dark:text-white/50 mb-6">
-              {sw.postInstallHint}
-            </p>
-
             <div className="flex gap-3">
               {needsRestart ? (
                 <button

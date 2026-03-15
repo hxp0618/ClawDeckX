@@ -62,16 +62,27 @@ type ChatRunPhase = 'idle' | 'sending' | 'streaming' | 'error';
 function appendMessageDedup(
   prev: ChatMsg[],
   next: ChatMsg,
+  recentRef?: React.MutableRefObject<Set<string>>,
 ): ChatMsg[] {
   const text = extractText(next.content);
   const ts = next.timestamp || 0;
+  // Ref-based guard: prevent React 18 batching from allowing duplicates
+  // when two setMessages updaters run against the same base state
+  const fingerprint = `${next.role}:${text}`;
+  if (recentRef?.current.has(fingerprint)) return prev;
   const duplicated = prev.some((m) => {
     if (m.role !== next.role) return false;
     const mt = m.timestamp || 0;
     if (ts && mt && Math.abs(mt - ts) > 30000) return false;
     return extractText(m.content) === text;
   });
-  return duplicated ? prev : [...prev, next];
+  if (duplicated) return prev;
+  // Mark as recently added; clear after a short delay
+  if (recentRef) {
+    recentRef.current.add(fingerprint);
+    setTimeout(() => recentRef.current.delete(fingerprint), 2000);
+  }
+  return [...prev, next];
 }
 
 function extractText(content: unknown): string {
@@ -184,6 +195,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const [error, setError] = useState<string | null>(null);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
   const pendingRunRef = useRef<{ runId: string; beforeCount: number; startedAt: number } | null>(null);
+  // Dedup guard: track recently added message fingerprints to prevent React batching duplicates
+  const recentAddedRef = useRef<Set<string>>(new Set());
 
   // --- New state for optimizations ---
   // Sidebar search
@@ -493,6 +506,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
 
     // session.message style payload (without state)
     if (!payload.state && (payload.role || payload.message?.role)) {
+      // Skip during active streaming — state:'final' will handle the message
+      if (pendingRunRef.current) return;
       const msg = payload.message || payload;
       const text = extractText(msg?.content ?? msg);
       if (text.trim()) {
@@ -500,7 +515,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           role: (msg.role || 'assistant') as ChatMsg['role'],
           content: msg.content ?? [{ type: 'text', text }],
           timestamp: msg.timestamp || Date.now(),
-        }));
+        }, recentAddedRef));
         if ((msg.role || 'assistant') === 'assistant') {
           setRunId(null);
           setStream(null);
@@ -530,7 +545,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             role: (msg.role || 'assistant') as ChatMsg['role'],
             content: msg.content ?? [{ type: 'text', text }],
             timestamp: msg.timestamp || Date.now(),
-          }));
+          }, recentAddedRef));
         }
       }
       setStream(null);
@@ -547,7 +562,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             role: 'assistant',
             content: [{ type: 'text', text: prev }],
             timestamp: Date.now(),
-          }));
+          }, recentAddedRef));
         }
         return null;
       });
