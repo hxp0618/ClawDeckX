@@ -787,7 +787,7 @@ export const gwApi = {
     rpc('sessions.reset', { key }),
   sessionsDelete: (key: string, deleteTranscript = false) =>
     rpc('sessions.delete', { key, deleteTranscript }),
-  sessionsPatch: (key: string, patch: { label?: string | null; thinkingLevel?: string | null; verboseLevel?: string | null; reasoningLevel?: string | null }) =>
+  sessionsPatch: (key: string, patch: { label?: string | null; thinkingLevel?: string | null; verboseLevel?: string | null; reasoningLevel?: string | null; sendPolicy?: string | null; fastMode?: boolean | null; model?: string | null }) =>
     rpc('sessions.patch', { key, ...patch }),
   sessionsResolve: (key: string) =>
     rpc('sessions.resolve', { key }),

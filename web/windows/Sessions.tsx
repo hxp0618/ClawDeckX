@@ -44,6 +44,7 @@ interface GwSession {
   compacted?: boolean;
   activeRun?: boolean;
   isStreaming?: boolean;
+  fastMode?: boolean;
 }
 
 interface ChatMsg {
@@ -57,7 +58,16 @@ interface ChatMsg {
   stopReason?: string;
 }
 
-type ChatRunPhase = 'idle' | 'sending' | 'streaming' | 'error';
+type ChatRunPhase = 'idle' | 'sending' | 'waiting' | 'streaming' | 'running' | 'error';
+
+interface LiveToolCall {
+  toolCallId: string;
+  toolName: string;
+  args?: unknown;
+  result?: unknown;
+  isError?: boolean;
+  phase: 'start' | 'running' | 'done';
+}
 
 function appendMessageDedup(
   prev: ChatMsg[],
@@ -140,6 +150,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
 
   // Shared Manager WS subscription for chat streaming events
   const handleChatEventRef = useRef<(payload?: any) => void>(() => { });
+  const handleAgentEventRef = useRef<(payload?: any) => void>(() => { });
   const [wsConnected, setWsConnected] = useState(false);
   const [wsError, setWsError] = useState<string | null>(null);
   const [wsConnecting, setWsConnecting] = useState(true);
@@ -227,6 +238,10 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const [dragOver, setDragOver] = useState(false);
   // Model image capability map: { "provider/modelId": boolean }
   const [modelImageMap, setModelImageMap] = useState<Record<string, boolean>>({});
+  // Live tool calls (real-time streaming from agent events)
+  const [liveToolCalls, setLiveToolCalls] = useState<Map<string, LiveToolCall>>(new Map());
+  // Global tool expand/collapse toggle
+  const [toolsExpanded, setToolsExpanded] = useState(false);
 
   // Load model capabilities from config (for image support detection)
   useEffect(() => {
@@ -371,35 +386,49 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const runPhaseMeta = useMemo(() => {
     if (runPhase === 'sending') {
       return {
-        text: c.runSending || '发送中',
+        text: c.runSending || 'Sending',
         dot: 'bg-amber-400',
+        textClass: 'text-amber-500',
+      };
+    }
+    if (runPhase === 'waiting') {
+      return {
+        text: c.runWaiting || 'Waiting',
+        dot: 'bg-amber-400 animate-pulse',
         textClass: 'text-amber-500',
       };
     }
     if (runPhase === 'streaming') {
       return {
-        text: c.runStreaming || '流式回复',
+        text: c.runStreaming || 'Streaming',
         dot: 'bg-primary animate-pulse',
         textClass: 'text-primary',
       };
     }
+    if (runPhase === 'running') {
+      return {
+        text: c.runRunning || 'Running tools',
+        dot: 'bg-purple-500 animate-pulse',
+        textClass: 'text-purple-500',
+      };
+    }
     if (runPhase === 'error') {
       return {
-        text: c.runError || '异常',
+        text: c.runError || 'Error',
         dot: 'bg-red-500',
         textClass: 'text-red-500',
       };
     }
     return {
-      text: c.runIdle || '空闲',
+      text: c.runIdle || 'Idle',
       dot: 'bg-mac-green',
       textClass: 'text-mac-green',
     };
-  }, [runPhase, c.runSending, c.runStreaming, c.runError, c.runIdle]);
+  }, [runPhase, c.runSending, c.runWaiting, c.runStreaming, c.runRunning, c.runError, c.runIdle]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const isStreaming = runPhase === 'streaming';
+  const isStreaming = runPhase === 'streaming' || runPhase === 'running';
   const renderedMessages = useMemo(() => messages.slice(-200), [messages]);
   const omittedMessageCount = Math.max(0, messages.length - renderedMessages.length);
   const msgGroups = useMemo(() => groupMessages(renderedMessages), [renderedMessages]);
@@ -471,6 +500,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       try {
         if (msg.type === 'chat' || msg.type === 'session.message') {
           handleChatEventRef.current(msg.data);
+        } else if (msg.type === 'agent') {
+          handleAgentEventRef.current(msg.data);
         } else if (msg.type === 'talk.mode') {
           // Gateway payload: { enabled: boolean, phase?: string, ts: number }
           const d = msg.data;
@@ -552,6 +583,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       setRunId(null);
       setRunPhase('idle');
       setError(null);
+      setLiveToolCalls(new Map());
       if (pendingRunRef.current?.startedAt) setLastLatencyMs(Date.now() - pendingRunRef.current.startedAt);
       pendingRunRef.current = null;
     } else if (payload.state === 'aborted') {
@@ -569,24 +601,70 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       setRunId(null);
       setRunPhase('idle');
       setError(null);
+      setLiveToolCalls(new Map());
       pendingRunRef.current = null;
     } else if (payload.state === 'error') {
       setStream(null);
       setRunId(null);
       setRunPhase('error');
+      setLiveToolCalls(new Map());
       pendingRunRef.current = null;
       setError(payload.errorMessage || c.error);
     }
   }, [c.error]);
 
+  // Agent event handler (tool streaming)
+  const handleAgentEvent = useCallback((payload?: any) => {
+    if (!payload) return;
+    const eventSessionKey = payload.sessionKey || payload.key;
+    if (eventSessionKey && eventSessionKey !== sessionKeyRef.current) return;
+    if (payload.stream === 'tool') {
+      const data = payload.data || {};
+      const phase = data.phase || '';
+      const toolCallId = data.toolCallId || '';
+      const toolName = data.name || 'tool';
+      if (!toolCallId) return;
+      if (phase === 'start') {
+        setLiveToolCalls(prev => {
+          const next = new Map(prev);
+          next.set(toolCallId, { toolCallId, toolName, args: data.args, phase: 'start' });
+          return next;
+        });
+        setRunPhase('running');
+      } else if (phase === 'update') {
+        setLiveToolCalls(prev => {
+          const next = new Map(prev);
+          const existing = next.get(toolCallId);
+          if (existing) {
+            next.set(toolCallId, { ...existing, args: data.args ?? existing.args, phase: 'running' });
+          }
+          return next;
+        });
+      } else if (phase === 'result') {
+        setLiveToolCalls(prev => {
+          const next = new Map(prev);
+          const existing = next.get(toolCallId);
+          if (existing) {
+            next.set(toolCallId, { ...existing, result: data.result, isError: Boolean(data.isError), phase: 'done' });
+          }
+          return next;
+        });
+      }
+    } else if (payload.stream === 'lifecycle') {
+      const phase = typeof payload.data?.phase === 'string' ? payload.data.phase : '';
+      if (phase === 'start') setRunPhase('running');
+    }
+  }, []);
+
   // Keep ref updated with latest handler
   useEffect(() => {
     handleChatEventRef.current = handleChatEvent;
-  }, [handleChatEvent]);
+    handleAgentEventRef.current = handleAgentEvent;
+  }, [handleChatEvent, handleAgentEvent]);
 
   // Live elapsed timer during streaming
   useEffect(() => {
-    if (runPhase !== 'streaming' && runPhase !== 'sending') {
+    if (runPhase !== 'streaming' && runPhase !== 'sending' && runPhase !== 'running' && runPhase !== 'waiting') {
       setLiveElapsed(0);
       return;
     }
@@ -628,6 +706,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         derivedTitle: s.derivedTitle || '',
         maxContextTokens: s.maxContextTokens || s.contextWindow || s.maxTokens || 0,
         compacted: !!s.compacted,
+        fastMode: s.fastMode ?? undefined,
       }));
       setSessions(mapped);
       // Persist to sessionStorage for instant display on next window open
@@ -1659,7 +1738,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                   <span className={`w-1.5 h-1.5 rounded-full ${runPhaseMeta.dot}`} />
                   {runPhaseMeta.text}
                 </span>
-                {(runPhase === 'streaming' || runPhase === 'sending') && liveElapsed > 0 ? (
+                {(runPhase === 'streaming' || runPhase === 'sending' || runPhase === 'running' || runPhase === 'waiting') && liveElapsed > 0 ? (
                   <>
                     <span className="text-slate-300 dark:text-white/15">|</span>
                     <span className="text-[10px] text-primary font-mono tabular-nums">{(liveElapsed / 1000).toFixed(1)}s</span>
@@ -1669,6 +1748,11 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             </div>
           </div>
           <div className="flex items-center gap-1">
+            <button onClick={() => setToolsExpanded(v => !v)}
+              className={`p-2 rounded-lg transition-colors ${toolsExpanded ? 'text-purple-500 bg-purple-500/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
+              title={toolsExpanded ? (c.toolsCollapse || 'Collapse tools') : (c.toolsExpand || 'Expand tools')}>
+              <span className="material-symbols-outlined text-[18px]">{toolsExpanded ? 'unfold_less' : 'unfold_more'}</span>
+            </button>
             <button onClick={() => setSettingsOpen(v => !v)}
               className={`p-2 rounded-lg transition-colors ${settingsOpen ? 'text-primary bg-primary/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
               title={c.overrides || 'Overrides'}>
@@ -1760,7 +1844,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                   <span className="material-symbols-outlined text-[16px]">close</span>
                 </button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
                 {/* Label */}
                 <label className="block">
                   <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
@@ -1813,6 +1897,17 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                   <CustomSelect value={activeSession.sendPolicy || ''} disabled={patchBusy}
                     onChange={v => patchSession('sendPolicy', { sendPolicy: v || null })}
                     options={SEND_POLICIES.map(lv => ({ value: lv, label: lv || (c.inherit || 'Inherit') }))}
+                    className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70" />
+                </label>
+                {/* Fast Mode */}
+                <label className="block">
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase flex items-center gap-1">
+                    {c.fastMode || 'Fast'}
+                    {savedField === 'fastMode' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
+                  </span>
+                  <CustomSelect value={activeSession.fastMode === true ? 'on' : activeSession.fastMode === false ? 'off' : ''} disabled={patchBusy}
+                    onChange={v => patchSession('fastMode', { fastMode: v === 'on' ? true : v === 'off' ? false : null })}
+                    options={[{ value: '', label: c.inherit || 'Inherit' }, { value: 'off', label: 'Off' }, { value: 'on', label: 'On' }]}
                     className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70" />
                 </label>
                 {/* Model Override */}
@@ -2173,6 +2268,57 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 </React.Fragment>
               );
             })}
+
+            {/* Live tool calls (real-time tool execution) */}
+            {liveToolCalls.size > 0 && (
+              <div className="flex items-start gap-2.5 md:gap-3">
+                <div className="w-7 h-7 md:w-8 md:h-8 shrink-0 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 mt-0.5">
+                  <span className="material-symbols-outlined text-[14px] md:text-[16px]">build</span>
+                </div>
+                <div className="max-w-[85%] md:max-w-[75%] space-y-1.5">
+                  {Array.from(liveToolCalls.values()).map(tc => (
+                    <div key={tc.toolCallId} className={`rounded-xl border overflow-hidden transition-all ${
+                      tc.phase === 'done'
+                        ? tc.isError
+                          ? 'border-red-200/60 dark:border-red-500/15 bg-red-50/30 dark:bg-red-500/[0.03]'
+                          : 'border-emerald-200/60 dark:border-emerald-500/15 bg-emerald-50/30 dark:bg-emerald-500/[0.03]'
+                        : 'border-purple-200/40 dark:border-purple-500/10 bg-purple-50/20 dark:bg-purple-500/[0.02]'
+                    }`}>
+                      <div className="flex items-center gap-2 px-3 py-2">
+                        <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 ${
+                          tc.phase === 'done'
+                            ? tc.isError ? 'bg-red-500/15 border border-red-500/15' : 'bg-emerald-500/15 border border-emerald-500/15'
+                            : 'bg-purple-500/15 border border-purple-500/15'
+                        }`}>
+                          <span className={`material-symbols-outlined text-[11px] ${
+                            tc.phase === 'done'
+                              ? tc.isError ? 'text-red-400' : 'text-emerald-400'
+                              : 'text-purple-400 animate-spin'
+                          }`}>
+                            {tc.phase === 'done' ? (tc.isError ? 'error' : 'check_circle') : 'progress_activity'}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-mono font-semibold text-slate-600 dark:text-white/50 truncate flex-1">{tc.toolName}</span>
+                        <span className={`text-[9px] font-bold uppercase tracking-wider ${
+                          tc.phase === 'done'
+                            ? tc.isError ? 'text-red-400/60' : 'text-emerald-400/60'
+                            : 'text-purple-400/60'
+                        }`}>
+                          {tc.phase === 'done' ? (tc.isError ? c.toolError || 'Error' : c.toolDone || 'Done') : c.toolRunning || 'Running'}
+                        </span>
+                      </div>
+                      {toolsExpanded && tc.args && (
+                        <div className="px-3 pb-2">
+                          <pre className="text-[9px] font-mono text-slate-400 dark:text-white/30 bg-slate-100/50 dark:bg-black/10 rounded-lg p-1.5 overflow-auto max-h-20 whitespace-pre-wrap break-all">
+                            {typeof tc.args === 'string' ? tc.args : JSON.stringify(tc.args, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Streaming indicator */}
             {stream !== null && (
