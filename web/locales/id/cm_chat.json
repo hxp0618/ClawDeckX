@@ -25,6 +25,7 @@
     "toolCall": "Panggilan Alat",
     "toolResult": "Hasil Alat",
     "attachFile": "Lampirkan file",
+    "modelNoVision": "Model saat ini tidak mendukung input gambar, gambar mungkin diabaikan",
     "attachCaption": "Tambahkan keterangan atau pesan...",
     "attachImage": "Lampirkan Gambar",
     "clearChat": "Hapus Chat",

@@ -26,6 +26,7 @@
     "toolResult": "Tool Result",
     "attachImage": "Attach Image",
     "attachFile": "Attach File",
+    "modelNoVision": "Current model does not support image input, images may be ignored",
     "attachCaption": "Add a caption or message...",
     "clearChat": "Clear Chat",
     "confirmClear": "Clear this conversation?",

@@ -25,6 +25,7 @@
     "toolCall": "Werkzeugaufruf",
     "toolResult": "Werkzeugergebnis",
     "attachFile": "Datei anhängen",
+    "modelNoVision": "Das aktuelle Modell unterstützt keine Bildeingabe. Bilder werden möglicherweise ignoriert",
     "attachCaption": "Beschreibung oder Nachricht hinzufügen...",
     "attachImage": "Bild anhängen",
     "clearChat": "Chat leeren",

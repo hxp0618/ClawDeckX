@@ -904,8 +904,8 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
 
   const tabs: { id: TabId; label: string; count?: number }[] = [
     { id: 'all', label: sk.skillsTab || sk.allSkills, count: skills.length },
-    { id: 'tools', label: skillsMarket.toolsCatalog || sk.toolsCatalog || 'Tools' },
     { id: 'plugins', label: sk.pluginCenter || 'Plugins' },
+    { id: 'tools', label: skillsMarket.toolsCatalog || sk.toolsCatalog || 'Tools' },
     { id: 'market', label: 'ClawHub' },
     { id: 'skillhub', label: 'SkillHub' },
   ];

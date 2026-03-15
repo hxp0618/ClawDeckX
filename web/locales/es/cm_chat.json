@@ -25,6 +25,7 @@
     "toolCall": "Llamada a herramienta",
     "toolResult": "Resultado de herramienta",
     "attachFile": "Adjuntar archivo",
+    "modelNoVision": "El modelo actual no admite entrada de imágenes, las imágenes pueden ser ignoradas",
     "attachCaption": "Agregar descripción o mensaje...",
     "attachImage": "Adjuntar imagen",
     "clearChat": "Limpiar chat",

@@ -25,6 +25,7 @@
     "toolCall": "도구 호출",
     "toolResult": "도구 결과",
     "attachFile": "파일 첨부",
+    "modelNoVision": "현재 모델은 이미지 입력을 지원하지 않습니다. 이미지가 무시될 수 있습니다",
     "attachCaption": "설명 또는 메시지 추가...",
     "attachImage": "이미지 첨부",
     "clearChat": "채팅 삭제",

@@ -423,8 +423,14 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
   const [showAddModel, setShowAddModel] = useState<string | null>(null);
   const [newModel, setNewModel] = useState({ 
     id: '', name: '', reasoning: false, contextWindow: '',
+    inputCapability: 'text+image' as 'text' | 'text+image',
     cost: { input: '', output: '', cacheRead: '', cacheWrite: '' }
   });
+
+  const CAPABILITY_OPTIONS = useMemo(() => [
+    { value: 'text', label: es.capTextOnly || 'Text Only' },
+    { value: 'text+image', label: es.capTextImage || 'Text + Image' },
+  ], [es]);
 
   // 向导状态
   const [wizardOpen, setWizardOpen] = useState(false);
@@ -437,6 +443,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
   const [wizModels, setWizModels] = useState<string[]>([]);
   const [wizModelCosts, setWizModelCosts] = useState<Record<string, { input: string; output: string; cacheRead: string; cacheWrite: string }>>({});
   const [wizExpandedCost, setWizExpandedCost] = useState<string | null>(null);
+  const [wizModelCapabilities, setWizModelCapabilities] = useState<Record<string, 'text' | 'text+image'>>({});
   const [wizSearchInput, setWizSearchInput] = useState('');
   const [wizCustomName, setWizCustomName] = useState('');
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'ok' | 'fail' | 'warning'>('idle');
@@ -525,6 +532,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
     setWizModels([]);
     setWizModelCosts({});
     setWizExpandedCost(null);
+    setWizModelCapabilities({});
     setWizSearchInput('');
     setWizCustomName('');
     setTestStatus('idle');
@@ -668,6 +676,9 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
       const presetModel = wizardModelCandidates.find(m => m.id === id);
       const customCost = wizModelCosts[id];
       const m: any = { id, name: presetModel?.name || id };
+      // 设置模型输入能力
+      const cap = wizModelCapabilities[id] || 'text+image';
+      m.input = cap === 'text' ? ['text'] : ['text', 'image'];
       // 优先使用自定义费用，否则使用预设费用
       if (customCost && (customCost.input || customCost.output || customCost.cacheRead || customCost.cacheWrite)) {
         const cost: any = {};
@@ -694,7 +705,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
     }
     resetWizard();
     setWizardOpen(false);
-  }, [preset, wizApiKey, wizBaseUrl, wizApiType, wizModels, wizModelCosts, wizCustomName, setField, resetWizard, wizardModelCandidates]);
+  }, [preset, wizApiKey, wizBaseUrl, wizApiType, wizModels, wizModelCosts, wizModelCapabilities, wizCustomName, setField, resetWizard, wizardModelCandidates]);
 
   const setPrimary = useCallback((path: string) => {
     setField(['agents', 'defaults', 'model', 'primary'], path);
@@ -715,6 +726,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
     if (newModel.name.trim()) m.name = newModel.name.trim();
     if (newModel.reasoning) m.reasoning = true;
     if (newModel.contextWindow) m.contextWindow = Number(newModel.contextWindow);
+    m.input = newModel.inputCapability === 'text' ? ['text'] : ['text', 'image'];
     // 添加费用配置
     const cost: any = {};
     if (newModel.cost.input) cost.input = Number(newModel.cost.input);
@@ -723,7 +735,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
     if (newModel.cost.cacheWrite) cost.cacheWrite = Number(newModel.cost.cacheWrite);
     if (Object.keys(cost).length > 0) m.cost = cost;
     setField(['models', 'providers', showAddModel, 'models'], [...models, m]);
-    setNewModel({ id: '', name: '', reasoning: false, contextWindow: '', cost: { input: '', output: '', cacheRead: '', cacheWrite: '' } });
+    setNewModel({ id: '', name: '', reasoning: false, contextWindow: '', inputCapability: 'text+image', cost: { input: '', output: '', cacheRead: '', cacheWrite: '' } });
     setShowAddModel(null);
   }, [showAddModel, newModel, getField, setField]);
 
@@ -814,7 +826,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
                 <div className="mt-2 pt-2 border-t border-slate-100 dark:border-white/[0.04]">
                   <div className="flex items-center justify-between mb-1.5">
                     <span className="text-[10px] font-bold text-slate-500">{es.models} ({models.length})</span>
-                    <button onClick={() => { setShowAddModel(name); setNewModel({ id: '', name: '', reasoning: false, contextWindow: '', cost: { input: '', output: '', cacheRead: '', cacheWrite: '' } }); setAddModelDiscovered([]); setAddModelDiscovering(false); setAddModelSearchOpen(false); setAddModelHighlight(-1); }} className="text-[11px] font-bold text-primary hover:underline">+ {es.add}</button>
+                    <button onClick={() => { setShowAddModel(name); setNewModel({ id: '', name: '', reasoning: false, contextWindow: '', inputCapability: 'text+image', cost: { input: '', output: '', cacheRead: '', cacheWrite: '' } }); setAddModelDiscovered([]); setAddModelDiscovering(false); setAddModelSearchOpen(false); setAddModelHighlight(-1); }} className="text-[11px] font-bold text-primary hover:underline">+ {es.add}</button>
                   </div>
                   {models.map((m: any, mi: number) => {
                     const path = `${name}/${m.id}`;
@@ -826,6 +838,7 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
                           <div className="flex items-center gap-1.5">
                             <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate">{m.name || m.id}</span>
                             {m.reasoning && <span className="text-[10px] px-1 py-0.5 bg-purple-500/10 text-purple-500 rounded font-bold">R</span>}
+                            {Array.isArray(m.input) && m.input.includes('image') && <span className="text-[10px] px-1 py-0.5 bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 rounded font-bold" title={es.capTextImage}>V</span>}
                             {m.contextWindow && <span className="text-[10px] text-slate-400">{Math.round(m.contextWindow / 1000)}K</span>}
                           </div>
                           <span className="text-[11px] text-slate-400 font-mono">{m.id}</span>
@@ -1069,6 +1082,12 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-0.5 shrink-0">
+                                  <button onClick={() => setWizModelCapabilities(prev => ({ ...prev, [mid]: (prev[mid] || 'text+image') === 'text+image' ? 'text' : 'text+image' }))}
+                                    aria-label={es.modelCapability}
+                                    className={`p-0.5 transition-colors ${(wizModelCapabilities[mid] || 'text+image') === 'text+image' ? 'text-cyan-500' : 'text-slate-300 dark:text-white/20'}`}
+                                    title={(wizModelCapabilities[mid] || 'text+image') === 'text+image' ? es.capTextImage : es.capTextOnly}>
+                                    <span className="material-symbols-outlined text-[14px]">image</span>
+                                  </button>
                                   <button onClick={() => setWizExpandedCost(isExpanded ? null : mid)}
                                     aria-label={es.modelCost}
                                     className={`p-0.5 transition-colors ${isExpanded ? 'text-amber-500' : 'text-slate-300 hover:text-amber-500 dark:text-white/20 dark:hover:text-amber-400'}`} title={es.modelCost}>
@@ -1466,6 +1485,19 @@ export const ModelsSection: React.FC<SectionProps> = ({ config, setField, getFie
                   </button>
                   <p className="text-[11px] text-slate-400 mt-0.5">{es.reasoningDesc}</p>
                 </div>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-slate-500 mb-1 block">{es.modelCapability}</label>
+                <div className="flex gap-1.5">
+                  {CAPABILITY_OPTIONS.map(o => (
+                    <button key={o.value} onClick={() => setNewModel({ ...newModel, inputCapability: o.value as 'text' | 'text+image' })}
+                      className={`flex-1 px-2.5 py-1.5 rounded-lg text-[10px] font-medium border-2 transition-all ${newModel.inputCapability === o.value ? 'border-primary bg-primary/5 text-primary' : 'border-slate-200 dark:border-white/10 text-slate-500'}`}>
+                      {o.value === 'text+image' && <span className="material-symbols-outlined text-[12px] align-middle me-0.5">image</span>}
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 mt-0.5">{es.modelCapabilityDesc}</p>
               </div>
               {/* 费用配置 */}
               <div className="pt-2 border-t border-slate-100 dark:border-white/[0.06]">

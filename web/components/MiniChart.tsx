@@ -100,14 +100,16 @@ export const MiniBarChart: React.FC<MiniBarChartProps> = ({ values, height = 48,
   if (!values.length) return null;
   const max = Math.max(...values, 1);
   const gap = 2;
-  const barW = Math.max(1, (100 - gap * (values.length - 1)) / values.length);
+  const barW = Math.min(14, Math.max(1, (100 - gap * (values.length - 1)) / values.length));
+  const totalW = values.length * barW + (values.length - 1) * gap;
+  const offsetX = (100 - totalW) / 2;
 
   return (
     <svg viewBox={`0 0 100 ${height}`} className="w-full" style={{ height }} preserveAspectRatio="none">
       {values.map((v, i) => {
         const h = Math.max(1, (v / max) * (height - 4));
         return (
-          <rect key={i} x={i * (barW + gap)} y={height - h} width={barW} height={h}
+          <rect key={i} x={offsetX + i * (barW + gap)} y={height - h} width={barW} height={h}
             rx={1.5} fill={color} fillOpacity={0.7}
           />
         );

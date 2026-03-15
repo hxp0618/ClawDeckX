@@ -25,6 +25,7 @@
     "toolCall": "工具呼叫",
     "toolResult": "工具結果",
     "attachFile": "附加檔案",
+    "modelNoVision": "目前模型不支援圖片輸入，圖片可能會被忽略",
     "attachCaption": "新增說明或訊息...",
     "attachImage": "附加圖片",
     "clearChat": "清空對話",

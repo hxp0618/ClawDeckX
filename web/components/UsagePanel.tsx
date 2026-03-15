@@ -85,7 +85,7 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
                     bg-white/50 dark:bg-white/[0.02] flex flex-col overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100/60 dark:border-white/[0.04]">
-        <span className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase">{a.usage || 'Usage'}</span>
+        <span className="text-[11px] font-bold text-slate-500 dark:text-white/40 uppercase">{a.usage || 'Usage'}</span>
         <div className="flex items-center gap-1">
           <button onClick={load} disabled={loading} className="p-0.5 text-slate-400 hover:text-primary">
             <span className={`material-symbols-outlined text-[12px] ${loading ? 'animate-spin' : ''}`}>refresh</span>
@@ -100,10 +100,10 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
         {/* Session Info Section */}
         {s?.model && (
           <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1.5">{a.model || 'Model'}</div>
+            <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1.5">{a.model || 'Model'}</div>
             <div className="px-2 py-1.5 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/10">
-              <div className="text-[10px] font-bold text-purple-600 dark:text-purple-400 truncate">{s.model}</div>
-              {s.modelProvider && <div className="text-[8px] text-slate-400 dark:text-white/25 mt-0.5">{s.modelProvider}</div>}
+              <div className="text-[11px] font-bold text-purple-600 dark:text-purple-400 truncate">{s.model}</div>
+              {s.modelProvider && <div className="text-[10px] text-slate-400 dark:text-white/25 mt-0.5">{s.modelProvider}</div>}
             </div>
           </div>
         )}
@@ -111,12 +111,12 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
         {/* Context Window + Session Stats (merged row) */}
         {s?.totalTokens ? (
           <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1.5">{a.context || 'Context'}</div>
+            <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1.5">{a.context || 'Context'}</div>
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-mono tabular-nums text-slate-600 dark:text-white/60">{fmtTok(s.totalTokens)}</span>
                 {s.maxContextTokens ? (
-                  <span className="text-[9px] text-slate-400 dark:text-white/25">/ {fmtTok(s.maxContextTokens)}</span>
+                  <span className="text-[10px] text-slate-400 dark:text-white/25">/ {fmtTok(s.maxContextTokens)}</span>
                 ) : null}
               </div>
               {s.maxContextTokens ? (
@@ -124,13 +124,13 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
                   <div className="flex-1 h-1.5 rounded-full bg-slate-200/60 dark:bg-white/10 overflow-hidden">
                     <div className={`h-full rounded-full ${ctxClr} transition-all`} style={{ width: `${ctxPct}%` }} />
                   </div>
-                  <span className={`text-[9px] font-bold tabular-nums ${ctxTxtClr}`}>{ctxPct.toFixed(0)}%</span>
+                  <span className={`text-[10px] font-bold tabular-nums ${ctxTxtClr}`}>{ctxPct.toFixed(0)}%</span>
                   {s.compacted && <span className="material-symbols-outlined text-[11px] text-amber-500" title={a.ctxCompacted || 'Compacted'}>compress</span>}
                 </div>
               ) : null}
               {/* Session quick stats inline */}
               {(s.messageCount || s.thinkingLevel || s.lastLatencyMs || s.liveElapsed) ? (
-                <div className="flex items-center flex-wrap gap-x-2.5 gap-y-0.5 text-[9px] pt-0.5">
+                <div className="flex items-center flex-wrap gap-x-2.5 gap-y-0.5 text-[10px] pt-0.5">
                   {s.messageCount ? (
                     <span className="text-slate-500 dark:text-white/35">
                       <span className="material-symbols-outlined text-[10px] align-middle me-0.5">chat</span>
@@ -167,10 +167,10 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
 
         {/* Cost */}
         <div>
-          <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.cost || 'Cost'}</div>
+          <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.cost || 'Cost'}</div>
           <div className="text-lg font-bold text-slate-700 dark:text-white/80 tabular-nums">{fmtCost(u?.totalCost || 0)}</div>
           {u && (
-            <div className="text-[8px] text-slate-400 dark:text-white/25">
+            <div className="text-[10px] text-slate-400 dark:text-white/25">
               {a.input || 'In'}: {fmtCost(u.inputCost || 0)} · {a.output || 'Out'}: {fmtCost(u.outputCost || 0)}
             </div>
           )}
@@ -179,10 +179,10 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
         {/* Token Donut */}
         {tokenSlices.length > 0 && (
           <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.tokens || 'Tokens'}</div>
+            <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.tokens || 'Tokens'}</div>
             <div className="flex items-center gap-2">
               <MiniDonut size={56} slices={tokenSlices} innerRadius={0.6} />
-              <div className="text-[9px] space-y-0.5">
+              <div className="text-[10px] space-y-0.5">
                 <div><span className="text-blue-500">●</span> {a.input || 'In'}: {fmtTok(u.input)}</div>
                 <div><span className="text-amber-500">●</span> {a.output || 'Out'}: {fmtTok(u.output)}</div>
                 {u.cacheRead > 0 && <div><span className="text-purple-500">●</span> {a.cache || 'Cache'}: {fmtTok(u.cacheRead)}</div>}
@@ -195,8 +195,8 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
         {error && (
           <div className="flex flex-col items-center gap-2 p-3 text-center rounded-lg bg-red-50/50 dark:bg-red-500/5">
             <span className="material-symbols-outlined text-[16px] text-red-400">error</span>
-            <p className="text-[9px] text-red-400">{error}</p>
-            <button onClick={load} className="text-[9px] px-2 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition">
+            <p className="text-[10px] text-red-400">{error}</p>
+            <button onClick={load} className="text-[10px] px-2 py-1 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition">
               {a.retry || 'Retry'}
             </button>
           </div>
@@ -208,7 +208,7 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           return (
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.messages || 'Messages'}</span>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.messages || 'Messages'}</span>
                 <span className="text-[10px] font-extrabold text-slate-600 dark:text-white/60 tabular-nums">{mc.total}</span>
               </div>
               <div className="h-2.5 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden flex mb-1">
@@ -217,7 +217,7 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
                 {mc.toolCalls > 0 && <div className="h-full bg-purple-400/80" style={{ width: `${(mc.toolCalls / mc.total) * 100}%` }} title={`${a.toolCall || 'Tools'}: ${mc.toolCalls}`} />}
                 {mc.errors > 0 && <div className="h-full bg-red-400/80" style={{ width: `${(mc.errors / mc.total) * 100}%` }} title={`${a.error || 'Errors'}: ${mc.errors}`} />}
               </div>
-              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[7px]">
+              <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[9px]">
                 <span className="text-blue-500">● {a.user || 'User'} {mc.user}</span>
                 <span className="text-emerald-500">● {a.assistant || 'Asst'} {mc.assistant}</span>
                 {mc.toolCalls > 0 && <span className="text-purple-500">● {a.toolCall || 'Tools'} {mc.toolCalls}</span>}
@@ -234,8 +234,8 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           return (
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.tools || 'Tools'}</span>
-                <span className="text-[8px] text-slate-400 dark:text-white/25">{u.toolUsage.totalCalls} · {u.toolUsage.uniqueTools} {a.unique || 'unique'}</span>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.tools || 'Tools'}</span>
+                <span className="text-[9px] text-slate-400 dark:text-white/25">{u.toolUsage.totalCalls} · {u.toolUsage.uniqueTools} {a.unique || 'unique'}</span>
               </div>
               <div className="space-y-1">
                 {topTools.map((t: any, i: number) => (
@@ -243,8 +243,8 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
                     <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
                       <div className="h-full rounded-full bg-gradient-to-r from-purple-500/80 to-violet-400/60 transition-all" style={{ width: `${(t.count / maxCalls) * 100}%` }} />
                     </div>
-                    <span className="text-[7px] text-slate-400 dark:text-white/25 font-mono truncate max-w-[50px]" title={t.name}>{t.name}</span>
-                    <span className="text-[7px] text-purple-500 dark:text-purple-400 font-bold tabular-nums shrink-0">{t.count}×</span>
+                    <span className="text-[9px] text-slate-400 dark:text-white/25 font-mono truncate max-w-[50px]" title={t.name}>{t.name}</span>
+                    <span className="text-[9px] text-purple-500 dark:text-purple-400 font-bold tabular-nums shrink-0">{t.count}×</span>
                   </div>
                 ))}
               </div>
@@ -258,7 +258,7 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           return (
             <div>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.latency || 'Latency'}</span>
+                <span className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase">{a.latency || 'Latency'}</span>
                 <span className="text-[10px] font-extrabold text-slate-600 dark:text-white/60 tabular-nums">{(avgMs / 1000).toFixed(1)}s</span>
               </div>
               {/* Range bar: min → avg → p95 → max */}
@@ -271,7 +271,7 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
                   </>
                 )}
               </div>
-              <div className="flex justify-between text-[7px] text-slate-400 dark:text-white/25 tabular-nums">
+              <div className="flex justify-between text-[9px] text-slate-400 dark:text-white/25 tabular-nums">
                 <span>{(minMs / 1000).toFixed(1)}s</span>
                 <span className="text-amber-500 font-bold">p95 {(p95Ms / 1000).toFixed(1)}s</span>
                 <span>{(maxMs / 1000).toFixed(1)}s</span>
@@ -283,8 +283,8 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
         {/* Session Duration */}
         {u?.firstActivity && u?.lastActivity && (
           <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.duration || 'Duration'}</div>
-            <div className="text-[9px] text-slate-500 dark:text-white/35 space-y-0.5">
+            <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.duration || 'Duration'}</div>
+            <div className="text-[10px] text-slate-500 dark:text-white/35 space-y-0.5">
               <div>{a.firstMsg || 'First'}: <b>{new Date(u.firstActivity).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</b></div>
               <div>{a.lastMsg || 'Last'}: <b>{new Date(u.lastActivity).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</b></div>
               {u.durationMs > 0 && (
@@ -302,7 +302,7 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
         {/* Daily bar chart */}
         {dailyData.length > 0 && (
           <div>
-            <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.trend7d || '7-Day Trend'}</div>
+            <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.trend7d || '7-Day Trend'}</div>
             <MiniBarChart values={dailyData.map((d: any) => d.tokens || 0)} height={48} color="#3b82f6" />
           </div>
         )}
@@ -313,15 +313,15 @@ export const UsagePanel: React.FC<UsagePanelProps> = ({ sessionKey, gwReady, loa
           const maxCount = topModels[0]?.count || 1;
           return (
             <div>
-              <div className="text-[9px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.models || 'Models'}</div>
+              <div className="text-[10px] font-bold text-slate-400 dark:text-white/30 uppercase mb-1">{a.models || 'Models'}</div>
               <div className="space-y-1">
                 {topModels.map((m: any, i: number) => (
                   <div key={i} className="flex items-center gap-1.5">
                     <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
                       <div className="h-full rounded-full bg-gradient-to-r from-blue-500/80 to-cyan-400/60 transition-all" style={{ width: `${(m.count / maxCount) * 100}%` }} />
                     </div>
-                    <span className="text-[7px] text-slate-400 dark:text-white/25 font-mono truncate max-w-[50px]" title={`${m.provider ? m.provider + '/' : ''}${m.model}`}>{m.model}</span>
-                    <span className="text-[7px] text-blue-500 dark:text-blue-400 font-bold tabular-nums shrink-0">{m.count}×</span>
+                    <span className="text-[9px] text-slate-400 dark:text-white/25 font-mono truncate max-w-[50px]" title={`${m.provider ? m.provider + '/' : ''}${m.model}`}>{m.model}</span>
+                    <span className="text-[9px] text-blue-500 dark:text-blue-400 font-bold tabular-nums shrink-0">{m.count}×</span>
                   </div>
                 ))}
               </div>

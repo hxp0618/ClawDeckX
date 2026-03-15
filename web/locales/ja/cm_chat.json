@@ -25,6 +25,7 @@
     "toolCall": "ツール呼出",
     "toolResult": "ツール結果",
     "attachFile": "ファイルを添付",
+    "modelNoVision": "現在のモデルは画像入力をサポートしていません。画像は無視される可能性があります",
     "attachCaption": "キャプションまたはメッセージを追加...",
     "attachImage": "画像を添付",
     "clearChat": "チャットをクリア",

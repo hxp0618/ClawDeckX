@@ -211,6 +211,44 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   // File/image attachments
   const [pendingAttachments, setPendingAttachments] = useState<Array<{ dataUrl: string; mimeType: string; fileName: string; isImage: boolean; fileSize: number }>>();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+  // Model image capability map: { "provider/modelId": boolean }
+  const [modelImageMap, setModelImageMap] = useState<Record<string, boolean>>({});
+
+  // Load model capabilities from config (for image support detection)
+  useEffect(() => {
+    if (!gwReady) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const cfg = await gwApi.configGet() as any;
+        if (cancelled) return;
+        const providers = cfg?.models?.providers || cfg?.parsed?.models?.providers || cfg?.config?.models?.providers || {};
+        const map: Record<string, boolean> = {};
+        for (const [pName, pCfg] of Object.entries(providers) as [string, any][]) {
+          const pModels = Array.isArray(pCfg?.models) ? pCfg.models : [];
+          for (const m of pModels) {
+            const id = typeof m === 'string' ? m : m?.id;
+            if (!id) continue;
+            const input = Array.isArray(m?.input) ? m.input : ['text', 'image'];
+            map[`${pName}/${id}`] = input.includes('image');
+          }
+        }
+        setModelImageMap(map);
+      } catch { /* ignore */ }
+    })();
+    return () => { cancelled = true; };
+  }, [gwReady]);
+
+  // Derive whether current model supports images
+  const modelSupportsImages = useMemo(() => {
+    const currentSession = sessions.find(s => s.key === sessionKey);
+    const modelPath = currentSession?.model;
+    if (!modelPath) return true;
+    if (modelPath in modelImageMap) return modelImageMap[modelPath];
+    return true;
+  }, [sessions, sessionKey, modelImageMap]);
+
   // Message feedback
   const [feedbackMap, setFeedbackMap] = useState<Record<number, 'up' | 'down'>>({});
   // Message search
@@ -885,7 +923,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     e.preventDefault();
     const results = await Promise.all(pastedFiles.map(readFileAsDataUrl));
     setPendingAttachments(prev => [...(prev || []), ...results].slice(0, 5));
-  }, [readFileAsDataUrl]);
+    if (!modelSupportsImages && results.some(r => r.isImage)) toast('warning', c.modelNoVision || 'Current model does not support image input');
+  }, [readFileAsDataUrl, modelSupportsImages, toast, c.modelNoVision]);
 
   // Handle file input change
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -896,7 +935,35 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     const results = await Promise.all(validFiles.map(readFileAsDataUrl));
     setPendingAttachments(prev => [...(prev || []), ...results].slice(0, 5));
     if (fileInputRef.current) fileInputRef.current.value = '';
-  }, [readFileAsDataUrl]);
+    if (!modelSupportsImages && results.some(r => r.isImage)) toast('warning', c.modelNoVision || 'Current model does not support image input');
+  }, [readFileAsDataUrl, modelSupportsImages, toast, c.modelNoVision]);
+
+  // Handle drag & drop files into the input area
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+    const files = e.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const validFiles = Array.from(files).filter(f => f.size <= MAX_FILE_SIZE);
+    if (validFiles.length === 0) return;
+    const results = await Promise.all(validFiles.map(readFileAsDataUrl));
+    setPendingAttachments(prev => [...(prev || []), ...results].slice(0, 5));
+    if (!modelSupportsImages && results.some(r => r.isImage)) toast('warning', c.modelNoVision || 'Current model does not support image input');
+  }, [readFileAsDataUrl, modelSupportsImages, toast, c.modelNoVision]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(false);
+  }, []);
 
   // Remove pending attachment
   const removePendingAttachment = useCallback((idx: number) => {
@@ -958,11 +1025,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       };
       if (attachments.length > 0) {
         sendParams.attachments = attachments;
-        // DEBUG: temporary logging to diagnose image sending issue
-        console.log('[chat.send] sending with', attachments.length, 'attachment(s), content sizes:', attachments.map(a => a.content?.length ?? 0));
       }
       const res = await gwApi.proxy('chat.send', sendParams) as any;
-      if (attachments.length > 0) console.log('[chat.send] OK, runId:', res?.runId, 'status:', res?.status);
       const nextRunId = res?.runId || idempotencyKey;
       setRunId(nextRunId);
       setRunPhase('streaming');
@@ -973,8 +1037,6 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         startedAt: Date.now(),
       };
     } catch (err: any) {
-      // DEBUG: log error
-      console.error('[chat.send] ERROR:', err?.message, err?.code, err);
       setStream(null);
       setRunPhase('error');
       setError(err?.message || c.error);
@@ -2235,7 +2297,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 )}
               </div>
             )}
-            <div className="relative bg-white dark:bg-gradient-to-br dark:from-[#1a1c22] dark:to-[#14161a] border border-slate-200/80 dark:border-white/[0.08] rounded-2xl md:rounded-[22px] p-1.5 md:p-2 shadow-xl shadow-black/5 dark:shadow-black/30 transition-all sci-input">
+            <div className={`relative bg-white dark:bg-gradient-to-br dark:from-[#1a1c22] dark:to-[#14161a] border rounded-2xl md:rounded-[22px] p-1.5 md:p-2 shadow-xl shadow-black/5 dark:shadow-black/30 transition-all sci-input ${dragOver ? 'border-primary border-dashed bg-primary/5 dark:bg-primary/10' : 'border-slate-200/80 dark:border-white/[0.08]'}`}
+              onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave}>
               {/* Pending attachment previews */}
               {(pendingAttachments?.length || 0) > 0 && (
                 <div className="flex gap-1.5 px-1.5 pt-1 pb-1.5 overflow-x-auto">
@@ -2262,9 +2325,10 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               <div className="flex items-end gap-1.5">
                 <input ref={fileInputRef} type="file" accept="image/*,.pdf,.txt,.csv,.md,.json,.xml,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.tar,.gz" multiple className="hidden" onChange={handleFileSelect} />
                 <button onClick={() => fileInputRef.current?.click()} disabled={!gwReady || (pendingAttachments?.length || 0) >= 5}
-                  className="w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0 text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-30"
-                  title={c.attachFile || 'Attach File'}>
+                  className="relative w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center shrink-0 text-slate-400 hover:text-primary hover:bg-primary/5 transition-colors disabled:opacity-30"
+                  title={!modelSupportsImages ? (c.modelNoVision || 'Current model does not support image input') : (c.attachFile || 'Attach File')}>
                   <span className="material-symbols-outlined text-[18px]">attach_file</span>
+                  {!modelSupportsImages && <span className="absolute top-0.5 end-0.5 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-[#0d1117]" />}
                 </button>
                 <textarea
                   ref={textareaRef}
