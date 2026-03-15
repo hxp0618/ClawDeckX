@@ -572,6 +572,11 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           role: (msg.role || 'assistant') as ChatMsg['role'],
           content: msg.content ?? [{ type: 'text', text }],
           timestamp: msg.timestamp || Date.now(),
+          ...(msg.usage ? { usage: msg.usage } : {}),
+          ...(msg.cost ? { cost: msg.cost } : {}),
+          ...(msg.model ? { model: msg.model } : {}),
+          ...(msg.provider ? { provider: msg.provider } : {}),
+          ...(msg.stopReason ? { stopReason: msg.stopReason } : {}),
         }, recentAddedRef));
         if ((msg.role || 'assistant') === 'assistant') {
           setRunId(null);
@@ -602,6 +607,11 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             role: (msg.role || 'assistant') as ChatMsg['role'],
             content: msg.content ?? [{ type: 'text', text }],
             timestamp: msg.timestamp || Date.now(),
+            ...(msg.usage ? { usage: msg.usage } : {}),
+            ...(msg.cost ? { cost: msg.cost } : {}),
+            ...(msg.model ? { model: msg.model } : {}),
+            ...(msg.provider ? { provider: msg.provider } : {}),
+            ...(msg.stopReason ? { stopReason: msg.stopReason } : {}),
           }, recentAddedRef));
         }
       }
