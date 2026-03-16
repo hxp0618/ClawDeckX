@@ -8,6 +8,10 @@ services:
       - "18791:18791"
     volumes:
       - clawdeckx-data:/data
+      # Persist OpenClaw installation & config across container updates
+      # 持久化 OpenClaw 安装和配置，容器更新后无需重装
+      - clawdeckx-openclaw-state:/root/.local/state/openclaw
+      - clawdeckx-npm-global:/usr/lib/node_modules
     environment:
       # OpenClaw Gateway connection config
       # If Gateway runs on host, use host.docker.internal (Mac/Windows)
@@ -18,6 +22,7 @@ services:
       OCD_OPENCLAW_GATEWAY_PORT: 18789
       # OCD_OPENCLAW_GATEWAY_TOKEN: your_token_here
     extra_hosts:
+      # Required on Linux; Mac/Windows already resolve host.docker.internal
       - "host.docker.internal:host-gateway"
     healthcheck:
       test: ["CMD", "curl", "-sf", "http://localhost:18791/api/v1/health"]
@@ -25,6 +30,20 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 3
+    # Log rotation: prevent unbounded log growth
+    logging:
+      driver: json-file
+      options:
+        max-size: "20m"
+        max-file: "3"
+    networks:
+      - clawdeckx-net
+
+networks:
+  clawdeckx-net:
+    driver: bridge
 
 volumes:
   clawdeckx-data:
+  clawdeckx-openclaw-state:
+  clawdeckx-npm-global:
