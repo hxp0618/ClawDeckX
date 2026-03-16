@@ -69,6 +69,37 @@ interface LiveToolCall {
   phase: 'start' | 'running' | 'done';
 }
 
+interface MarkdownMessageBoundaryProps {
+  content: string;
+  streaming?: boolean;
+  copyCodeLabel?: string;
+}
+
+interface MarkdownMessageBoundaryState {
+  hasError: boolean;
+}
+
+class MarkdownMessageBoundary extends React.Component<MarkdownMessageBoundaryProps, MarkdownMessageBoundaryState> {
+  state: MarkdownMessageBoundaryState = { hasError: false };
+
+  static getDerivedStateFromError(): MarkdownMessageBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidUpdate(prevProps: MarkdownMessageBoundaryProps) {
+    if (this.state.hasError && (prevProps.content !== this.props.content || prevProps.streaming !== this.props.streaming)) {
+      this.setState({ hasError: false });
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <pre className="text-[11px] whitespace-pre-wrap break-words text-text">{this.props.content}</pre>;
+    }
+    return <MarkdownRenderer content={this.props.content} streaming={this.props.streaming} labels={{ copyCode: this.props.copyCodeLabel }} />;
+  }
+}
+
 const WAITING_PHRASE_KEYS = [
   'waitPondering', 'waitConjuring', 'waitNoodling', 'waitMoseying', 'waitHobnobbing',
   'waitKerfuffling', 'waitDillydallying', 'waitTwiddling', 'waitBamboozling',
@@ -1053,6 +1084,9 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       (s.lastMessagePreview || '').toLowerCase().includes(q)
     );
   }, [sessions, sidebarSearch]);
+  const showSidebarRefreshHint = sessionsLoading && sessions.length > 0;
+  const showSidebarSkeleton = sessionsLoading && sessions.length === 0 && !wsConnecting && !initialDetecting;
+  const showSidebarEmpty = sessions.length === 0 && !sessionsLoading && !wsConnecting && !initialDetecting;
 
   const groupedSessions = useMemo(() => {
     const now = new Date();
@@ -1718,8 +1752,16 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             </div>
           )}
+          {showSidebarRefreshHint && (
+            <div className="mb-2 px-2">
+              <div className="rounded-lg border border-slate-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] px-2.5 py-1.5 flex items-center gap-2">
+                <span className="material-symbols-outlined text-[12px] text-slate-400 dark:text-white/35 animate-spin">progress_activity</span>
+                <span className="text-[10px] text-slate-500 dark:text-white/40">{c.connecting}</span>
+              </div>
+            </div>
+          )}
           {/* Skeleton loading */}
-          {sessionsLoading && sessions.length === 0 && !wsConnecting && (
+          {showSidebarSkeleton && (
             <div className="space-y-2 animate-pulse">
               {[0, 1, 2, 3].map(i => (
                 <div key={i} className="rounded-xl border border-slate-200/40 dark:border-white/5 p-2.5">
@@ -1730,7 +1772,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               ))}
             </div>
           )}
-          {sessions.length === 0 && !sessionsLoading && !wsConnecting && (
+          {showSidebarEmpty && (
             <EmptyState icon="chat_bubble_outline" title={c.noSessions} compact />
           )}
           {groupedSessions.map(group => (
@@ -2258,7 +2300,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                       {isUser ? (
                         <div className="text-[13px] md:text-[14px] leading-relaxed whitespace-pre-wrap break-words">{highlightSearch(displayText)}</div>
                       ) : (
-                        <MarkdownRenderer content={displayText} labels={{ copyCode: c.copyCode }} />
+                        <MarkdownMessageBoundary content={displayText} copyCodeLabel={c.copyCode} />
                       )}
 
                       {/* Images */}
@@ -2452,7 +2494,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 <div className="max-w-[85%] md:max-w-[75%]">
                   <div className="p-3.5 md:p-4 rounded-2xl rounded-ss-sm shadow-sm border bg-white dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.06]">
                     {stream ? (
-                      <MarkdownRenderer content={stream} streaming labels={{ copyCode: c.copyCode }} />
+                      <MarkdownMessageBoundary content={stream} streaming copyCodeLabel={c.copyCode} />
                     ) : (
                       <div className="flex items-center gap-1.5 py-1">
                         {[0, 1, 2].map(i => (
