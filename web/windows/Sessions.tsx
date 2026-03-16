@@ -780,10 +780,10 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   }, [runPhase]);
 
   // Load sessions list (via REST proxy)
-  const loadSessions = useCallback(async () => {
+  const loadSessions = useCallback(async (opts?: { silent?: boolean }) => {
     if (!gwReadyRef.current) return;
     const requestSeq = ++sessionsRequestSeqRef.current;
-    setSessionsLoading(true);
+    if (!opts?.silent) setSessionsLoading(true);
     try {
       const res = await gwApi.proxy('sessions.list', {
         activeMinutes: 1440,
@@ -943,14 +943,14 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     } else {
       loadSessions();
     }
-    let timer: ReturnType<typeof setInterval> | null = setInterval(loadSessions, 30000);
+    let timer: ReturnType<typeof setInterval> | null = setInterval(() => loadSessions({ silent: true }), 30000);
     const onVisibility = () => {
       if (document.hidden) {
         if (timer) { clearInterval(timer); timer = null; }
       } else {
         if (!timer) {
-          timer = setInterval(loadSessions, 30000);
-          loadSessions();
+          timer = setInterval(() => loadSessions({ silent: true }), 30000);
+          loadSessions({ silent: true });
         }
       }
     };
@@ -1128,7 +1128,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       (s.lastMessagePreview || '').toLowerCase().includes(q)
     );
   }, [sessions, sidebarSearch]);
-  const showSidebarRefreshHint = sessionsLoading && sessions.length > 0;
+  const showSidebarRefreshHint = false; // Suppress flashing refresh hint — background polls are silent
   const showSidebarSkeleton = sessionsLoading && sessions.length === 0 && !wsConnecting && !initialDetecting;
   const showSidebarEmpty = sessions.length === 0 && !sessionsLoading && !wsConnecting && !initialDetecting;
 
