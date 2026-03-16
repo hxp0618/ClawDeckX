@@ -792,7 +792,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       const list = Array.isArray(res?.sessions) ? res.sessions : [];
       const mapped = list.map((s: any) => ({
         key: s.key || s.id || '',
-        label: s.derivedTitle || s.label || s.displayName || s.key || '',
+        label: s.label || s.displayName || s.derivedTitle || s.key || '',
         kind: s.chatType || s.kind || '',
         lastActiveAt: s.updatedAt ? new Date(s.updatedAt).toISOString() : '',
         totalTokens: s.totalTokens || 0,
