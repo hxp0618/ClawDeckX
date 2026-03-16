@@ -44,6 +44,11 @@ interface EnvironmentReport {
   openClawVersion?: string;
   openClawCnInstalled: boolean;
   openClawCnVersion?: string;
+  openClawStateDir?: string;
+  openClawConfigPath?: string;
+  openClawGatewayLog?: string;
+  openClawInstallLog?: string;
+  openClawDoctorLog?: string;
   gatewayRunning: boolean;
   gatewayPort?: number;
   recommendedMethod: string;
@@ -713,6 +718,26 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
                           </p>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {((scanResult.openClawStateDir || scanResult.openClawConfigPath || scanResult.openClawGatewayLog || scanResult.openClawInstallLog || scanResult.openClawDoctorLog)) && (
+                  <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-white/10">
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white/80">{sw.pathsTitle || 'OpenClaw Paths'}</h4>
+                    <div className="space-y-2">
+                      {[
+                        [sw.pathState || 'State', scanResult.openClawStateDir],
+                        [sw.pathConfig || 'Config', scanResult.openClawConfigPath],
+                        [sw.pathGatewayLog || 'Gateway log', scanResult.openClawGatewayLog],
+                        [sw.pathInstallLog || 'Install log', scanResult.openClawInstallLog],
+                        [sw.pathDoctorLog || 'Doctor log', scanResult.openClawDoctorLog],
+                      ].filter(([, value]) => Boolean(value)).map(([label, value]) => (
+                        <div key={label} className="p-3 bg-slate-50 dark:bg-white/5 rounded-lg">
+                          <p className="text-[10px] text-slate-400 uppercase">{label}</p>
+                          <p className="text-xs font-mono break-all text-slate-700 dark:text-white/80 mt-1">{value}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

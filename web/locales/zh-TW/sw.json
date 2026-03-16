@@ -144,6 +144,12 @@
   "updatingOpenclaw": "正在更新 OpenClaw...",
   "verifyingUpdate": "正在驗證更新...",
   "restartingGateway": "正在重新啟動網關...",
+  "pathsTitle": "OpenClaw 路徑",
+  "pathState": "狀態目錄",
+  "pathConfig": "設定檔",
+  "pathGatewayLog": "閘道日誌",
+  "pathInstallLog": "安裝日誌",
+  "pathDoctorLog": "診斷日誌",
   "stepScanDesc": "偵測系統環境",
   "stepInstallDesc": "安裝相依性與服務",
   "stepDoneDesc": "全部完成"

@@ -146,5 +146,11 @@
   "restartingGateway": "ゲートウェイを再起動中...",
   "stepScanDesc": "システム環境を検出",
   "stepInstallDesc": "依存関係とサービスをインストール",
-  "stepDoneDesc": "準備完了"
+  "stepDoneDesc": "準備完了",
+  "pathsTitle": "OpenClaw パス",
+  "pathState": "状態ディレクトリ",
+  "pathConfig": "設定ファイル",
+  "pathGatewayLog": "ゲートウェイログ",
+  "pathInstallLog": "インストールログ",
+  "pathDoctorLog": "診断ログ"
 }

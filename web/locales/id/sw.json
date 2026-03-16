@@ -146,5 +146,11 @@
   "stoppingGateway": "Menghentikan gateway...",
   "updatingOpenclaw": "Memperbarui OpenClaw...",
   "verifyingUpdate": "Memverifikasi pembaruan...",
-  "restartingGateway": "Merestart gateway..."
+  "restartingGateway": "Merestart gateway...",
+  "pathsTitle": "OpenClaw Paths",
+  "pathState": "State",
+  "pathConfig": "Config",
+  "pathGatewayLog": "Gateway Log",
+  "pathInstallLog": "Install Log",
+  "pathDoctorLog": "Doctor Log"
 }

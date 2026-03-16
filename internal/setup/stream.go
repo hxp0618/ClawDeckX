@@ -10,11 +10,43 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"sync"
 	"time"
 )
+
+func setupInstallLogPath() string {
+	if path := strings.TrimSpace(os.Getenv("OCD_SETUP_INSTALL_LOG")); path != "" {
+		return path
+	}
+	stateDir := ResolveStateDir()
+	if stateDir == "" {
+		return ""
+	}
+	return filepath.Join(stateDir, "logs", "install.log")
+}
+
+func appendSetupLogLine(message string) {
+	path := setupInstallLogPath()
+	if path == "" {
+		return
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return
+	}
+	line := strings.TrimRight(message, "\r\n")
+	if line == "" {
+		return
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	_, _ = fmt.Fprintf(f, "%s %s\n", time.Now().Format(time.RFC3339), line)
+}
 
 type SetupEvent struct {
 	Type     string      `json:"type"`               // "phase" | "step" | "progress" | "log" | "success" | "error" | "complete"
@@ -85,6 +117,7 @@ func (e *EventEmitter) EmitStep(phase, step, message string, progress int) error
 }
 
 func (e *EventEmitter) EmitLog(message string) error {
+	appendSetupLogLine(message)
 	return e.Emit(SetupEvent{
 		Type:    "log",
 		Message: message,
@@ -193,6 +226,7 @@ func (sc *StreamCommand) streamOutput(r io.Reader, source string) {
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
+		appendSetupLogLine(line)
 		sc.emitter.Emit(SetupEvent{
 			Type:    "log",
 			Phase:   sc.phase,

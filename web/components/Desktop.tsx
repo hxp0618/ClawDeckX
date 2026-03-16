@@ -132,10 +132,13 @@ const Desktop: React.FC<DesktopProps> = ({
   const [time, setTime] = useState(new Date());
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [bgImage, setBgImage] = useState<string>('');
+  const gradientBackground = theme === 'dark'
+    ? "linear-gradient(135deg, #0f1923 0%, #1a3a5f 50%, #2e4b6b 100%)"
+    : "linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)";
 
   // Load wallpaper from cache or fetch
   useEffect(() => {
-    if (!wallpaper?.enabled || wallpaper.source === 'gradient') {
+    if (!wallpaper?.imageEnabled) {
       setBgImage('');
       return;
     }
@@ -161,7 +164,7 @@ const Desktop: React.FC<DesktopProps> = ({
         }).catch(() => {});
       });
     }
-  }, [wallpaper?.enabled, wallpaper?.source, wallpaper?.customUrl]);
+  }, [wallpaper?.imageEnabled, wallpaper?.source, wallpaper?.customUrl, wallpaper?.cachedAt]);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [isTrashCleaning, setIsTrashCleaning] = useState(false);
   const [dockPeeking, setDockPeeking] = useState(false);
@@ -301,11 +304,11 @@ const Desktop: React.FC<DesktopProps> = ({
   return (
     <div className={`relative h-screen w-screen bg-cover bg-center overflow-hidden flex flex-col transition-all duration-700`}
       style={{
-        backgroundImage: bgImage
-          ? `url(${bgImage})`
-          : theme === 'dark'
-            ? "linear-gradient(135deg, #0f1923 0%, #1a3a5f 50%, #2e4b6b 100%)"
-            : "linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)"
+        backgroundImage: bgImage && wallpaper?.imageEnabled
+          ? `${wallpaper?.gradientEnabled ? `${gradientBackground}, ` : ''}url(${bgImage})`
+          : wallpaper?.gradientEnabled !== false
+            ? gradientBackground
+            : 'none'
       }}>
 
       {/* 菜单栏 (MenuBar) - 交互升级 */}

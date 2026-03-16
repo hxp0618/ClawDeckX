@@ -264,9 +264,13 @@ const App: React.FC = () => {
       try {
         const data = await get<any>('/api/v1/setup/scan');
         if (!data.openClawInstalled) {
-          // OpenClaw 未安装，自动打开安装向导
           setWindows(prev => prev.map(w => {
             if (w.id === 'setup_wizard') return { ...w, isOpen: true, zIndex: 200 };
+            return w;
+          }));
+        } else if (!data.openClawConfigured) {
+          setWindows(prev => prev.map(w => {
+            if (w.id === 'editor') return { ...w, isOpen: true, zIndex: 200 };
             return w;
           }));
         }

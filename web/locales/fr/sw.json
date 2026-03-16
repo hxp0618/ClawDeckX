@@ -146,5 +146,11 @@
   "stoppingGateway": "Arrêt de la passerelle...",
   "updatingOpenclaw": "Mise à jour d'OpenClaw...",
   "verifyingUpdate": "Vérification de la mise à jour...",
-  "restartingGateway": "Redémarrage de la passerelle..."
+  "restartingGateway": "Redémarrage de la passerelle...",
+  "pathsTitle": "Chemins OpenClaw",
+  "pathState": "Répertoire d'état",
+  "pathConfig": "Fichier de configuration",
+  "pathGatewayLog": "Journal de la passerelle",
+  "pathInstallLog": "Journal d'installation",
+  "pathDoctorLog": "Journal de diagnostic"
 }

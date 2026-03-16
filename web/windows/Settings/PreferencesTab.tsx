@@ -20,16 +20,21 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
 
   useEffect(() => {
     const cached = getCachedWallpaper();
-    if (cached && prefs.wallpaper.enabled) setWallpaperPreview(cached);
-  }, [prefs.wallpaper.enabled]);
+    if (cached && prefs.wallpaper.imageEnabled) setWallpaperPreview(cached);
+  }, [prefs.wallpaper.imageEnabled]);
 
   const handleControlsPosition = useCallback((pos: WindowControlsPosition) => {
     const next = updatePreferences({ windowControlsPosition: pos });
     onPrefsChange(next);
   }, [onPrefsChange]);
 
-  const handleWallpaperToggle = useCallback(() => {
-    const next = updatePreferences({ wallpaper: { ...prefs.wallpaper, enabled: !prefs.wallpaper.enabled } });
+  const handleGradientToggle = useCallback(() => {
+    const next = updatePreferences({ wallpaper: { ...prefs.wallpaper, gradientEnabled: !prefs.wallpaper.gradientEnabled } });
+    onPrefsChange(next);
+  }, [prefs.wallpaper, onPrefsChange]);
+
+  const handleImageToggle = useCallback(() => {
+    const next = updatePreferences({ wallpaper: { ...prefs.wallpaper, imageEnabled: !prefs.wallpaper.imageEnabled } });
     onPrefsChange(next);
   }, [prefs.wallpaper, onPrefsChange]);
 
@@ -118,27 +123,45 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
       {/* Desktop Wallpaper */}
       <div className={rowCls}>
         <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-[18px] text-purple-500">wallpaper</span>
-              <p className="text-[13px] font-semibold text-slate-700 dark:text-white/80">{pref?.wallpaper || 'Desktop Wallpaper'}</p>
-            </div>
-            <button
-              onClick={handleWallpaperToggle}
-              className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${prefs.wallpaper.enabled ? 'bg-primary' : 'bg-slate-300 dark:bg-white/15'}`}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${prefs.wallpaper.enabled ? 'translate-x-4' : ''}`} />
-            </button>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="material-symbols-outlined text-[18px] text-purple-500">wallpaper</span>
+            <p className="text-[13px] font-semibold text-slate-700 dark:text-white/80">{pref?.wallpaper || 'Desktop Wallpaper'}</p>
           </div>
 
-          {prefs.wallpaper.enabled && (
-            <div className="space-y-3">
-              {/* Source selection */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 px-3 py-2.5 bg-slate-50/70 dark:bg-white/[0.03]">
+              <div>
+                <p className="text-[12px] font-semibold text-slate-700 dark:text-white/80">{pref?.wallpaperGradient || 'Default Gradient'}</p>
+                <p className="text-[10px] text-slate-400 dark:text-white/25">{pref?.wallpaperGradientDesc || 'Use the built-in desktop gradient background.'}</p>
+              </div>
+              <button
+                onClick={handleGradientToggle}
+                className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${prefs.wallpaper.gradientEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-white/15'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${prefs.wallpaper.gradientEnabled ? 'translate-x-4' : ''}`} />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 px-3 py-2.5 bg-slate-50/70 dark:bg-white/[0.03]">
+              <div>
+                <p className="text-[12px] font-semibold text-slate-700 dark:text-white/80">{pref?.wallpaperImage || 'Image Wallpaper'}</p>
+                <p className="text-[10px] text-slate-400 dark:text-white/25">{pref?.wallpaperImageDesc || 'Overlay a remote image on top of the desktop gradient.'}</p>
+              </div>
+              <button
+                onClick={handleImageToggle}
+                className={`relative w-9 h-5 rounded-full transition-colors shrink-0 ${prefs.wallpaper.imageEnabled ? 'bg-primary' : 'bg-slate-300 dark:bg-white/15'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${prefs.wallpaper.imageEnabled ? 'translate-x-4' : ''}`} />
+              </button>
+            </div>
+          </div>
+
+          {prefs.wallpaper.imageEnabled && (
+            <div className="space-y-3 mt-3">
               <div>
                 <label className={labelCls}>{pref?.wallpaperSource || 'Source'}</label>
                 <div className="flex gap-2 mt-1.5">
                   {([
-                    { id: 'gradient' as const, label: pref?.wallpaperGradient || 'Default Gradient', icon: 'gradient' },
                     { id: 'picsum' as const, label: pref?.wallpaperPicsum || 'Random Photo', icon: 'photo_library' },
                     { id: 'custom' as const, label: pref?.wallpaperCustom || 'Custom URL', icon: 'link' },
                   ]).map(src => (
@@ -155,7 +178,6 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
                 </div>
               </div>
 
-              {/* Custom URL input */}
               {prefs.wallpaper.source === 'custom' && (
                 <div>
                   <label className={labelCls}>{pref?.wallpaperUrl || 'Image URL'}</label>
@@ -169,41 +191,38 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
                 </div>
               )}
 
-              {/* Preview + Refresh */}
-              {prefs.wallpaper.source !== 'gradient' && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className={labelCls}>{pref?.wallpaperPreview || 'Preview'}</label>
-                    <button
-                      onClick={handleRefreshWallpaper}
-                      disabled={wallpaperLoading || (prefs.wallpaper.source === 'custom' && !prefs.wallpaper.customUrl)}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-primary hover:bg-primary/5 transition-colors disabled:opacity-40"
-                    >
-                      <span className={`material-symbols-outlined text-[14px] ${wallpaperLoading ? 'animate-spin' : ''}`}>
-                        {wallpaperLoading ? 'progress_activity' : 'refresh'}
-                      </span>
-                      {pref?.wallpaperRefresh || 'Refresh'}
-                    </button>
-                  </div>
-                  {wallpaperPreview ? (
-                    <div className="w-full h-32 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10">
-                      <img src={wallpaperPreview} alt="Wallpaper preview" className="w-full h-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="w-full h-32 rounded-xl border border-dashed border-slate-300 dark:border-white/15 flex items-center justify-center">
-                      <span className="text-[12px] text-slate-400 dark:text-white/20">
-                        {pref?.wallpaperClickRefresh || 'Click Refresh to load wallpaper'}
-                      </span>
-                    </div>
-                  )}
-                  {wallpaperError && (
-                    <p className="text-[11px] text-mac-red">{wallpaperError}</p>
-                  )}
-                  <p className="text-[10px] text-slate-400 dark:text-white/20">
-                    {pref?.wallpaperCacheHint || 'Wallpaper is cached locally. It refreshes automatically every 24 hours.'}
-                  </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className={labelCls}>{pref?.wallpaperPreview || 'Preview'}</label>
+                  <button
+                    onClick={handleRefreshWallpaper}
+                    disabled={wallpaperLoading || (prefs.wallpaper.source === 'custom' && !prefs.wallpaper.customUrl)}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-primary hover:bg-primary/5 transition-colors disabled:opacity-40"
+                  >
+                    <span className={`material-symbols-outlined text-[14px] ${wallpaperLoading ? 'animate-spin' : ''}`}>
+                      {wallpaperLoading ? 'progress_activity' : 'refresh'}
+                    </span>
+                    {pref?.wallpaperRefresh || 'Refresh'}
+                  </button>
                 </div>
-              )}
+                {wallpaperPreview ? (
+                  <div className="w-full h-32 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10">
+                    <img src={wallpaperPreview} alt="Wallpaper preview" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-full h-32 rounded-xl border border-dashed border-slate-300 dark:border-white/15 flex items-center justify-center">
+                    <span className="text-[12px] text-slate-400 dark:text-white/20">
+                      {pref?.wallpaperClickRefresh || 'Click Refresh to load wallpaper'}
+                    </span>
+                  </div>
+                )}
+                {wallpaperError && (
+                  <p className="text-[11px] text-mac-red">{wallpaperError}</p>
+                )}
+                <p className="text-[10px] text-slate-400 dark:text-white/20">
+                  {pref?.wallpaperCacheHint || 'Wallpaper is cached locally. It refreshes automatically every 24 hours.'}
+                </p>
+              </div>
             </div>
           )}
         </div>

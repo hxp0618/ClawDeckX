@@ -146,5 +146,11 @@
   "restartingGateway": "Перезапуск шлюза...",
   "stepScanDesc": "Определить системное окружение",
   "stepInstallDesc": "Установить зависимости и службы",
-  "stepDoneDesc": "Всё готово"
+  "stepDoneDesc": "Всё готово",
+  "pathsTitle": "Пути OpenClaw",
+  "pathState": "Каталог состояния",
+  "pathConfig": "Файл конфигурации",
+  "pathGatewayLog": "Журнал шлюза",
+  "pathInstallLog": "Журнал установки",
+  "pathDoctorLog": "Журнал диагностики"
 }

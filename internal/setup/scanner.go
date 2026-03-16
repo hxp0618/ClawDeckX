@@ -62,7 +62,11 @@ type EnvironmentReport struct {
 	OpenClawVersion     string `json:"openClawVersion,omitempty"`
 	OpenClawCnInstalled bool   `json:"openClawCnInstalled"`
 	OpenClawCnVersion   string `json:"openClawCnVersion,omitempty"`
+	OpenClawStateDir    string `json:"openClawStateDir,omitempty"`
 	OpenClawConfigPath  string `json:"openClawConfigPath,omitempty"`
+	OpenClawGatewayLog  string `json:"openClawGatewayLog,omitempty"`
+	OpenClawInstallLog  string `json:"openClawInstallLog,omitempty"`
+	OpenClawDoctorLog   string `json:"openClawDoctorLog,omitempty"`
 	GatewayRunning      bool   `json:"gatewayRunning"`
 	GatewayPort         int    `json:"gatewayPort,omitempty"`
 
@@ -118,9 +122,11 @@ func Scan() (*EnvironmentReport, error) {
 		report.OpenClawInstalled = true
 		report.OpenClawVersion = report.OpenClawCnVersion
 	}
+	report.OpenClawStateDir = ResolveStateDir()
 	report.OpenClawConfigPath = GetOpenClawConfigPath()
-	report.OpenClawConfigured = checkOpenClawConfigured(report.OpenClawConfigPath)
-	report.OpenClawConfigPath = GetOpenClawConfigPath()
+	report.OpenClawGatewayLog = GetOpenClawGatewayLogPath()
+	report.OpenClawInstallLog = GetInstallLogPath()
+	report.OpenClawDoctorLog = GetDoctorLogPath()
 	report.OpenClawConfigured = checkOpenClawConfigured(report.OpenClawConfigPath)
 	report.GatewayRunning, report.GatewayPort = checkGatewayRunning()
 
@@ -756,6 +762,39 @@ func ResolveStateDir() string {
 
 func GetOpenClawConfigPath() string {
 	return openclaw.ResolveConfigPath()
+}
+
+func GetOpenClawGatewayLogPath() string {
+	if path := strings.TrimSpace(os.Getenv("OCD_GATEWAY_LOG")); path != "" {
+		return path
+	}
+	stateDir := ResolveStateDir()
+	if stateDir == "" {
+		return ""
+	}
+	return filepath.Join(stateDir, "logs", "gateway.log")
+}
+
+func GetInstallLogPath() string {
+	if path := strings.TrimSpace(os.Getenv("OCD_SETUP_INSTALL_LOG")); path != "" {
+		return path
+	}
+	stateDir := ResolveStateDir()
+	if stateDir == "" {
+		return ""
+	}
+	return filepath.Join(stateDir, "logs", "install.log")
+}
+
+func GetDoctorLogPath() string {
+	if path := strings.TrimSpace(os.Getenv("OCD_SETUP_DOCTOR_LOG")); path != "" {
+		return path
+	}
+	stateDir := ResolveStateDir()
+	if stateDir == "" {
+		return ""
+	}
+	return filepath.Join(stateDir, "logs", "doctor.log")
 }
 
 func checkOpenClawConfigured(configPath string) bool {

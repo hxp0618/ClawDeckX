@@ -146,5 +146,11 @@
   "stoppingGateway": "جارٍ إيقاف البوابة...",
   "updatingOpenclaw": "جارٍ تحديث OpenClaw...",
   "verifyingUpdate": "جارٍ التحقق من التحديث...",
-  "restartingGateway": "جارٍ إعادة تشغيل البوابة..."
+  "restartingGateway": "جارٍ إعادة تشغيل البوابة...",
+  "pathsTitle": "مسارات OpenClaw",
+  "pathState": "دليل الحالة",
+  "pathConfig": "ملف الإعداد",
+  "pathGatewayLog": "سجل البوابة",
+  "pathInstallLog": "سجل التثبيت",
+  "pathDoctorLog": "سجل التشخيص"
 }

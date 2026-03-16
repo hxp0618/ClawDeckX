@@ -146,5 +146,11 @@
   "restartingGateway": "Reiniciando gateway...",
   "stepScanDesc": "Detectar ambiente do sistema",
   "stepInstallDesc": "Instalar dependências e serviços",
-  "stepDoneDesc": "Tudo pronto"
+  "stepDoneDesc": "Tudo pronto",
+  "pathsTitle": "Caminhos do OpenClaw",
+  "pathState": "Diretório de estado",
+  "pathConfig": "Arquivo de configuração",
+  "pathGatewayLog": "Log do gateway",
+  "pathInstallLog": "Log de instalação",
+  "pathDoctorLog": "Log de diagnóstico"
 }

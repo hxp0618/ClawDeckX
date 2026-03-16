@@ -146,5 +146,11 @@
   "restartingGateway": "게이트웨이 재시작 중...",
   "stepScanDesc": "시스템 환경 감지",
   "stepInstallDesc": "의존성 및 서비스 설치",
-  "stepDoneDesc": "모두 준비 완료"
+  "stepDoneDesc": "모두 준비 완료",
+  "pathsTitle": "OpenClaw 경로",
+  "pathState": "상태 디렉터리",
+  "pathConfig": "설정 파일",
+  "pathGatewayLog": "게이트웨이 로그",
+  "pathInstallLog": "설치 로그",
+  "pathDoctorLog": "진단 로그"
 }

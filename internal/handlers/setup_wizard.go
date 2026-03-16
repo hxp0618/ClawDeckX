@@ -185,6 +185,8 @@ func (h *SetupWizardHandler) Configure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	h.syncGatewayToken()
+
 	web.OK(w, r, map[string]string{"message": "ok"})
 }
 

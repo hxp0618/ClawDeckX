@@ -146,6 +146,12 @@
     "stoppingGateway":  "正在停止网关...",
     "updatingOpenclaw":  "正在更新 OpenClaw...",
     "verifyingUpdate":  "正在验证更新...",
-    "restartingGateway":  "正在重启网关..."
+    "restartingGateway":  "正在重启网关...",
+    "pathsTitle":  "OpenClaw 路径",
+    "pathState":  "状态目录",
+    "pathConfig":  "配置文件",
+    "pathGatewayLog":  "网关日志",
+    "pathInstallLog":  "安装日志",
+    "pathDoctorLog":  "诊断日志"
 }
 

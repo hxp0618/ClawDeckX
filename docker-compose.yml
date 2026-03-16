@@ -7,12 +7,20 @@ services:
     ports:
       - "18791:18791"
     volumes:
-      - clawdeckx-data:/data
-      # Persist OpenClaw installation & config across container updates
-      # 持久化 OpenClaw 安装和配置，容器更新后无需重装
-      - clawdeckx-openclaw-state:/root/.local/state/openclaw
-      - clawdeckx-npm-global:/usr/lib/node_modules
+      - clawdeckx-data:/data/clawdeckx
+      # Persist OpenClaw installation, config, and logs across container updates
+      # 持久化 OpenClaw 安装、配置与日志，容器更新后无需重装
+      - clawdeckx-openclaw-data:/data/openclaw
     environment:
+      OPENCLAW_HOME: /data/openclaw/home
+      OPENCLAW_STATE_DIR: /data/openclaw/state
+      OPENCLAW_CONFIG_PATH: /data/openclaw/state/openclaw.json
+      NPM_CONFIG_PREFIX: /data/openclaw/npm
+      OCD_DB_SQLITE_PATH: /data/clawdeckx/ClawDeckX.db
+      OCD_LOG_FILE: /data/clawdeckx/ClawDeckX.log
+      OCD_GATEWAY_LOG: /data/openclaw/logs/gateway.log
+      OCD_SETUP_INSTALL_LOG: /data/openclaw/logs/install.log
+      OCD_SETUP_DOCTOR_LOG: /data/openclaw/logs/doctor.log
       # OpenClaw Gateway connection config
       # If Gateway runs on host, use host.docker.internal (Mac/Windows)
       # or host's real IP (Linux)
@@ -51,5 +59,4 @@ networks:
 
 volumes:
   clawdeckx-data:
-  clawdeckx-openclaw-state:
-  clawdeckx-npm-global:
+  clawdeckx-openclaw-data:

@@ -146,5 +146,11 @@
   "stoppingGateway": "Gateway wird gestoppt...",
   "updatingOpenclaw": "OpenClaw wird aktualisiert...",
   "verifyingUpdate": "Update wird überprüft...",
-  "restartingGateway": "Gateway wird neu gestartet..."
+  "restartingGateway": "Gateway wird neu gestartet...",
+  "pathsTitle": "OpenClaw-Pfade",
+  "pathState": "Statusverzeichnis",
+  "pathConfig": "Konfigurationsdatei",
+  "pathGatewayLog": "Gateway-Protokoll",
+  "pathInstallLog": "Installationsprotokoll",
+  "pathDoctorLog": "Diagnoseprotokoll"
 }

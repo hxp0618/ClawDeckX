@@ -13,6 +13,17 @@ func CommandExists(name string) bool {
 	return err == nil
 }
 
+func resolveOpenClawHome() string {
+	if dir := strings.TrimSpace(os.Getenv("OPENCLAW_HOME")); dir != "" {
+		return dir
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return home
+}
+
 func ResolveStateDir() string {
 	if dir := strings.TrimSpace(os.Getenv("OPENCLAW_STATE_DIR")); dir != "" {
 		return dir
@@ -20,14 +31,20 @@ func ResolveStateDir() string {
 	if dir := strings.TrimSpace(os.Getenv("CLAWDBOT_STATE_DIR")); dir != "" {
 		return dir
 	}
-	home, err := os.UserHomeDir()
-	if err != nil {
+	home := resolveOpenClawHome()
+	if home == "" {
 		return ""
 	}
 	return filepath.Join(home, ".openclaw")
 }
 
 func ResolveConfigPath() string {
+	if path := strings.TrimSpace(os.Getenv("OPENCLAW_CONFIG_PATH")); path != "" {
+		return path
+	}
+	if path := strings.TrimSpace(os.Getenv("CLAWDBOT_CONFIG_PATH")); path != "" {
+		return path
+	}
 	stateDir := ResolveStateDir()
 	if stateDir == "" {
 		return ""

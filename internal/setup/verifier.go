@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 )
 
@@ -122,6 +124,11 @@ func (v *Verifier) runDoctor(ctx context.Context) *DoctorResult {
 	output, err := cmd.CombinedOutput()
 
 	result.Output = string(output)
+	if logPath := GetDoctorLogPath(); logPath != "" {
+		if err := os.MkdirAll(filepath.Dir(logPath), 0755); err == nil {
+			_ = os.WriteFile(logPath, output, 0644)
+		}
+	}
 	if err != nil {
 		result.Success = false
 		result.Error = err.Error()

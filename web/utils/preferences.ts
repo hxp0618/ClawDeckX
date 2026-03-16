@@ -2,10 +2,11 @@
 import { readStorage, writeStorage } from './storage';
 
 export type WindowControlsPosition = 'left' | 'right';
-export type WallpaperSource = 'gradient' | 'picsum' | 'custom';
+export type WallpaperSource = 'picsum' | 'custom';
 
 export interface WallpaperConfig {
-  enabled: boolean;
+  gradientEnabled: boolean;
+  imageEnabled: boolean;
   source: WallpaperSource;
   customUrl: string;
   cachedUrl: string;
@@ -20,8 +21,9 @@ export interface Preferences {
 const PREFS_KEY = 'clawdeck-preferences';
 
 const DEFAULT_WALLPAPER: WallpaperConfig = {
-  enabled: false,
-  source: 'gradient',
+  gradientEnabled: true,
+  imageEnabled: false,
+  source: 'picsum',
   customUrl: '',
   cachedUrl: '',
   cachedAt: 0,
@@ -35,9 +37,32 @@ const DEFAULT_PREFS: Preferences = {
 export function loadPreferences(): Preferences {
   const raw = readStorage<Partial<Preferences>>(PREFS_KEY);
   if (!raw) return { ...DEFAULT_PREFS, wallpaper: { ...DEFAULT_WALLPAPER } };
+
+  const rawWallpaper = raw.wallpaper as Partial<WallpaperConfig> & {
+    enabled?: boolean;
+    source?: string;
+  } | undefined;
+  const legacyWallpaper = raw.wallpaper as {
+    enabled?: boolean;
+    source?: string;
+  } | undefined;
+
+  const legacySource = legacyWallpaper?.source;
+  const migratedWallpaper: WallpaperConfig = {
+    ...DEFAULT_WALLPAPER,
+    ...(rawWallpaper || {}),
+    gradientEnabled: typeof rawWallpaper?.gradientEnabled === 'boolean'
+      ? rawWallpaper.gradientEnabled
+      : true,
+    imageEnabled: typeof rawWallpaper?.imageEnabled === 'boolean'
+      ? rawWallpaper.imageEnabled
+      : Boolean(legacyWallpaper?.enabled && legacySource && legacySource !== 'gradient'),
+    source: legacySource === 'custom' ? 'custom' : 'picsum',
+  };
+
   return {
     windowControlsPosition: raw.windowControlsPosition || DEFAULT_PREFS.windowControlsPosition,
-    wallpaper: { ...DEFAULT_WALLPAPER, ...(raw.wallpaper || {}) },
+    wallpaper: migratedWallpaper,
   };
 }
 
