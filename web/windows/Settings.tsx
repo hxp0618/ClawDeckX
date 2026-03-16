@@ -17,9 +17,11 @@ type SettingsTab = 'account' | 'notify' | 'snapshot' | 'audit' | 'update' | 'don
 interface SettingsProps {
   language: Language;
   onLogout?: () => void | Promise<void>;
+  pendingTab?: string | null;
+  onTabConsumed?: () => void;
 }
 
-const Settings: React.FC<SettingsProps> = ({ language, onLogout }) => {
+const Settings: React.FC<SettingsProps> = ({ language, onLogout, pendingTab, onTabConsumed }) => {
   const t = useMemo(() => getTranslation(language), [language]);
   const s = t.set;
   const { toast } = useToast();
@@ -28,8 +30,14 @@ const Settings: React.FC<SettingsProps> = ({ language, onLogout }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   // 支持从外部跳转时预设 tab（如仪表盘的"备份"快捷操作）
+  const VALID_TABS: SettingsTab[] = useMemo(() => ['account', 'notify', 'snapshot', 'audit', 'update', 'donate', 'about'], []);
   useEffect(() => {
-    const VALID_TABS: SettingsTab[] = ['account', 'notify', 'snapshot', 'audit', 'update', 'donate', 'about'];
+    if (pendingTab && VALID_TABS.includes(pendingTab as SettingsTab)) {
+      setActiveTab(pendingTab as SettingsTab);
+      onTabConsumed?.();
+    }
+  }, [pendingTab, onTabConsumed, VALID_TABS]);
+  useEffect(() => {
     const handler = (evt: Event) => {
       const ce = evt as CustomEvent<{ id?: string; tab?: string }>;
       if (ce?.detail?.id !== 'settings') return;
@@ -40,7 +48,7 @@ const Settings: React.FC<SettingsProps> = ({ language, onLogout }) => {
     };
     window.addEventListener('clawdeck:open-window', handler as EventListener);
     return () => window.removeEventListener('clawdeck:open-window', handler as EventListener);
-  }, []);
+  }, [VALID_TABS]);
 
   const handleTabSelect = (tab: SettingsTab) => {
     setActiveTab(tab);

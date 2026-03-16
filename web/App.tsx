@@ -347,9 +347,10 @@ const App: React.FC = () => {
 
   const [pendingEditorSection, setPendingEditorSection] = useState<string | null>(null);
   const [pendingExpandItem, setPendingExpandItem] = useState<string | null>(null);
+  const [pendingSettingsTab, setPendingSettingsTab] = useState<string | null>(null);
   useEffect(() => {
     const handler = (evt: Event) => {
-      const ce = evt as CustomEvent<{ id?: WindowID; section?: string; expandItem?: string }>;
+      const ce = evt as CustomEvent<{ id?: WindowID; section?: string; expandItem?: string; tab?: string }>;
       const id = ce?.detail?.id;
       if (!id) return;
       if (id === 'editor' && ce?.detail?.section) {
@@ -357,6 +358,9 @@ const App: React.FC = () => {
       }
       if (id === 'knowledge' && ce?.detail?.expandItem) {
         setPendingExpandItem(ce.detail.expandItem);
+      }
+      if (id === 'settings' && ce?.detail?.tab) {
+        setPendingSettingsTab(ce.detail.tab);
       }
       openWindow(id);
     };
@@ -479,7 +483,7 @@ const App: React.FC = () => {
                     {w.id === 'agents' && <Agents language={language} />}
                     {w.id === 'maintenance' && <Doctor language={language} />}
                     {w.id === 'scheduler' && <Scheduler language={language} />}
-                    {w.id === 'settings' && <Settings language={language} onLogout={logout} />}
+                    {w.id === 'settings' && <Settings language={language} onLogout={logout} pendingTab={pendingSettingsTab} onTabConsumed={() => setPendingSettingsTab(null)} />}
                     {w.id === 'nodes' && <Nodes language={language} />}
                     {w.id === 'knowledge' && <Knowledge language={language} pendingExpandItem={pendingExpandItem} onExpandItemConsumed={() => setPendingExpandItem(null)} />}
                     {w.id === 'setup_wizard' && (
