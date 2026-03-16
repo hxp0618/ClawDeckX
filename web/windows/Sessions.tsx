@@ -226,6 +226,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const [wsError, setWsError] = useState<string | null>(null);
   const [wsConnecting, setWsConnecting] = useState(true);
   const wasWsDisconnectedRef = useRef(false);
+  const cRef = useRef(c);
+  cRef.current = c;
   const { ready: gwReady, checked: gwChecked, refresh: gwRefresh } = useGatewayStatus();
 
   // Sessions — restore from sessionStorage for instant display
@@ -568,7 +570,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         setWsError(null);
         if (wasDisconnected) {
           wasWsDisconnectedRef.current = false;
-          toast('info', c.wsReconnected || 'Reconnected', 3000);
+          toast('info', cRef.current.wsReconnected || 'Reconnected', 3000);
         }
       } else if (status === 'closed') {
         setWsConnected(false);
@@ -580,7 +582,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       clearTimeout(connectTimeout);
       unsubscribe();
     };
-  }, [c.wsError]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Chat event handler (streaming) - defined before useEffect to avoid closure issues
   const handleChatEvent = useCallback((payload?: any) => {
@@ -683,9 +686,10 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
       setRunPhase('error');
       setLiveToolCalls(new Map());
       pendingRunRef.current = null;
-      setError(payload.errorMessage || c.error);
+      setError(payload.errorMessage || cRef.current.error);
     }
-  }, [c.error]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Agent event handler (tool streaming)
   const handleAgentEvent = useCallback((payload?: any) => {
