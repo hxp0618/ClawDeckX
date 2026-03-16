@@ -1,8 +1,6 @@
-import React, { useMemo, useState, Suspense, lazy } from 'react';
+import React, { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
-const ShikiHighlighter = lazy(() => import('react-shiki'));
 
 const MAX_RENDER_CHARS = 50_000;
 
@@ -37,13 +35,9 @@ const CodeBlock: React.FC<{ lang: string; code: string; copyLabel?: string }> = 
           {copied ? '✓' : (copyLabel || 'Copy')}
         </button>
       </div>
-      <Suspense fallback={
-        <pre className="bg-slate-800 rounded-xl p-3 text-[10px] font-mono text-white/80 overflow-auto">{code}</pre>
-      }>
-        <ShikiHighlighter language={lang} theme="github-dark" className="rounded-xl text-[10px] !p-3">
-          {code}
-        </ShikiHighlighter>
-      </Suspense>
+      <pre className="bg-slate-900 dark:bg-black/30 rounded-xl p-3 text-[10px] font-mono text-slate-100 overflow-auto">
+        <code>{code}</code>
+      </pre>
     </div>
   );
 };

@@ -215,6 +215,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const finalizedAtRef = useRef<number>(0);
   // Dedup guard: track recently added message fingerprints to prevent React batching duplicates
   const recentAddedRef = useRef<Set<string>>(new Set());
+  const historyRequestSeqRef = useRef(0);
 
   // --- New state for optimizations ---
   // Sidebar search
@@ -793,11 +794,16 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   // Load chat history (via REST proxy)
   const loadHistory = useCallback(async (opts?: { silent?: boolean }) => {
     if (!gwReady) return;
+    const requestSeq = ++historyRequestSeqRef.current;
+    const targetSessionKey = sessionKey;
     // Only show loading spinner on first load (no existing messages)
     const showSpinner = !opts?.silent && messagesLenRef.current === 0;
     if (showSpinner) setChatLoading(true);
     try {
-      const res = await gwApi.proxy('chat.history', { sessionKey, limit: 200 }) as any;
+      const res = await gwApi.proxy('chat.history', { sessionKey: targetSessionKey, limit: 200 }) as any;
+      if (historyRequestSeqRef.current !== requestSeq || sessionKeyRef.current !== targetSessionKey) {
+        return;
+      }
       const msgs = Array.isArray(res?.messages) ? res.messages : [];
       const mapped = msgs.map((m: any) => ({
         role: m.role || 'assistant',
@@ -848,9 +854,13 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         });
       });
     } catch {
-      setMessages([]);
+      if (historyRequestSeqRef.current === requestSeq && sessionKeyRef.current === targetSessionKey) {
+        setMessages([]);
+      }
     } finally {
-      if (showSpinner) setChatLoading(false);
+      if (showSpinner && historyRequestSeqRef.current === requestSeq && sessionKeyRef.current === targetSessionKey) {
+        setChatLoading(false);
+      }
     }
   }, [gwReady, sessionKey]);
 
