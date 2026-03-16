@@ -85,10 +85,11 @@ export async function fetchWallpaperUrl(source: WallpaperSource, customUrl: stri
 }
 
 export async function fetchAndCacheWallpaper(url: string): Promise<string> {
-  const response = await fetch(url);
-  const blob = await response.blob();
+  // Use <img> element instead of fetch() to bypass CSP connect-src restrictions.
+  // img-src already allows "https:" so any HTTPS image URL works.
   return new Promise((resolve, reject) => {
     const img = new Image();
+    img.crossOrigin = 'anonymous';
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const maxW = 1920;
@@ -98,11 +99,16 @@ export async function fetchAndCacheWallpaper(url: string): Promise<string> {
       const ctx = canvas.getContext('2d');
       if (!ctx) { reject(new Error('no canvas ctx')); return; }
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-      setCachedWallpaper(dataUrl);
-      resolve(dataUrl);
+      try {
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setCachedWallpaper(dataUrl);
+        resolve(dataUrl);
+      } catch {
+        // CORS tainted canvas — fall back to using the URL directly
+        resolve(url);
+      }
     };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(blob);
+    img.onerror = () => reject(new Error('Failed to load image'));
+    img.src = url;
   });
 }
