@@ -315,7 +315,7 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
       dingtalk: '@openclaw-china/dingtalk',
       wecom: '@wecom/wecom-openclaw-plugin',
       wecom_kf: '@openclaw-china/wecom-app',
-      qq: '@openclaw-china/qqbot',
+      qq: '@sliverp/qqbot@latest',
       msteams: '@openclaw/msteams',
       zalo: '@openclaw/zalo',
       matrix: '@openclaw/matrix',
@@ -1608,7 +1608,7 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
                         chId === 'dingtalk' ? '@openclaw-china/dingtalk' :
                           chId === 'wecom' ? '@wecom/wecom-openclaw-plugin' :
                             chId === 'wecom_kf' ? '@openclaw-china/wecom-app' :
-                              chId === 'qq' ? '@openclaw-china/qqbot' :
+                              chId === 'qq' ? '@sliverp/qqbot@latest' :
                                 chId === 'msteams' ? '@openclaw/msteams' :
                                   chId === 'zalo' ? '@openclaw/zalo' :
                                     chId === 'matrix' ? '@openclaw/matrix' :

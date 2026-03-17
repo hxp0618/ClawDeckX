@@ -288,6 +288,13 @@
     "pluginArchiveSource": "アーカイブ",
     "pluginLocalOnlyAction": "この操作はローカルゲートウェイでのみ使用可能",
     "pluginClose": "閉じる",
-    "cliNotInstalled": "OpenClaw CLI not installed"
+    "cliNotInstalled": "OpenClaw CLI not installed",
+    "sourceConfigTitle": "データソース設定",
+    "sourceConfigDesc": "スキルマーケットの上流エンドポイントを設定",
+    "sourceConfigClawHubLabel": "ClawHub ベース URL",
+    "sourceConfigClawHubHint": "ClawHub Convex ベース URL。APIパスは自動付加されます。変更後は再起動が必要です。",
+    "sourceConfigSkillHubHint": "SkillHub 上流データ URL。変更後は再起動が必要です。",
+    "sourceConfigRestart": "保存後、再起動が必要です",
+    "sourceConfigSaved": "保存しました。変更を反映するには再起動してください。"
   }
 }

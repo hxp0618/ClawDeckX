@@ -288,6 +288,13 @@
     "pluginArchiveSource": "封存",
     "pluginLocalOnlyAction": "此操作僅支援本地閘道",
     "pluginClose": "關閉",
-    "cliNotInstalled": "OpenClaw CLI not installed"
+    "cliNotInstalled": "OpenClaw CLI not installed",
+    "sourceConfigTitle": "資料來源設定",
+    "sourceConfigDesc": "設定技能市場的上游端點",
+    "sourceConfigClawHubLabel": "ClawHub 基礎 URL",
+    "sourceConfigClawHubHint": "ClawHub Convex 基礎網址，API 路徑自動附加。修改後需重新啟動。",
+    "sourceConfigSkillHubHint": "SkillHub 上游資料 URL，修改後需重新啟動。",
+    "sourceConfigRestart": "儲存後需重新啟動才會生效",
+    "sourceConfigSaved": "已儲存，重新啟動後生效。"
   }
 }

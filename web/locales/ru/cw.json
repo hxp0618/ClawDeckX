@@ -188,7 +188,7 @@
   ],
   "wecom_kfPitfall": "⚠️ Частые ошибки: 1) Сначала настройте OpenClaw; 2) Добавьте IP сервера в доверенные; 3) Token и EncodingAESKey должны совпадать",
   "qqPrep": [
-    "Установите плагин QQ: openclaw plugins install @openclaw-china/qqbot",
+    "Установите плагин QQ: openclaw plugins install @sliverp/qqbot@latest",
     "Перейдите на QQ Open Platform q.qq.com → Зарегистрируйте аккаунт разработчика и пройдите проверку",
     "Создайте приложение Bot (не мини-программу и не игру)",
     "Получите AppID и AppSecret на странице деталей приложения",

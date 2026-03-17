@@ -74,7 +74,9 @@ func (h *ServerConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 	cfg.Server.Bind = bind
 	cfg.Server.Port = payload.Port
 	cfg.Server.CORSOrigins = payload.CORSOrigins
-	cfg.Server.ClawHubQueryURL = strings.TrimSpace(payload.ClawHubQueryURL)
+	cfg.Server.ClawHubQueryURL = strings.TrimRight(strings.TrimSpace(payload.ClawHubQueryURL), "/")
+	// Normalize: strip legacy /api/query suffix so we always store the base URL
+	cfg.Server.ClawHubQueryURL = strings.TrimSuffix(cfg.Server.ClawHubQueryURL, "/api/query")
 	if cfg.Server.ClawHubQueryURL == "" {
 		cfg.Server.ClawHubQueryURL = webconfig.Default().Server.ClawHubQueryURL
 	}

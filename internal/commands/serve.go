@@ -581,6 +581,10 @@ func RunServe(args []string) int {
 	router.POST("/api/v1/clawhub/update", web.RequireAdmin(clawHubHandler.Update))
 	router.GET("/api/v1/clawhub/installed", clawHubHandler.InstalledList)
 
+	wallpaperHandler := handlers.NewWallpaperHandler()
+	router.GET("/api/v1/wallpaper/wallhaven/random", wallpaperHandler.WallhavenRandom)
+	router.GET("/api/v1/wallpaper/proxy", wallpaperHandler.ImageProxy)
+
 	pluginInstallHandler := handlers.NewPluginInstallHandler(gwClient)
 	router.GET("/api/v1/plugins/list", pluginInstallHandler.List)
 	router.GET("/api/v1/plugins/status", pluginInstallHandler.Status)

@@ -106,7 +106,7 @@ func Default() Config {
 			Port:            18791,
 			Bind:            "0.0.0.0",
 			CORSOrigins:     []string{},
-			ClawHubQueryURL: "https://wry-manatee-359.convex.cloud/api/query",
+			ClawHubQueryURL: "https://wry-manatee-359.convex.cloud",
 			SkillHubDataURL: "https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json",
 		},
 		Auth: AuthConfig{

@@ -288,6 +288,13 @@
     "pluginArchiveSource": "archive",
     "pluginLocalOnlyAction": "This action is only available on local gateway",
     "pluginClose": "Close",
-    "cliNotInstalled": "OpenClaw CLI not installed"
+    "cliNotInstalled": "OpenClaw CLI not installed",
+    "sourceConfigTitle": "Data Source Configuration",
+    "sourceConfigDesc": "Configure upstream endpoints for skill markets",
+    "sourceConfigClawHubLabel": "ClawHub Base URL",
+    "sourceConfigClawHubHint": "ClawHub Convex base URL. API paths are appended automatically. Changes require restart.",
+    "sourceConfigSkillHubHint": "SkillHub upstream data URL. Changes require restart.",
+    "sourceConfigRestart": "Restart required after saving",
+    "sourceConfigSaved": "Saved. Restart to apply changes."
   }
 }

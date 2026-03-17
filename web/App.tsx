@@ -11,7 +11,7 @@ import { get } from './services/request';
 import { authApi, settingsApi } from './services/api';
 import { useBadgeCounts } from './hooks/useBadgeCounts';
 import ErrorBoundary from './components/ErrorBoundary';
-import type { Preferences } from './utils/preferences';
+import type { Preferences, StartupWindowMode } from './utils/preferences';
 import { loadPreferences } from './utils/preferences';
 
 const idle = (cb: () => void) => {
@@ -171,12 +171,12 @@ const resolveWindowTitle = (tr: any, id: WindowID): string => {
   return id;
 };
 
-const buildWindows = (lang: Language): WindowState[] => {
+const buildWindows = (lang: Language, startupWindow: StartupWindowMode = 'dashboard'): WindowState[] => {
   const tr = getTranslation(lang) as any;
   return WINDOW_IDS.map((w, i) => ({
     id: w.id,
     title: resolveWindowTitle(tr, w.id),
-    isOpen: !!w.openByDefault,
+    isOpen: startupWindow !== 'none' && w.id === startupWindow,
     isMinimized: false,
     isMaximized: false,
     zIndex: 10 + i,
@@ -189,7 +189,10 @@ const App: React.FC = () => {
   const [authChecking, setAuthChecking] = useState(true);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [language, setLanguage] = useState<Language>(() => (localStorage.getItem('lang') as Language) || 'zh');
-  const [windows, setWindows] = useState<WindowState[]>(() => buildWindows(language));
+  const [windows, setWindows] = useState<WindowState[]>(() => {
+    const p = loadPreferences();
+    return buildWindows(language, p.startupWindow);
+  });
   const [maxZ, setMaxZ] = useState(100);
   const [localeReady, setLocaleReady] = useState(language === 'en');
   const hasWarmedChunksRef = React.useRef(false);
@@ -317,7 +320,7 @@ const App: React.FC = () => {
     } catch {
       // Even if the backend session is already invalid, force the UI back to lock screen.
     } finally {
-      setWindows(buildWindows(language));
+      setWindows(buildWindows(language, loadPreferences().startupWindow));
       setMaxZ(100);
       setPendingSessionKey(null);
       prefetchedWindowsRef.current.clear();

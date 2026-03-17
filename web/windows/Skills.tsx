@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Language } from '../types';
 import { getTranslation } from '../locales';
 import type { LocaleNamespace } from '../locales/types';
-import { gwApi, clawHubApi, skillTranslationApi } from '../services/api';
+import { gwApi, clawHubApi, skillTranslationApi, serverConfigApi } from '../services/api';
 import { useGatewayStatus } from '../hooks/useGatewayStatus';
 import { useToast } from '../components/Toast';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -332,6 +332,117 @@ const SkillCard: React.FC<{
   );
 };
 
+// 数据源配置弹窗（ClawHub / SkillHub URL）
+const SourceConfigModal: React.FC<{
+  language: Language;
+  onClose: () => void;
+  onSaved: () => void;
+}> = ({ language, onClose, onSaved }) => {
+  const t = getTranslation(language);
+  const sk = (t as any).sk || {};
+  const [clawHubUrl, setClawHubUrl] = useState('');
+  const [skillHubUrl, setSkillHubUrl] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [dirty, setDirty] = useState(false);
+  const originalRef = useRef({ clawHubUrl: '', skillHubUrl: '' });
+
+  useEffect(() => {
+    serverConfigApi.get().then((cfg) => {
+      const ch = cfg.clawhub_query_url || '';
+      const sh = cfg.skillhub_data_url || '';
+      setClawHubUrl(ch);
+      setSkillHubUrl(sh);
+      originalRef.current = { clawHubUrl: ch, skillHubUrl: sh };
+      setLoading(false);
+    }).catch(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const cfg = await serverConfigApi.get();
+      await serverConfigApi.update({
+        ...cfg,
+        clawhub_query_url: clawHubUrl.trim() || cfg.clawhub_query_url,
+        skillhub_data_url: skillHubUrl.trim() || cfg.skillhub_data_url,
+      });
+      onSaved();
+      onClose();
+    } catch { /* ignore */ }
+    setSaving(false);
+  };
+
+  const updateField = (field: 'clawHubUrl' | 'skillHubUrl', value: string) => {
+    if (field === 'clawHubUrl') setClawHubUrl(value);
+    else setSkillHubUrl(value);
+    const next = { clawHubUrl: field === 'clawHubUrl' ? value : clawHubUrl, skillHubUrl: field === 'skillHubUrl' ? value : skillHubUrl };
+    setDirty(next.clawHubUrl !== originalRef.current.clawHubUrl || next.skillHubUrl !== originalRef.current.skillHubUrl);
+  };
+
+  const inputCls = "w-full h-9 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 text-[13px] text-slate-800 dark:text-white font-mono focus:ring-2 focus:ring-primary/30 outline-none transition-all";
+  const labelCls = "text-[12px] font-medium text-slate-500 dark:text-white/40";
+
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="w-full max-w-lg mx-4 bg-white dark:bg-[#1c1e24] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="px-5 py-4 border-b border-slate-200 dark:border-white/5 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <span className="material-symbols-outlined text-primary text-[18px]">settings</span>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-sm text-slate-800 dark:text-white">{sk.sourceConfigTitle || 'Data Source Configuration'}</h3>
+            <p className="text-[10px] text-slate-400 dark:text-white/30 mt-0.5">{sk.sourceConfigDesc || 'Configure upstream endpoints for skill markets'}</p>
+          </div>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-white/10">
+            <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
+          </button>
+        </div>
+        <div className="p-5 space-y-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-8 text-slate-400">
+              <span className="material-symbols-outlined text-xl animate-spin">progress_activity</span>
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className={labelCls}>{sk.sourceConfigClawHubLabel || 'ClawHub Base URL'}</label>
+                <input type="url" value={clawHubUrl}
+                  onChange={e => updateField('clawHubUrl', e.target.value)}
+                  className={`${inputCls} mt-1.5`}
+                  placeholder="https://wry-manatee-359.convex.cloud" />
+                <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">{sk.sourceConfigClawHubHint || 'ClawHub Convex base URL. API paths are appended automatically. Changes require restart.'}</p>
+              </div>
+              <div>
+                <label className={labelCls}>SkillHub Data URL</label>
+                <input type="url" value={skillHubUrl}
+                  onChange={e => updateField('skillHubUrl', e.target.value)}
+                  className={`${inputCls} mt-1.5`}
+                  placeholder="https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json" />
+                <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">{sk.sourceConfigSkillHubHint || 'SkillHub upstream data URL. Changes require restart.'}</p>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="px-5 py-3 border-t border-slate-200 dark:border-white/5 flex items-center gap-2">
+          {dirty && (
+            <span className="text-[10px] text-amber-500 flex items-center gap-1">
+              <span className="material-symbols-outlined text-[12px]">info</span>
+              {sk.sourceConfigRestart || 'Restart required after saving'}
+            </span>
+          )}
+          <div className="flex-1" />
+          <button onClick={onClose} className="h-8 px-4 text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-white/50 dark:hover:text-white">{sk.cancel || 'Cancel'}</button>
+          <button onClick={handleSave} disabled={saving || !dirty} className="h-8 px-5 bg-primary text-white text-xs font-bold rounded-lg disabled:opacity-40 hover:opacity-90 transition-all flex items-center gap-1.5">
+            {saving && <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>}
+            {sk.save || 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Skills: React.FC<SkillsProps> = ({ language }) => {
   const t = useMemo(() => getTranslation(language), [language]);
   const sk = t.sk as LocaleNamespace;
@@ -340,6 +451,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
   const { confirm } = useConfirm();
 
   const [activeTab, setActiveTab] = useState<TabId>('all');
+  const [showSourceConfig, setShowSourceConfig] = useState(false);
   const [filter, setFilter] = useState<FilterId>('all');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -928,7 +1040,8 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
       {/* 顶部工具栏 */}
       <div className="flex flex-col border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-black/20 shrink-0">
         {/* 标签页 */}
-        <div className="h-12 flex items-center justify-center px-4 border-b border-slate-200/50 dark:border-white/5">
+        <div className="h-12 flex items-center px-4 border-b border-slate-200/50 dark:border-white/5">
+          <div className="flex-1" />
           <div className="flex bg-slate-200 dark:bg-black/40 p-0.5 rounded-xl shadow-inner">
             {tabs.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
@@ -938,6 +1051,13 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                 {tab.count !== undefined && <span className="text-[11px] opacity-60">{tab.count}</span>}
               </button>
             ))}
+          </div>
+          <div className="flex-1 flex justify-end">
+            <button onClick={() => setShowSourceConfig(true)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
+              title={sk.sourceConfigTitle || 'Data Source Configuration'}>
+              <span className="material-symbols-outlined text-[18px] text-slate-400 dark:text-white/40">settings</span>
+            </button>
           </div>
         </div>
 
@@ -1111,8 +1231,8 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                   })()}
                 </div>
               )}
-              {/* 速率限制信息 */}
-              {marketRateLimit && (
+              {/* 速率限制信息 — 仅当 API 返回有效限制数据时显示 */}
+              {marketRateLimit && marketRateLimit.limit && marketRateLimit.remaining && (
                 <span className="h-9 px-2 flex items-center gap-1 text-[10px] text-slate-500 dark:text-white/50 bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-lg whitespace-nowrap shrink-0"
                   title={`${sk.rateLimitInfo || 'API Rate Limit'}: ${marketRateLimit.remaining}/${marketRateLimit.limit}${marketRateLimit.reset ? ` (reset: ${marketRateLimit.reset}s)` : ''}`}>
                   <span className="material-symbols-outlined text-[12px]">schedule</span>
@@ -1676,6 +1796,15 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
           </div>
         );
       })()}
+
+      {/* 数据源配置弹窗 */}
+      {showSourceConfig && (
+        <SourceConfigModal
+          language={language}
+          onClose={() => setShowSourceConfig(false)}
+          onSaved={() => toast('success', sk.sourceConfigSaved || 'Saved. Restart to apply changes.')}
+        />
+      )}
     </div>
   );
 };

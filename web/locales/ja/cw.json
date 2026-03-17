@@ -188,7 +188,7 @@
   ],
   "wecom_kfPitfall": "⚠️ よくある落とし穴：1) OpenClawの設定とゲートウェイ起動を先に完了してから、WeCom管理画面で「保存」をクリック。そうしないとコールバック検証失敗；2) 「企業信頼IP」にサーバーIPを追加しないとメッセージ送信失敗；3) TokenとEncodingAESKeyはWeCom管理画面と一致させる必要があります；4) 個人WeChatからワークベンチ経由での使用に対応",
   "qqPrep": [
-    "QQプラグインをインストール：openclaw plugins install @openclaw-china/qqbot",
+    "QQプラグインをインストール：openclaw plugins install @sliverp/qqbot@latest",
     "QQ Open Platform q.qq.comにアクセス → 開発者アカウントを登録し審査を完了",
     "Botアプリケーションを作成（ミニプログラムやゲームではない）",
     "アプリ詳細ページからAppIDとAppSecretを取得",

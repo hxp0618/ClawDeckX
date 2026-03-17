@@ -137,14 +137,17 @@ func mapClawHubConvexItem(entry map[string]interface{}) map[string]interface{} {
 	return entry
 }
 
-func (h *ClawHubHandler) clawHubQueryURL() string {
+func (h *ClawHubHandler) clawHubBaseURL() string {
 	cfg, err := webconfig.Load()
 	if err == nil {
-		if queryURL := strings.TrimSpace(cfg.Server.ClawHubQueryURL); queryURL != "" {
-			return queryURL
+		if base := strings.TrimSpace(cfg.Server.ClawHubQueryURL); base != "" {
+			base = strings.TrimRight(base, "/")
+			// Backward compat: strip legacy /api/query suffix
+			base = strings.TrimSuffix(base, "/api/query")
+			return base
 		}
 	}
-	return webconfig.Default().Server.ClawHubQueryURL
+	return strings.TrimRight(webconfig.Default().Server.ClawHubQueryURL, "/")
 }
 
 // List lists ClawHub skills (proxied to avoid CORS, supports sort/pagination).
@@ -198,7 +201,7 @@ func (h *ClawHubHandler) List(w http.ResponseWriter, r *http.Request) {
 		web.Fail(w, r, "CLAWHUB_LIST_FAILED", "failed to encode ClawHub request", http.StatusBadGateway)
 		return
 	}
-	apiURL := h.clawHubQueryURL()
+	apiURL := h.clawHubBaseURL() + "/api/query"
 	resp, err := h.httpClient.Post(apiURL, "application/json", strings.NewReader(string(requestBody)))
 	if err != nil {
 		logger.Log.Error().Err(err).Str("url", apiURL).Msg("ClawHub list request failed")

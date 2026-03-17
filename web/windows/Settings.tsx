@@ -515,24 +515,6 @@ const Settings: React.FC<SettingsProps> = ({ language, onLogout, pendingTab, onT
                     <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">{s.corsOriginsHint}</p>
                   </div>
 
-                  <div>
-                    <label className={labelCls}>ClawHub Query URL</label>
-                    <input type="url" value={srvCfg.clawhub_query_url}
-                      onChange={e => updateSrvCfg({ clawhub_query_url: e.target.value })}
-                      className={`${inputCls} mt-1.5`}
-                      placeholder="https://wry-manatee-359.convex.cloud/api/query" />
-                    <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">Configure the ClawHub market query endpoint used by the app. Changes require restart.</p>
-                  </div>
-
-                  <div>
-                    <label className={labelCls}>SkillHub Data URL</label>
-                    <input type="url" value={srvCfg.skillhub_data_url}
-                      onChange={e => updateSrvCfg({ skillhub_data_url: e.target.value })}
-                      className={`${inputCls} mt-1.5`}
-                      placeholder="https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json" />
-                    <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">Configure the SkillHub upstream data URL used by the app. Changes require restart.</p>
-                  </div>
-
                   {/* 保存按钮 */}
                   <div className="flex justify-end pt-1">
                     <button onClick={handleSrvCfgSave} disabled={srvCfgSaving || !srvCfgDirty}

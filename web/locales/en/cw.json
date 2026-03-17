@@ -189,7 +189,7 @@
   ],
   "wecom_kfPitfall": "⚠️ Common pitfalls: 1) Must configure OpenClaw and start gateway first, then click \"Save\" in WeCom — otherwise callback verification fails; 2) Must add server IP to Trusted IP list, otherwise message sending fails; 3) Token and EncodingAESKey must match WeCom console; 4) Accessible from personal WeChat via Work entry",
   "qqPrep": [
-    "Install QQ plugin: openclaw plugins install @openclaw-china/qqbot",
+    "Install QQ plugin: openclaw plugins install @sliverp/qqbot@latest",
     "Visit QQ Open Platform q.qq.com → Register developer account and complete review",
     "Create a Bot application (not mini-program or game)",
     "Get AppID and AppSecret from app details page",

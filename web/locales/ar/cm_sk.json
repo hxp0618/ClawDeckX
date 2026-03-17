@@ -288,6 +288,13 @@
     "pluginArchiveSource": "archive",
     "pluginLocalOnlyAction": "This action is only available on local gateway",
     "pluginClose": "Close",
-    "cliNotInstalled": "OpenClaw CLI not installed"
+    "cliNotInstalled": "OpenClaw CLI not installed",
+    "sourceConfigTitle": "إعدادات مصدر البيانات",
+    "sourceConfigDesc": "تكوين نقاط النهاية لأسواق المهارات",
+    "sourceConfigClawHubLabel": "ClawHub Base URL",
+    "sourceConfigClawHubHint": "عنوان URL الأساسي لـ ClawHub Convex. يتم إلحاق مسارات API تلقائيًا. يتطلب إعادة التشغيل بعد التغيير.",
+    "sourceConfigSkillHubHint": "عنوان URL لبيانات SkillHub. يتطلب إعادة التشغيل بعد التغيير.",
+    "sourceConfigRestart": "يتطلب إعادة التشغيل بعد الحفظ",
+    "sourceConfigSaved": "تم الحفظ. أعد التشغيل لتطبيق التغييرات."
   }
 }

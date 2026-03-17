@@ -189,7 +189,7 @@
   ],
   "wecom_kfPitfall": "⚠️ 常见踩坑：1) 必须先配置好 OpenClaw 并启动网关，再回企微后台点「保存」，否则回调校验失败；2) 必须在「企业可信 IP」中添加服务器 IP，否则发送消息失败；3) Token 和 EncodingAESKey 需与企微后台一致；4) 支持在个人微信中通过工作台入口使用",
   "qqPrep": [
-    "安装 QQ 插件：openclaw plugins install @openclaw-china/qqbot",
+    "安装 QQ 插件：openclaw plugins install @sliverp/qqbot@latest",
     "访问 QQ 开放平台 q.qq.com → 注册开发者账号并完成审核",
     "创建「机器人」应用（注意不是小程序或游戏）",
     "在应用详情页获取 AppID 和 AppSecret",

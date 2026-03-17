@@ -288,6 +288,13 @@
     "pluginArchiveSource": "archive",
     "pluginLocalOnlyAction": "This action is only available on local gateway",
     "pluginClose": "Close",
-    "cliNotInstalled": "OpenClaw CLI not installed"
+    "cliNotInstalled": "OpenClaw CLI not installed",
+    "sourceConfigTitle": "Configuración de fuentes de datos",
+    "sourceConfigDesc": "Configurar los endpoints de los mercados de habilidades",
+    "sourceConfigClawHubLabel": "ClawHub Base URL",
+    "sourceConfigClawHubHint": "URL base de ClawHub Convex. Las rutas API se agregan automáticamente. Requiere reinicio tras el cambio.",
+    "sourceConfigSkillHubHint": "URL de datos de SkillHub. Requiere reinicio tras el cambio.",
+    "sourceConfigRestart": "Reinicio necesario tras guardar",
+    "sourceConfigSaved": "Guardado. Reinicie para aplicar los cambios."
   }
 }

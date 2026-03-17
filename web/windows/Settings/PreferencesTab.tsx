@@ -1,7 +1,7 @@
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import type { Preferences, WindowControlsPosition, WallpaperSource } from '../../utils/preferences';
-import { updatePreferences, fetchWallpaperUrl, fetchAndCacheWallpaper, getCachedWallpaper } from '../../utils/preferences';
+import React, { useState, useCallback, useEffect } from 'react';
+import type { Preferences, WindowControlsPosition, WallpaperSource, StartupWindowMode } from '../../utils/preferences';
+import { updatePreferences, resolveWallpaperData, applyResolvedWallpaper, getCachedWallpaper } from '../../utils/preferences';
 
 interface PreferencesTabProps {
   s: Record<string, any>;
@@ -16,7 +16,7 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
   const [wallpaperLoading, setWallpaperLoading] = useState(false);
   const [wallpaperPreview, setWallpaperPreview] = useState<string>('');
   const [wallpaperError, setWallpaperError] = useState('');
-  const customUrlRef = useRef(prefs.wallpaper.customUrl);
+  const [wallpaperCollapsed, setWallpaperCollapsed] = useState(true);
 
   useEffect(() => {
     const cached = getCachedWallpaper();
@@ -25,6 +25,11 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
 
   const handleControlsPosition = useCallback((pos: WindowControlsPosition) => {
     const next = updatePreferences({ windowControlsPosition: pos });
+    onPrefsChange(next);
+  }, [onPrefsChange]);
+
+  const handleStartupWindow = useCallback((mode: StartupWindowMode) => {
+    const next = updatePreferences({ startupWindow: mode });
     onPrefsChange(next);
   }, [onPrefsChange]);
 
@@ -43,21 +48,37 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
     onPrefsChange(next);
   }, [prefs.wallpaper, onPrefsChange]);
 
-  const handleCustomUrlChange = useCallback((url: string) => {
-    customUrlRef.current = url;
-    const next = updatePreferences({ wallpaper: { ...prefs.wallpaper, customUrl: url } });
+  const handleWallpaperConfigChange = useCallback((patch: Partial<Preferences['wallpaper']>) => {
+    const next = updatePreferences({ wallpaper: { ...prefs.wallpaper, ...patch } });
     onPrefsChange(next);
+  }, [prefs.wallpaper, onPrefsChange]);
+
+  const handleCustomUrlChange = useCallback((url: string) => {
+    handleWallpaperConfigChange({ customUrl: url });
+  }, [handleWallpaperConfigChange]);
+
+  const handleSetWallpaperFromUrl = useCallback((url: string) => {
+    setWallpaperPreview(url);
+    const next = updatePreferences({
+      wallpaper: {
+        ...prefs.wallpaper,
+        cachedUrl: url,
+        cachedAt: Date.now(),
+      },
+    });
+    onPrefsChange(next);
+    // Also update the localStorage wallpaper cache so Desktop picks it up
+    try { localStorage.setItem('clawdeck-wallpaper-cache', url); } catch {}
   }, [prefs.wallpaper, onPrefsChange]);
 
   const handleRefreshWallpaper = useCallback(async () => {
     setWallpaperLoading(true);
     setWallpaperError('');
     try {
-      const resolved = await fetchWallpaperUrl(prefs.wallpaper.source, prefs.wallpaper.customUrl);
+      const resolved = await resolveWallpaperData(prefs.wallpaper);
       if (!resolved) { setWallpaperLoading(false); return; }
-      const dataUrl = await fetchAndCacheWallpaper(resolved.url);
-      setWallpaperPreview(dataUrl);
-      const next = updatePreferences({ wallpaper: { ...prefs.wallpaper, cachedUrl: dataUrl, cachedAt: Date.now(), resolvedSource: resolved.provider } });
+      setWallpaperPreview(resolved.dataUrl);
+      const next = updatePreferences({ wallpaper: applyResolvedWallpaper(prefs.wallpaper, resolved.dataUrl, resolved.provider) });
       onPrefsChange(next);
     } catch {
       setWallpaperError(pref?.wallpaperFetchFail || 'Failed to load wallpaper');
@@ -68,8 +89,14 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
   const labelCls = "text-[12px] font-medium text-slate-500 dark:text-white/40";
   const activeWallpaperSourceLabel =
     prefs.wallpaper.source === 'random'
-      ? (prefs.wallpaper.resolvedSource === 'unsplash' ? (pref?.wallpaperUnsplash || 'Unsplash') : (pref?.wallpaperPicsum || 'Picsum'))
-      : prefs.wallpaper.source === 'picsum'
+      ? (prefs.wallpaper.resolvedSource === 'unsplash'
+        ? (pref?.wallpaperUnsplash || 'Unsplash')
+        : prefs.wallpaper.resolvedSource === 'picsum'
+          ? (pref?.wallpaperPicsum || 'Picsum')
+          : (pref?.wallpaperWallhaven || 'Wallhaven'))
+      : prefs.wallpaper.source === 'wallhaven'
+        ? (pref?.wallpaperWallhaven || 'Wallhaven')
+        : prefs.wallpaper.source === 'picsum'
         ? (pref?.wallpaperPicsum || 'Picsum')
         : prefs.wallpaper.source === 'unsplash'
           ? (pref?.wallpaperUnsplash || 'Unsplash')
@@ -128,14 +155,51 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
         </div>
       </div>
 
-      {/* Desktop Wallpaper */}
+      {/* Startup Window */}
       <div className={rowCls}>
         <div className="px-4 py-3">
           <div className="flex items-center gap-2 mb-3">
-            <span className="material-symbols-outlined text-[18px] text-purple-500">wallpaper</span>
-            <p className="text-[13px] font-semibold text-slate-700 dark:text-white/80">{pref?.wallpaper || 'Desktop Wallpaper'}</p>
+            <span className="material-symbols-outlined text-[18px] text-cyan-500">launch</span>
+            <p className="text-[13px] font-semibold text-slate-700 dark:text-white/80">{pref?.startupWindow || 'Startup Window'}</p>
           </div>
+          <p className="text-[11px] text-slate-400 dark:text-white/30 mb-3">{pref?.startupWindowDesc || 'Choose which window opens automatically when you enter the desktop.'}</p>
+          <div className="flex flex-wrap gap-2">
+            {([
+              { id: 'none' as const, label: pref?.startupNone || 'None', icon: 'block' },
+              { id: 'dashboard' as const, label: pref?.startupDashboard || 'Dashboard', icon: 'dashboard' },
+              { id: 'gateway' as const, label: pref?.startupGateway || 'Gateway', icon: 'router' },
+              { id: 'sessions' as const, label: pref?.startupSessions || 'Sessions', icon: 'forum' },
+              { id: 'editor' as const, label: pref?.startupEditor || 'Editor', icon: 'code_blocks' },
+              { id: 'skills' as const, label: pref?.startupSkills || 'Skills', icon: 'extension' },
+              { id: 'agents' as const, label: pref?.startupAgents || 'Agents', icon: 'smart_toy' },
+            ] as { id: StartupWindowMode; label: string; icon: string }[]).map(opt => (
+              <button key={opt.id} onClick={() => handleStartupWindow(opt.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${
+                  prefs.startupWindow === opt.id
+                    ? 'bg-primary/10 text-primary border-primary/30'
+                    : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                }`}>
+                <span className="material-symbols-outlined text-[14px]">{opt.icon}</span>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
 
+      {/* Desktop Wallpaper */}
+      <div className={rowCls}>
+        <div className="px-4 py-3">
+          <button
+            onClick={() => setWallpaperCollapsed(prev => !prev)}
+            className="flex items-center gap-2 mb-3 w-full text-start group"
+          >
+            <span className="material-symbols-outlined text-[18px] text-purple-500">wallpaper</span>
+            <p className="text-[13px] font-semibold text-slate-700 dark:text-white/80 flex-1 text-start">{pref?.wallpaper || 'Desktop Wallpaper'}</p>
+            <span className={`material-symbols-outlined text-[18px] text-slate-400 dark:text-white/30 transition-transform duration-200 ${wallpaperCollapsed ? '' : 'rotate-180'}`}>expand_more</span>
+          </button>
+
+          {!wallpaperCollapsed && (<>
           <div className="space-y-3">
             <div className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 px-3 py-2.5 bg-slate-50/70 dark:bg-white/[0.03]">
               <div>
@@ -171,6 +235,7 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
                 <div className="flex flex-wrap gap-2 mt-1.5">
                   {([
                     { id: 'random' as const, label: pref?.wallpaperRandom || 'Random', icon: 'shuffle' },
+                    { id: 'wallhaven' as const, label: pref?.wallpaperWallhaven || 'Wallhaven', icon: 'wallpaper' },
                     { id: 'picsum' as const, label: pref?.wallpaperPicsum || 'Picsum', icon: 'photo_library' },
                     { id: 'unsplash' as const, label: pref?.wallpaperUnsplash || 'Unsplash', icon: 'image' },
                     { id: 'custom' as const, label: pref?.wallpaperCustom || 'Custom URL', icon: 'link' },
@@ -188,7 +253,9 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
                 </div>
                 <p className="mt-2 text-[10px] text-slate-400 dark:text-white/25">
                   {prefs.wallpaper.source === 'random'
-                    ? (pref?.wallpaperRandomDesc || 'Randomly pick from Picsum and Unsplash each time you refresh.')
+                    ? (pref?.wallpaperRandomDesc || 'Prefer Wallhaven each refresh, then fall back to Picsum or Unsplash if needed.')
+                    : prefs.wallpaper.source === 'wallhaven'
+                      ? (pref?.wallpaperWallhavenDesc || 'Use Wallhaven wallpaper search as the primary source.')
                     : prefs.wallpaper.source === 'picsum'
                       ? (pref?.wallpaperPicsumDesc || 'Always use Picsum as the wallpaper source.')
                       : prefs.wallpaper.source === 'unsplash'
@@ -209,6 +276,169 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
                   />
                 </div>
               )}
+
+              {(prefs.wallpaper.source === 'wallhaven' || prefs.wallpaper.source === 'random') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="md:col-span-2">
+                    <label className={labelCls}>{pref?.wallpaperWallhavenQuery || 'Wallhaven Query'}</label>
+                    <input
+                      type="text"
+                      value={prefs.wallpaper.query}
+                      onChange={e => handleWallpaperConfigChange({ query: e.target.value })}
+                      className={`${inputCls} mt-1.5`}
+                      placeholder="landscape scenery"
+                    />
+                    <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">{pref?.wallpaperWallhavenQueryDesc || 'Keywords sent to Wallhaven search, for example landscape scenery, mountains, cyberpunk city.'}</p>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>{pref?.wallpaperWallhavenResolution || 'Minimum Resolution'}</label>
+                    <input
+                      type="text"
+                      value={prefs.wallpaper.minResolution}
+                      onChange={e => handleWallpaperConfigChange({ minResolution: e.target.value })}
+                      className={`${inputCls} mt-1.5`}
+                      placeholder="1920x1080"
+                    />
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>{pref?.wallpaperWallhavenRatios || 'Aspect Ratios'}</label>
+                    <input
+                      type="text"
+                      value={prefs.wallpaper.ratios}
+                      onChange={e => handleWallpaperConfigChange({ ratios: e.target.value })}
+                      className={`${inputCls} mt-1.5`}
+                      placeholder="16x9,16x10,21x9"
+                    />
+                    <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">{pref?.wallpaperWallhavenRatiosDesc || 'Comma-separated Wallhaven ratios such as 16x9, 16x10, 21x9.'}</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className={labelCls}>{pref?.wallpaperWallhavenCategories || 'Categories'}</label>
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                      {([
+                        { key: 'general' as const, label: pref?.wallpaperCategoryGeneral || 'General' },
+                        { key: 'anime' as const, label: pref?.wallpaperCategoryAnime || 'Anime' },
+                        { key: 'people' as const, label: pref?.wallpaperCategoryPeople || 'People' },
+                      ]).map(item => {
+                        const active = prefs.wallpaper.categories[item.key];
+                        return (
+                          <button
+                            key={item.key}
+                            onClick={() => handleWallpaperConfigChange({ categories: { ...prefs.wallpaper.categories, [item.key]: !active } })}
+                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${
+                              active
+                                ? 'bg-primary/10 text-primary border-primary/30'
+                                : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>{pref?.wallpaperWallhavenPurity || 'Purity'}</label>
+                    <div className="flex gap-2 mt-1.5">
+                      {([
+                        { value: 'sfw' as const, label: pref?.wallpaperPuritySfw || 'SFW' },
+                        { value: 'sketchy' as const, label: pref?.wallpaperPuritySketchy || 'Sketchy' },
+                      ]).map(item => (
+                        <button
+                          key={item.value}
+                          onClick={() => handleWallpaperConfigChange({ purity: item.value })}
+                          className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${
+                            prefs.wallpaper.purity === item.value
+                              ? 'bg-primary/10 text-primary border-primary/30'
+                              : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>{pref?.wallpaperWallhavenApiKey || 'Wallhaven API Key'}</label>
+                    <input
+                      type="password"
+                      value={prefs.wallpaper.apiKey}
+                      onChange={e => handleWallpaperConfigChange({ apiKey: e.target.value })}
+                      className={`${inputCls} mt-1.5`}
+                      placeholder="Optional"
+                    />
+                    <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">{pref?.wallpaperWallhavenApiKeyDesc || 'Optional. Needed for authenticated search settings and sketchy content access.'}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/70 dark:bg-white/[0.03] p-3">
+                <div>
+                  <label className={labelCls}>{pref?.wallpaperFitMode || 'Fit Mode'}</label>
+                  <div className="flex flex-wrap gap-2 mt-1.5">
+                    {([
+                      { value: 'cover' as const, label: pref?.wallpaperFitCover || 'Cover' },
+                      { value: 'contain' as const, label: pref?.wallpaperFitContain || 'Contain' },
+                      { value: 'fill' as const, label: pref?.wallpaperFitFill || 'Fill' },
+                    ]).map(item => (
+                      <button
+                        key={item.value}
+                        onClick={() => handleWallpaperConfigChange({ fitMode: item.value })}
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${
+                          prefs.wallpaper.fitMode === item.value
+                            ? 'bg-primary/10 text-primary border-primary/30'
+                            : 'bg-slate-50 dark:bg-white/5 text-slate-500 dark:text-white/40 border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelCls}>{(pref?.wallpaperBrightness || 'Brightness') + ': ' + prefs.wallpaper.brightness + '%'}</label>
+                  <input
+                    type="range"
+                    min="50"
+                    max="140"
+                    step="5"
+                    value={prefs.wallpaper.brightness}
+                    onChange={e => handleWallpaperConfigChange({ brightness: Number(e.target.value) })}
+                    className="w-full mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label className={labelCls}>{(pref?.wallpaperOverlay || 'Overlay') + ': ' + prefs.wallpaper.overlayOpacity + '%'}</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="70"
+                    step="5"
+                    value={prefs.wallpaper.overlayOpacity}
+                    onChange={e => handleWallpaperConfigChange({ overlayOpacity: Number(e.target.value) })}
+                    className="w-full mt-2"
+                  />
+                </div>
+
+                <div>
+                  <label className={labelCls}>{(pref?.wallpaperBlur || 'Blur') + ': ' + prefs.wallpaper.blur + 'px'}</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    step="1"
+                    value={prefs.wallpaper.blur}
+                    onChange={e => handleWallpaperConfigChange({ blur: Number(e.target.value) })}
+                    className="w-full mt-2"
+                  />
+                </div>
+              </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
@@ -231,7 +461,7 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
                 </div>
                 {wallpaperPreview ? (
                   <div className="w-full aspect-[16/9] min-h-52 rounded-xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5">
-                    <img src={wallpaperPreview} alt="Wallpaper preview" className="w-full h-full object-contain" />
+                    <img src={wallpaperPreview} alt={pref?.wallpaperPreviewAlt || 'Wallpaper preview'} className="w-full h-full object-contain" />
                   </div>
                 ) : (
                   <div className="w-full aspect-[16/9] min-h-52 rounded-xl border border-dashed border-slate-300 dark:border-white/15 flex items-center justify-center bg-slate-50 dark:bg-white/5">
@@ -246,9 +476,42 @@ const PreferencesTab: React.FC<PreferencesTabProps> = ({ s, pref, prefs, onPrefs
                 <p className="text-[10px] text-slate-400 dark:text-white/20">
                   {pref?.wallpaperCacheHint || 'Wallpaper is cached locally. It refreshes automatically every 24 hours.'}
                 </p>
+
+                {prefs.wallpaper.history.length > 0 && (
+                  <div className="space-y-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/5 p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-slate-500 dark:text-white/50">history</span>
+                      <p className="text-[12px] font-semibold text-slate-700 dark:text-white/80">{pref?.wallpaperHistory || 'Wallpaper History'}</p>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {prefs.wallpaper.history.slice().reverse().slice(0, 8).map((item, index) => (
+                        <div key={`${item}-${index}`} onClick={() => handleSetWallpaperFromUrl(item)} className="aspect-[16/10] overflow-hidden rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
+                          <img src={item} alt={`${pref?.wallpaperHistoryAlt || 'Wallpaper history item'} ${index + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {prefs.wallpaper.favorites.length > 0 && (
+                  <div className="space-y-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/5 p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-[16px] text-rose-500">favorite</span>
+                      <p className="text-[12px] font-semibold text-slate-700 dark:text-white/80">{pref?.wallpaperFavorites || 'Favorite Wallpapers'}</p>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                      {prefs.wallpaper.favorites.slice(0, 8).map((item, index) => (
+                        <div key={`${item}-${index}`} onClick={() => handleSetWallpaperFromUrl(item)} className="aspect-[16/10] overflow-hidden rounded-lg border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/5 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
+                          <img src={item} alt={`${pref?.wallpaperFavoriteAlt || 'Favorite wallpaper item'} ${index + 1}`} className="w-full h-full object-cover" />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
+          </>)}
         </div>
       </div>
     </div>

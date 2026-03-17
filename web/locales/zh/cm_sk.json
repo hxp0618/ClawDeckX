@@ -288,6 +288,13 @@
     "networkErrorHint": "请检查您的网络连接",
     "description": "描述",
     "tags": "标签",
-    "installMethods": "安装方式"
+    "installMethods": "安装方式",
+    "sourceConfigTitle": "数据源配置",
+    "sourceConfigDesc": "配置技能市场的上游端点",
+    "sourceConfigClawHubLabel": "ClawHub 基础 URL",
+    "sourceConfigClawHubHint": "ClawHub Convex 基础地址，API 路径自动拼接。修改后需重启。",
+    "sourceConfigSkillHubHint": "SkillHub 上游数据 URL，修改后需重启。",
+    "sourceConfigRestart": "保存后需重启生效",
+    "sourceConfigSaved": "已保存，重启后生效。"
   }
 }

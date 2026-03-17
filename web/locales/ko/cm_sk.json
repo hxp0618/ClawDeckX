@@ -288,6 +288,13 @@
     "pluginArchiveSource": "아카이브",
     "pluginLocalOnlyAction": "이 작업은 로컬 게이트웨이에서만 가능",
     "pluginClose": "닫기",
-    "cliNotInstalled": "OpenClaw CLI not installed"
+    "cliNotInstalled": "OpenClaw CLI not installed",
+    "sourceConfigTitle": "데이터 소스 설정",
+    "sourceConfigDesc": "스킬 마켓의 업스트림 엔드포인트 설정",
+    "sourceConfigClawHubLabel": "ClawHub 기본 URL",
+    "sourceConfigClawHubHint": "ClawHub Convex 기본 URL. API 경로가 자동으로 추가됩니다. 변경 후 재시작 필요.",
+    "sourceConfigSkillHubHint": "SkillHub 업스트림 데이터 URL. 변경 후 재시작 필요.",
+    "sourceConfigRestart": "저장 후 재시작 필요",
+    "sourceConfigSaved": "저장됨. 변경 사항을 적용하려면 재시작하세요."
   }
 }

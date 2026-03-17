@@ -188,7 +188,7 @@
   ],
   "wecom_kfPitfall": "⚠️ Kesalahan umum: 1) Harus konfigurasikan OpenClaw dan mulai gateway terlebih dahulu, lalu klik \"Simpan\" di WeCom — jika tidak verifikasi callback gagal; 2) Harus tambahkan IP server ke daftar IP Terpercaya, jika tidak pengiriman pesan gagal; 3) Token dan EncodingAESKey harus cocok dengan konsol WeCom; 4) Dapat diakses dari WeChat personal melalui entry Work",
   "qqPrep": [
-    "Instal plugin QQ: openclaw plugins install @openclaw-china/qqbot",
+    "Instal plugin QQ: openclaw plugins install @sliverp/qqbot@latest",
     "Kunjungi QQ Open Platform q.qq.com → Daftar akun pengembang dan selesaikan review",
     "Buat aplikasi Bot (bukan mini-program atau game)",
     "Dapatkan AppID dan AppSecret dari halaman detail app",

@@ -188,7 +188,7 @@
   ],
   "wecom_kfPitfall": "⚠️ Erreurs courantes : 1) Configurer OpenClaw d'abord ; 2) Ajouter IP du serveur aux IP de confiance ; 3) Token et EncodingAESKey doivent correspondre",
   "qqPrep": [
-    "Installez le plugin QQ : openclaw plugins install @openclaw-china/qqbot",
+    "Installez le plugin QQ : openclaw plugins install @sliverp/qqbot@latest",
     "Visitez QQ Open Platform q.qq.com → Inscrivez un compte développeur et complétez la vérification",
     "Créez une application Bot (pas un mini-programme ni un jeu)",
     "Obtenez AppID et AppSecret depuis la page de détails de l'app",

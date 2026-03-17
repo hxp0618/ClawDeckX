@@ -742,6 +742,38 @@ export const pluginApi = {
   update: (id?: string, all?: boolean) => post<{ success: boolean; id: string; all: boolean; output: string }>('/api/v1/plugins/update', { id, all }),
 };
 
+export interface WallpaperRandomResponse {
+  provider: 'wallhaven';
+  id: string;
+  url: string;
+  image_url: string;
+  thumb_url: string;
+  resolution: string;
+  ratio: string;
+  category: string;
+  purity: string;
+  colors: string[];
+  seed?: string;
+  page?: number;
+  total?: number;
+}
+
+export const wallpaperApi = {
+  wallhavenRandom: (params?: { q?: string; atleast?: string; ratios?: string; categories?: string; purity?: string; page?: number; seed?: string; apiKey?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.q) qs.set('q', params.q);
+    if (params?.atleast) qs.set('atleast', params.atleast);
+    if (params?.ratios) qs.set('ratios', params.ratios);
+    if (params?.categories) qs.set('categories', params.categories);
+    if (params?.purity) qs.set('purity', params.purity);
+    if (params?.page) qs.set('page', String(params.page));
+    if (params?.seed) qs.set('seed', params.seed);
+    if (params?.apiKey) qs.set('apikey', params.apiKey);
+    const query = qs.toString();
+    return get<WallpaperRandomResponse>(`/api/v1/wallpaper/wallhaven/random${query ? `?${query}` : ''}`);
+  },
+};
+
 // ==================== Gateway 代理 API ====================
 // 统一通过 GenericProxy (/api/v1/gw/proxy) 透传 JSON-RPC 到 Gateway。
 // 仅保留少量 REST 路由：status（本地连接检查）、sessionsUsage / usageCost（Go 层有额外参数/超时）、

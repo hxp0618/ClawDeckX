@@ -1,8 +1,21 @@
-﻿
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { WindowID, WindowState, Language } from '../types';
-import type { WallpaperConfig } from '../utils/preferences';
-import { getCachedWallpaper, isWallpaperCacheStale, fetchWallpaperUrl, fetchAndCacheWallpaper, updatePreferences } from '../utils/preferences';
+import type { WallpaperConfig, WallpaperProvider } from '../utils/preferences';
+import {
+  applyResolvedWallpaper,
+  fetchAndCacheWallpaper,
+  getCachedWallpaper,
+  getWallpaperHistoryUrl,
+  isWallpaperCacheStale,
+  isWallpaperFavorite,
+  pushWallpaperHistoryEntry,
+  resolveWallpaperData,
+  setWallpaperPrefetchedUrls,
+  shiftPrefetchedWallpaper,
+  stepWallpaperHistory,
+  toggleWallpaperFavorite,
+  updatePreferences,
+} from '../utils/preferences';
 import { getTranslation } from '../locales';
 import Badge from './Badge';
 import LanguageSwitcher from './LanguageSwitcher';
@@ -132,6 +145,8 @@ const Desktop: React.FC<DesktopProps> = ({
   const [time, setTime] = useState(new Date());
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [bgImage, setBgImage] = useState<string>('');
+  const [wallpaperBusy, setWallpaperBusy] = useState(false);
+  const [wallpaperRefreshing, setWallpaperRefreshing] = useState(false);
   const gradientBackground = theme === 'dark'
     ? "linear-gradient(135deg, #0f1923 0%, #1a3a5f 50%, #2e4b6b 100%)"
     : "linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)";
@@ -143,16 +158,12 @@ const Desktop: React.FC<DesktopProps> = ({
       return;
     }
 
-    const refreshWallpaper = (resolved: { url: string; provider: 'picsum' | 'unsplash' | 'custom' }) => {
+    const refreshWallpaper = (resolved: { url: string; provider: WallpaperProvider }) => {
       fetchAndCacheWallpaper(resolved.url).then(dataUrl => {
         setBgImage(dataUrl);
+        const nextWallpaper = applyResolvedWallpaper(wallpaper, dataUrl, resolved.provider);
         updatePreferences({
-          wallpaper: {
-            ...wallpaper,
-            cachedUrl: dataUrl,
-            cachedAt: Date.now(),
-            resolvedSource: resolved.provider,
-          },
+          wallpaper: nextWallpaper,
         });
       }).catch(() => {});
     };
@@ -162,18 +173,20 @@ const Desktop: React.FC<DesktopProps> = ({
       setBgImage(cached);
       // Refresh in background if stale
       if (isWallpaperCacheStale(wallpaper.cachedAt)) {
-        fetchWallpaperUrl(wallpaper.source, wallpaper.customUrl).then(resolved => {
+        resolveWallpaperData(wallpaper).then(resolved => {
           if (!resolved) return;
-          refreshWallpaper(resolved);
+          setBgImage(resolved.dataUrl);
+          updatePreferences({ wallpaper: applyResolvedWallpaper(wallpaper, resolved.dataUrl, resolved.provider) });
         });
       }
     } else {
-      fetchWallpaperUrl(wallpaper.source, wallpaper.customUrl).then(resolved => {
+      resolveWallpaperData(wallpaper).then(resolved => {
         if (!resolved) return;
-        refreshWallpaper(resolved);
+        setBgImage(resolved.dataUrl);
+        updatePreferences({ wallpaper: applyResolvedWallpaper(wallpaper, resolved.dataUrl, resolved.provider) });
       });
     }
-  }, [wallpaper?.imageEnabled, wallpaper?.source, wallpaper?.customUrl, wallpaper?.cachedAt]);
+  }, [wallpaper?.imageEnabled, wallpaper?.source, wallpaper?.customUrl, wallpaper?.cachedAt, wallpaper?.query, wallpaper?.minResolution, wallpaper?.ratios, wallpaper?.apiKey, wallpaper?.purity, wallpaper?.categories]);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const [isTrashCleaning, setIsTrashCleaning] = useState(false);
   const [dockPeeking, setDockPeeking] = useState(false);
@@ -182,6 +195,81 @@ const Desktop: React.FC<DesktopProps> = ({
   const popupRef = useRef<HTMLDivElement>(null);
   const dockRef = useRef<HTMLDivElement>(null);
   const { confirm } = useConfirm();
+  const isFavoriteWallpaper = Boolean(wallpaper && isWallpaperFavorite(wallpaper));
+
+  const handleWallpaperRefresh = useCallback(async () => {
+    if (!wallpaper?.imageEnabled || wallpaperBusy) return;
+    setWallpaperBusy(true);
+    setWallpaperRefreshing(true);
+    try {
+      const shifted = shiftPrefetchedWallpaper(wallpaper);
+      if (shifted.url) {
+        const nextWallpaper = pushWallpaperHistoryEntry(shifted.wallpaper, shifted.url);
+        setBgImage(shifted.url);
+        updatePreferences({ wallpaper: nextWallpaper });
+        return;
+      }
+
+      const resolved = await resolveWallpaperData(wallpaper);
+      if (!resolved) return;
+      setBgImage(resolved.dataUrl);
+      const nextWallpaper = applyResolvedWallpaper(wallpaper, resolved.dataUrl, resolved.provider);
+      updatePreferences({
+        wallpaper: nextWallpaper,
+      });
+    } finally {
+      setWallpaperBusy(false);
+      // Keep spin animation a bit longer for visual feedback
+      setTimeout(() => setWallpaperRefreshing(false), 600);
+    }
+  }, [wallpaper, wallpaperBusy]);
+
+  const handleWallpaperLockToggle = useCallback(() => {
+    if (!wallpaper) return;
+    updatePreferences({
+      wallpaper: {
+        ...wallpaper,
+        lockEnabled: !wallpaper.lockEnabled,
+      },
+    });
+  }, [wallpaper]);
+
+  const handleWallpaperFavoriteToggle = useCallback(() => {
+    if (!wallpaper?.cachedUrl) return;
+    updatePreferences({
+      wallpaper: toggleWallpaperFavorite(wallpaper),
+    });
+  }, [wallpaper]);
+
+  const handleWallpaperHistoryStep = useCallback((direction: -1 | 1) => {
+    if (!wallpaper) return;
+    const nextUrl = getWallpaperHistoryUrl(wallpaper, direction);
+    if (!nextUrl) return;
+    setBgImage(nextUrl);
+    updatePreferences({
+      wallpaper: stepWallpaperHistory(wallpaper, direction),
+    });
+  }, [wallpaper]);
+
+  useEffect(() => {
+    if (!wallpaper?.imageEnabled || wallpaper.lockEnabled || wallpaper.source === 'custom') return;
+    if ((wallpaper.prefetchedUrls?.length || 0) > 0) return;
+
+    let cancelled = false;
+    resolveWallpaperData(wallpaper).then(async resolved => {
+      if (!resolved || cancelled) return;
+      const nextUrl = resolved.dataUrl;
+      if (cancelled) return;
+      if (!nextUrl || nextUrl === wallpaper.cachedUrl || wallpaper.history.includes(nextUrl)) return;
+      updatePreferences({
+        wallpaper: setWallpaperPrefetchedUrls(wallpaper, [nextUrl]),
+      });
+    }).catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [wallpaper]);
 
   // Dock auto-hide: hidden when maximized window exists, peek on bottom hover
   const isDockHidden = dockAutoHide && !dockPeeking;
@@ -311,14 +399,30 @@ const Desktop: React.FC<DesktopProps> = ({
   };
 
   return (
-    <div className={`relative h-screen w-screen bg-cover bg-center overflow-hidden flex flex-col transition-all duration-700`}
+    <div className="relative h-screen w-screen overflow-hidden flex flex-col transition-all duration-700"
       style={{
-        backgroundImage: bgImage && wallpaper?.imageEnabled
-          ? `${wallpaper?.gradientEnabled ? `${gradientBackground}, ` : ''}url(${bgImage})`
-          : wallpaper?.gradientEnabled !== false
-            ? gradientBackground
-            : 'none'
+        backgroundImage: wallpaper?.gradientEnabled !== false ? gradientBackground : 'none'
       }}>
+
+      {bgImage && wallpaper?.imageEnabled && (
+        <div
+          className="absolute inset-0 pointer-events-none transition-all duration-700"
+          style={{
+            backgroundImage: `url(${bgImage})`,
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: wallpaper.fitMode,
+            filter: `brightness(${wallpaper.brightness}%) blur(${wallpaper.blur}px)`,
+          }}
+        />
+      )}
+
+      {wallpaper?.imageEnabled && wallpaper.overlayOpacity > 0 && (
+        <div
+          className="absolute inset-0 pointer-events-none bg-black transition-opacity duration-500"
+          style={{ opacity: wallpaper.overlayOpacity / 100 }}
+        />
+      )}
 
       {/* 菜单栏 (MenuBar) - 交互升级 */}
       <header className={`fixed top-0 w-full h-[32px] md:h-[25px] flex items-center justify-between px-3 z-[9999] backdrop-blur-2xl backdrop-saturate-[1.8] border-b text-slate-800 dark:text-white transition-colors duration-300 ${theme === 'dark' ? 'bg-black/50 border-white/10' : 'bg-white/60 border-slate-900/10'}`}>
@@ -349,6 +453,56 @@ const Desktop: React.FC<DesktopProps> = ({
 
       {/* 桌面图标区域 — macOS 风格可拖拽 */}
       <main className="flex-1 w-full relative overflow-hidden">
+        {wallpaper?.imageEnabled && (
+          <div className="absolute top-12 end-3 z-[9000] flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 dark:bg-black/30 backdrop-blur-xl px-2 py-2 shadow-lg opacity-40 hover:opacity-100 transition-opacity duration-300">
+            <button
+              onClick={() => handleWallpaperHistoryStep(-1)}
+              disabled={!getWallpaperHistoryUrl(wallpaper, -1)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white/90 hover:bg-white/10 disabled:opacity-40"
+              title={(t as any).pref?.wallpaperPrevious || 'Previous wallpaper'}
+            >
+              <span className="material-symbols-outlined text-[18px]">navigate_before</span>
+            </button>
+            <button
+              onClick={handleWallpaperRefresh}
+              disabled={wallpaperBusy || wallpaper.lockEnabled}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white/90 hover:bg-white/10 disabled:opacity-40"
+              title={wallpaperBusy ? ((t as any).pref?.wallpaperRefreshing || 'Refreshing wallpaper') : ((t as any).pref?.wallpaperRefresh || 'Refresh')}
+            >
+              <span className={`material-symbols-outlined text-[18px] transition-transform duration-500 ${wallpaperRefreshing ? 'animate-spin' : ''}`}>refresh</span>
+            </button>
+            <button
+              onClick={handleWallpaperFavoriteToggle}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white/90 hover:bg-white/10"
+              title={isFavoriteWallpaper ? ((t as any).pref?.wallpaperRemoveFavorite || 'Remove from favorites') : ((t as any).pref?.wallpaperAddFavorite || 'Add to favorites')}
+            >
+              <span className="material-symbols-outlined text-[18px]">{isFavoriteWallpaper ? 'favorite' : 'favorite_border'}</span>
+            </button>
+            <button
+              onClick={() => handleWallpaperHistoryStep(1)}
+              disabled={!getWallpaperHistoryUrl(wallpaper, 1)}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white/90 hover:bg-white/10 disabled:opacity-40"
+              title={(t as any).pref?.wallpaperNext || 'Next wallpaper'}
+            >
+              <span className="material-symbols-outlined text-[18px]">navigate_next</span>
+            </button>
+            <button
+              onClick={handleWallpaperLockToggle}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white/90 hover:bg-white/10"
+              title={wallpaper.lockEnabled ? ((t as any).pref?.wallpaperUnlock || 'Unlock wallpaper rotation') : ((t as any).pref?.wallpaperLock || 'Lock current wallpaper')}
+            >
+              <span className="material-symbols-outlined text-[18px]">{wallpaper.lockEnabled ? 'lock' : 'lock_open'}</span>
+            </button>
+            <button
+              onClick={() => onOpenWindow('settings')}
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-white/90 hover:bg-white/10"
+              title={(t as any).pref?.title || 'Settings'}
+            >
+              <span className="material-symbols-outlined text-[18px]">settings</span>
+            </button>
+          </div>
+        )}
+
         {/* 移动端：保持原有网格布局 */}
         <div className="md:hidden grid gap-x-1 gap-y-2 h-full content-start items-start pt-[45px] px-2 pb-24"
           style={{
