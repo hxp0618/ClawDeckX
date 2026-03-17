@@ -590,7 +590,7 @@ func RunServe(args []string) int {
 	router.POST("/api/v1/plugins/uninstall", web.RequireAdmin(pluginInstallHandler.Uninstall))
 	router.POST("/api/v1/plugins/update", web.RequireAdmin(pluginInstallHandler.Update))
 
-	skillHubHandler := handlers.NewSkillHubHandler(webconfig.DataDir(), cfg.SkillHub.DataURL)
+	skillHubHandler := handlers.NewSkillHubHandler(webconfig.DataDir(), cfg.Server.SkillHubDataURL)
 	skillHubHandler.SetGatewayClient(gwClient)
 	skillHubHandler.WarmCache()
 	router.GET("/api/v1/skillhub/cli-status", skillHubHandler.CLIStatus)

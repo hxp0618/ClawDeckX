@@ -805,9 +805,11 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
       try {
         const res = await clawHubApi.list(sort, 20, cursor || undefined) as any;
         if (reqId !== marketListReqSeqRef.current) return;
-        const items = res?.items || [];
+        const items = Array.isArray(res)
+          ? res
+          : (res?.items || res?.results || res?.skills || res?.data || []);
         setMarketResults(prev => append ? [...prev, ...items] : items);
-        setMarketCursor(res?.nextCursor || null);
+        setMarketCursor(res?.nextCursor || res?.next_cursor || res?.cursor || null);
         setMarketLoaded(true);
         if (res?._rateLimit) setMarketRateLimit(res._rateLimit);
         lastErr = null;

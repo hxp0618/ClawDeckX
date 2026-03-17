@@ -17,6 +17,7 @@ import (
 	"ClawDeckX/internal/logger"
 	"ClawDeckX/internal/openclaw"
 	"ClawDeckX/internal/web"
+	"ClawDeckX/internal/webconfig"
 )
 
 // listCache holds a cached response for a specific list query.
@@ -92,6 +93,60 @@ func (h *ClawHubHandler) remoteSkillsStatus() (map[string]interface{}, error) {
 	return result, nil
 }
 
+type clawHubConvexQueryRequest struct {
+	Path   string        `json:"path"`
+	Format string        `json:"format"`
+	Args   []interface{} `json:"args"`
+}
+
+type clawHubConvexListArgs struct {
+	Dir               string `json:"dir"`
+	HighlightedOnly   bool   `json:"highlightedOnly"`
+	NonSuspiciousOnly bool   `json:"nonSuspiciousOnly"`
+	NumItems          int    `json:"numItems"`
+	Sort              string `json:"sort"`
+	Cursor            string `json:"cursor,omitempty"`
+}
+
+type clawHubConvexListResponse struct {
+	Status string `json:"status"`
+	Value  struct {
+		HasMore    bool                     `json:"hasMore"`
+		NextCursor string                   `json:"nextCursor"`
+		Page       []map[string]interface{} `json:"page"`
+	} `json:"value"`
+}
+
+func mapClawHubConvexItem(entry map[string]interface{}) map[string]interface{} {
+	if skill, ok := entry["skill"].(map[string]interface{}); ok {
+		item := map[string]interface{}{}
+		for k, v := range skill {
+			item[k] = v
+		}
+		if latestVersion, ok := entry["latestVersion"].(map[string]interface{}); ok {
+			item["latestVersion"] = latestVersion
+		}
+		if owner, ok := entry["owner"].(map[string]interface{}); ok {
+			item["owner"] = owner
+		}
+		if ownerHandle, ok := entry["ownerHandle"]; ok {
+			item["ownerHandle"] = ownerHandle
+		}
+		return item
+	}
+	return entry
+}
+
+func (h *ClawHubHandler) clawHubQueryURL() string {
+	cfg, err := webconfig.Load()
+	if err == nil {
+		if queryURL := strings.TrimSpace(cfg.Server.ClawHubQueryURL); queryURL != "" {
+			return queryURL
+		}
+	}
+	return webconfig.Default().Server.ClawHubQueryURL
+}
+
 // List lists ClawHub skills (proxied to avoid CORS, supports sort/pagination).
 // Results are cached in memory for 5 minutes to reduce upstream load.
 func (h *ClawHubHandler) List(w http.ResponseWriter, r *http.Request) {
@@ -113,15 +168,38 @@ func (h *ClawHubHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 	h.cacheMu.RUnlock()
 
-	apiURL := fmt.Sprintf("%s/api/v1/skills?limit=%s", h.registryURL, url.QueryEscape(limit))
-	if sort != "" {
-		apiURL += "&sort=" + url.QueryEscape(sort)
+	limitInt := 20
+	if _, err := fmt.Sscanf(limit, "%d", &limitInt); err != nil || limitInt <= 0 {
+		limitInt = 20
+	}
+	if sort == "" {
+		sort = "newest"
+	}
+	convexSort := sort
+	if convexSort != "newest" && convexSort != "downloads" && convexSort != "stars" {
+		convexSort = "newest"
+	}
+	args := clawHubConvexListArgs{
+		Dir:               "desc",
+		HighlightedOnly:   false,
+		NonSuspiciousOnly: true,
+		NumItems:          limitInt,
+		Sort:              convexSort,
 	}
 	if cursor != "" {
-		apiURL += "&cursor=" + url.QueryEscape(cursor)
+		args.Cursor = cursor
 	}
-
-	resp, err := h.httpClient.Get(apiURL)
+	requestBody, err := json.Marshal(clawHubConvexQueryRequest{
+		Path:   "skills:listPublicPageV4",
+		Format: "convex_encoded_json",
+		Args:   []interface{}{args},
+	})
+	if err != nil {
+		web.Fail(w, r, "CLAWHUB_LIST_FAILED", "failed to encode ClawHub request", http.StatusBadGateway)
+		return
+	}
+	apiURL := h.clawHubQueryURL()
+	resp, err := h.httpClient.Post(apiURL, "application/json", strings.NewReader(string(requestBody)))
 	if err != nil {
 		logger.Log.Error().Err(err).Str("url", apiURL).Msg("ClawHub list request failed")
 		web.Fail(w, r, "CLAWHUB_LIST_FAILED", "ClawHub list failed: "+err.Error(), http.StatusBadGateway)
@@ -159,17 +237,30 @@ func (h *ClawHubHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Inject rate limit headers into response
-	var result map[string]interface{}
-	if json.Unmarshal(body, &result) == nil {
-		result["_rateLimit"] = map[string]string{
+	var convexResp clawHubConvexListResponse
+	if err := json.Unmarshal(body, &convexResp); err != nil || convexResp.Status != "success" {
+		logger.Log.Warn().Err(err).Str("url", apiURL).Msg("ClawHub Convex response parse failed")
+		web.Fail(w, r, "CLAWHUB_INVALID_RESPONSE", "ClawHub returned invalid response", http.StatusBadGateway)
+		return
+	}
+	items := make([]map[string]interface{}, 0, len(convexResp.Value.Page))
+	for _, entry := range convexResp.Value.Page {
+		items = append(items, mapClawHubConvexItem(entry))
+	}
+	result := map[string]interface{}{
+		"items":      items,
+		"nextCursor": convexResp.Value.NextCursor,
+		"_rateLimit": map[string]string{
 			"limit":     resp.Header.Get("Ratelimit-Limit"),
 			"remaining": resp.Header.Get("Ratelimit-Remaining"),
 			"reset":     resp.Header.Get("Ratelimit-Reset"),
-		}
-		if enriched, err := json.Marshal(result); err == nil {
-			body = enriched
-		}
+		},
+	}
+	if !convexResp.Value.HasMore {
+		result["nextCursor"] = nil
+	}
+	if enriched, err := json.Marshal(result); err == nil {
+		body = enriched
 	}
 
 	// Store in cache

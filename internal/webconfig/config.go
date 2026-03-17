@@ -15,9 +15,11 @@ import (
 )
 
 type ServerConfig struct {
-	Port        int      `json:"port"`
-	Bind        string   `json:"bind"`
-	CORSOrigins []string `json:"cors_origins"`
+	Port            int      `json:"port"`
+	Bind            string   `json:"bind"`
+	CORSOrigins     []string `json:"cors_origins"`
+	ClawHubQueryURL string   `json:"clawhub_query_url"`
+	SkillHubDataURL string   `json:"skillhub_data_url"`
 }
 
 type AuthConfig struct {
@@ -65,14 +67,14 @@ type SkillHubConfig struct {
 }
 
 type Config struct {
-	Server   ServerConfig   `json:"server"`
-	Auth     AuthConfig     `json:"auth"`
-	Database DatabaseConfig `json:"database"`
-	Log      LogConfig      `json:"log"`
-	OpenClaw OpenClawConfig `json:"openclaw"`
-	Monitor  MonitorConfig  `json:"monitor"`
-	Alert    AlertConfig    `json:"alert"`
-	SkillHub SkillHubConfig `json:"skillhub"`
+	Server   ServerConfig    `json:"server"`
+	Auth     AuthConfig      `json:"auth"`
+	Database DatabaseConfig  `json:"database"`
+	Log      LogConfig       `json:"log"`
+	OpenClaw OpenClawConfig  `json:"openclaw"`
+	Monitor  MonitorConfig   `json:"monitor"`
+	Alert    AlertConfig     `json:"alert"`
+	SkillHub *SkillHubConfig `json:"skillhub,omitempty"`
 }
 
 // DataDir returns the default data directory for the application.
@@ -101,9 +103,11 @@ func Default() Config {
 	dataDir := defaultDataDir()
 	return Config{
 		Server: ServerConfig{
-			Port:        18791,
-			Bind:        "0.0.0.0",
-			CORSOrigins: []string{},
+			Port:            18791,
+			Bind:            "0.0.0.0",
+			CORSOrigins:     []string{},
+			ClawHubQueryURL: "https://wry-manatee-359.convex.cloud/api/query",
+			SkillHubDataURL: "https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json",
 		},
 		Auth: AuthConfig{
 			JWTSecret: "",
@@ -137,9 +141,6 @@ func Default() Config {
 			Enabled:  false,
 			Channels: []string{},
 		},
-		SkillHub: SkillHubConfig{
-			DataURL: "https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json",
-		},
 	}
 }
 
@@ -164,6 +165,14 @@ func Load() (Config, error) {
 			return Default(), err
 		}
 	}
+	if cfg.Server.SkillHubDataURL == "" {
+		if cfg.SkillHub != nil && strings.TrimSpace(cfg.SkillHub.DataURL) != "" {
+			cfg.Server.SkillHubDataURL = strings.TrimSpace(cfg.SkillHub.DataURL)
+		} else {
+			cfg.Server.SkillHubDataURL = Default().Server.SkillHubDataURL
+		}
+	}
+	cfg.SkillHub = nil
 
 	// Layer 2: environment variables override
 	applyEnvOverrides(&cfg)
@@ -196,6 +205,7 @@ func Save(cfg Config) error {
 		return err
 	}
 	storable := cfg
+	storable.SkillHub = nil
 	if storable.OpenClaw.GatewayToken != "" {
 		encryptedToken, err := encryptGatewayToken(storable.OpenClaw.GatewayToken, storable.Auth.JWTSecret)
 		if err != nil {

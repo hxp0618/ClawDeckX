@@ -96,8 +96,8 @@ const Settings: React.FC<SettingsProps> = ({ language, onLogout, pendingTab, onT
   const [notifyShutdown, setNotifyShutdown] = useState(false);
 
   // ── 访问安全 ──
-  const [srvCfg, setSrvCfg] = useState<ServerConfig>({ bind: '0.0.0.0', port: 18791, cors_origins: [] });
-  const [srvCfgOriginal, setSrvCfgOriginal] = useState<ServerConfig>({ bind: '0.0.0.0', port: 18791, cors_origins: [] });
+  const [srvCfg, setSrvCfg] = useState<ServerConfig>({ bind: '0.0.0.0', port: 18791, cors_origins: [], clawhub_query_url: 'https://wry-manatee-359.convex.cloud/api/query', skillhub_data_url: 'https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json' });
+  const [srvCfgOriginal, setSrvCfgOriginal] = useState<ServerConfig>({ bind: '0.0.0.0', port: 18791, cors_origins: [], clawhub_query_url: 'https://wry-manatee-359.convex.cloud/api/query', skillhub_data_url: 'https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json' });
   const [srvCfgSaving, setSrvCfgSaving] = useState(false);
   const [srvCfgDirty, setSrvCfgDirty] = useState(false);
   const [srvCfgRestart, setSrvCfgRestart] = useState(false);
@@ -217,7 +217,13 @@ const Settings: React.FC<SettingsProps> = ({ language, onLogout, pendingTab, onT
   // ── 访问安全 handlers ──
   const fetchServerConfig = useCallback(() => {
     serverConfigApi.get().then((data) => {
-      const cfg: ServerConfig = { bind: data.bind || '0.0.0.0', port: data.port || 18791, cors_origins: data.cors_origins || [] };
+      const cfg: ServerConfig = {
+        bind: data.bind || '0.0.0.0',
+        port: data.port || 18791,
+        cors_origins: data.cors_origins || [],
+        clawhub_query_url: data.clawhub_query_url || 'https://wry-manatee-359.convex.cloud/api/query',
+        skillhub_data_url: data.skillhub_data_url || 'https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json',
+      };
       setSrvCfg(cfg);
       setSrvCfgOriginal(cfg);
       setSrvCfgDirty(false);
@@ -507,6 +513,24 @@ const Settings: React.FC<SettingsProps> = ({ language, onLogout, pendingTab, onT
                       </div>
                     </div>
                     <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">{s.corsOriginsHint}</p>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>ClawHub Query URL</label>
+                    <input type="url" value={srvCfg.clawhub_query_url}
+                      onChange={e => updateSrvCfg({ clawhub_query_url: e.target.value })}
+                      className={`${inputCls} mt-1.5`}
+                      placeholder="https://wry-manatee-359.convex.cloud/api/query" />
+                    <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">Configure the ClawHub market query endpoint used by the app. Changes require restart.</p>
+                  </div>
+
+                  <div>
+                    <label className={labelCls}>SkillHub Data URL</label>
+                    <input type="url" value={srvCfg.skillhub_data_url}
+                      onChange={e => updateSrvCfg({ skillhub_data_url: e.target.value })}
+                      className={`${inputCls} mt-1.5`}
+                      placeholder="https://cloudcache.tencentcs.com/qcloud/tea/app/data/skills.33d56946.json" />
+                    <p className="text-[10px] text-slate-400 dark:text-white/20 mt-1.5">Configure the SkillHub upstream data URL used by the app. Changes require restart.</p>
                   </div>
 
                   {/* 保存按钮 */}

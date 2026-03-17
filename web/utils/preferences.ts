@@ -156,7 +156,15 @@ export async function fetchAndCacheWallpaper(url: string): Promise<string> {
   // img-src already allows "https:" so any HTTPS image URL works.
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.crossOrigin = 'anonymous';
+    let host = '';
+    try {
+      host = new URL(url, window.location.href).host;
+    } catch {
+      host = '';
+    }
+    if (host === 'picsum.photos') {
+      img.crossOrigin = 'anonymous';
+    }
     img.onload = () => {
       const canvas = document.createElement('canvas');
       const maxW = 1920;

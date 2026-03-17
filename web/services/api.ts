@@ -69,6 +69,8 @@ export interface ServerConfig {
   bind: string;
   port: number;
   cors_origins: string[];
+  clawhub_query_url: string;
+  skillhub_data_url: string;
 }
 export const serverConfigApi = {
   get: () => get<ServerConfig>('/api/v1/server-config'),

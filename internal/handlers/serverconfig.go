@@ -19,9 +19,11 @@ func NewServerConfigHandler() *ServerConfigHandler {
 }
 
 type serverConfigPayload struct {
-	Bind        string   `json:"bind"`
-	Port        int      `json:"port"`
-	CORSOrigins []string `json:"cors_origins"`
+	Bind            string   `json:"bind"`
+	Port            int      `json:"port"`
+	CORSOrigins     []string `json:"cors_origins"`
+	ClawHubQueryURL string   `json:"clawhub_query_url"`
+	SkillHubDataURL string   `json:"skillhub_data_url"`
 }
 
 // Get returns the current server config.
@@ -33,9 +35,11 @@ func (h *ServerConfigHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	web.OK(w, r, serverConfigPayload{
-		Bind:        cfg.Server.Bind,
-		Port:        cfg.Server.Port,
-		CORSOrigins: cfg.Server.CORSOrigins,
+		Bind:            cfg.Server.Bind,
+		Port:            cfg.Server.Port,
+		CORSOrigins:     cfg.Server.CORSOrigins,
+		ClawHubQueryURL: cfg.Server.ClawHubQueryURL,
+		SkillHubDataURL: cfg.Server.SkillHubDataURL,
 	})
 }
 
@@ -70,6 +74,14 @@ func (h *ServerConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 	cfg.Server.Bind = bind
 	cfg.Server.Port = payload.Port
 	cfg.Server.CORSOrigins = payload.CORSOrigins
+	cfg.Server.ClawHubQueryURL = strings.TrimSpace(payload.ClawHubQueryURL)
+	if cfg.Server.ClawHubQueryURL == "" {
+		cfg.Server.ClawHubQueryURL = webconfig.Default().Server.ClawHubQueryURL
+	}
+	cfg.Server.SkillHubDataURL = strings.TrimSpace(payload.SkillHubDataURL)
+	if cfg.Server.SkillHubDataURL == "" {
+		cfg.Server.SkillHubDataURL = webconfig.Default().Server.SkillHubDataURL
+	}
 
 	if err := webconfig.Save(cfg); err != nil {
 		web.Fail(w, r, "SERVER_CONFIG_SAVE_ERROR", err.Error(), http.StatusInternalServerError)
@@ -82,9 +94,11 @@ func (h *ServerConfigHandler) Update(w http.ResponseWriter, r *http.Request) {
 		Msg(i18n.T(i18n.MsgLogServerConfigUpdated))
 
 	web.OK(w, r, map[string]any{
-		"bind":         bind,
-		"port":         payload.Port,
-		"cors_origins": payload.CORSOrigins,
-		"restart":      true,
+		"bind":              bind,
+		"port":              payload.Port,
+		"cors_origins":      payload.CORSOrigins,
+		"clawhub_query_url": cfg.Server.ClawHubQueryURL,
+		"skillhub_data_url": cfg.Server.SkillHubDataURL,
+		"restart":           true,
 	})
 }
