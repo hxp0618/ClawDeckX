@@ -164,22 +164,22 @@ Download the binary from [Releases](https://github.com/ClawDeckX/ClawDeckX/relea
 从 [Releases](https://github.com/ClawDeckX/ClawDeckX/releases) 下载二进制文件，零依赖，直接运行。
 
 ```bash
-# Run with default settings / 使用默认配置启动 (localhost:18791)
+# Run with default settings / 使用默认配置启动 (localhost:18788)
 ./ClawDeckX
 
 # Specify port and bind address / 指定端口和绑定地址
-./ClawDeckX --port 18791 --bind 0.0.0.0
+./ClawDeckX --port 18788 --bind 0.0.0.0
 
 # Create initial admin user on first run / 首次运行时创建管理员账户
 ./ClawDeckX --user admin --pass your_password
 
 # All options combined / 组合使用所有参数
-./ClawDeckX --bind 0.0.0.0 --port 18791 --user admin --pass your_password
+./ClawDeckX --bind 0.0.0.0 --port 18788 --user admin --pass your_password
 ```
 
 | Flag | Short | Description | 说明 |
 | :--- | :---: | :--- | :--- |
-| `--port` | `-p` | Server port (default: `18791`) | 服务端口（默认 `18791`） |
+| `--port` | `-p` | Server port (default: `18788`) | 服务端口（默认 `18788`） |
 | `--bind` | `-b` | Bind address (default: `127.0.0.1`) | 绑定地址（默认 `127.0.0.1`） |
 | `--user` | `-u` | Initial admin username (first run only) | 初始管理员用户名（仅首次） |
 | `--pass` | | Initial admin password (min 6 chars) | 初始管理员密码（至少 6 位） |
@@ -214,9 +214,9 @@ curl -fsSL https://raw.githubusercontent.com/ClawDeckX/ClawDeckX/main/docker-com
 docker compose up -d
 ```
 
-Open your browser at `http://localhost:18791`. The first run will auto-generate an admin account — credentials will be shown in the container logs.
+Open your browser at `http://localhost:18788`. The first run will auto-generate an admin account — credentials will be shown in the container logs.
 
-浏览器打开 `http://localhost:18791`，首次启动会自动生成管理员账户，凭据将显示在容器日志中。
+浏览器打开 `http://localhost:18788`，首次启动会自动生成管理员账户，凭据将显示在容器日志中。
 
 ClawDeckX and OpenClaw run in the same container. OpenClaw is **preinstalled** in the official Docker image with version-pinned compatibility. On startup, the container entrypoint auto-starts the OpenClaw Gateway if a configuration file exists. If OpenClaw is not yet configured, complete the Setup Wizard in the web UI — no manual installation is needed.
 
@@ -241,7 +241,7 @@ docker logs clawdeckx
 
 | Port | Service | Description | 说明 |
 | :--- | :--- | :--- | :--- |
-| `18791` | ClawDeckX Web UI | Main dashboard (mapped by default) | 主界面（默认已映射） |
+| `18788` | ClawDeckX Web UI | Main dashboard (mapped by default) | 主界面（默认已映射） |
 | `18789` | OpenClaw Gateway | Optional: expose for external debugging | 可选：映射后可从容器外调试 Gateway |
 
 To expose the Gateway port, add `- "18789:18789"` under `ports` in `docker-compose.yml`.
@@ -264,7 +264,7 @@ To expose the Gateway port, add `- "18789:18789"` under `ports` in `docker-compo
 | `OCD_OPENCLAW_GATEWAY_HOST` | `127.0.0.1` | Gateway host address | Gateway 地址 |
 | `OCD_OPENCLAW_GATEWAY_PORT` | `18789` | Gateway port | Gateway 端口 |
 | `OCD_OPENCLAW_GATEWAY_TOKEN` | *(empty)* | Gateway auth token | Gateway 认证令牌 |
-| `OCD_PORT` | `18791` | ClawDeckX listen port | ClawDeckX 监听端口 |
+| `OCD_PORT` | `18788` | ClawDeckX listen port | ClawDeckX 监听端口 |
 | `OCD_BIND` | `0.0.0.0` | ClawDeckX bind address | ClawDeckX 绑定地址 |
 | `TZ` | `UTC` | Container timezone (e.g. `Asia/Shanghai`) | 容器时区（如 `Asia/Shanghai`） |
 

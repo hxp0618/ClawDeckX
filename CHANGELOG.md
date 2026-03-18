@@ -75,6 +75,7 @@ _2026-03-18_
 
 ### ♻️ Refactoring / 重构
 
+- unify default port to 18788 across codebase
 - rename openclaw volume
 - separate runtime from builder
 - use fixed bundled openclaw path
@@ -179,6 +180,7 @@ _2026-03-15_
 
 
 ---
+
 
 
 

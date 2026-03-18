@@ -21,7 +21,7 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 # Constants
 $BINARY_NAME = "clawdeckx.exe"
 $TASK_NAME = "ClawDeckX"
-$DEFAULT_PORT = 18791
+$DEFAULT_PORT = 18788
 
 # Script-level variables
 $script:INSTALLED_LOCATION = ""
