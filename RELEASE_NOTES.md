@@ -21,6 +21,8 @@
 
 ### 🐛 Bug Fixes / 修复
 
+- bootstrap openclaw config
+- enable tini subreaper mode
 - stabilize bundled openclaw runtime
 - improve plugin and wallpaper handling
 - use runtime plugin ids in plugin center
@@ -65,6 +67,8 @@
 
 ### ♻️ Refactoring / 重构
 
+- rename openclaw volume
+- separate runtime from builder
 - use fixed bundled openclaw path
 - extract shared utilities for time, polling, errors, storage, and skeletons
 - unify gateway status polling with shared hook
@@ -72,6 +76,8 @@
 
 ### 📦 Build & Deploy / 构建部署
 
+- upgrade release action
+- upgrade upload artifact action
 - improve runtime tooling and release checks
 - add TZ default, STOPSIGNAL, OCI labels, resource limits, and .dockerignore
 - switch to Ubuntu 22.04 with Node.js 22 and OpenClaw support

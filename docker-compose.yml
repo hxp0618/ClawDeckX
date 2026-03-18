@@ -54,4 +54,6 @@ networks:
 
 volumes:
   clawdeckx-data:
+    name: clawdeckx-data
   clawdeckx-openclaw-data:
+    name: openclaw-data
