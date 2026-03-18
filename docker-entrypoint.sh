@@ -55,6 +55,11 @@ ensure_default_openclaw_config() {
         return 0
     fi
 
+    if [ -f "$OPENCLAW_CONFIG" ]; then
+        echo "[docker-entrypoint] OpenClaw config was generated despite non-zero onboard exit code"
+        return 0
+    fi
+
     echo "[docker-entrypoint] ERROR: Failed to generate initial OpenClaw config" >&2
     tail -10 "$GATEWAY_LOG" 2>/dev/null >&2 || true
     return 1

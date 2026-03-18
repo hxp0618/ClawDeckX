@@ -25,6 +25,7 @@ _2026-03-18_
 
 ### 🐛 Bug Fixes / 修复
 
+- accept generated config
 - wait for docker health
 - bootstrap openclaw config
 - enable tini subreaper mode
@@ -176,6 +177,7 @@ _2026-03-15_
 
 
 ---
+
 
 
 
