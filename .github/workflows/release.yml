@@ -75,7 +75,7 @@ jobs:
           go build -ldflags="${LDFLAGS}" -o dist/${{ matrix.output_name }} ./cmd/clawdeckx
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.output_name }}
           path: dist/${{ matrix.output_name }}
