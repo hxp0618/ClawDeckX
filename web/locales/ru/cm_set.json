@@ -360,7 +360,10 @@
     "runtimeUpdateOk": "Runtime overlay updated successfully",
     "runtimeUpdateFailed": "Runtime overlay update failed",
     "runtimeNotAvailable": "Runtime overlay is not available (not running in Docker or OCD_RUNTIME_DIR not set)",
-    "runtimeRestartHint": "Restart the container to activate the updated binary"
+    "runtimeRestartHint": "Restart the container to activate the updated binary",
+    "logout": "Выйти",
+    "logoutConfirm": "Выйти из текущего сеанса? Вам потребуется снова войти с именем пользователя и паролем.",
+    "logoutDesc": "Завершить текущий сеанс и вернуться на экран входа. В следующий раз потребуется повторный вход."
   },
   "pref": {
     "title": "Настройки",

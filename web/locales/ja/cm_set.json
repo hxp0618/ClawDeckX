@@ -360,7 +360,10 @@
     "runtimeUpdateOk": "ランタイムオーバーレイの更新に成功しました",
     "runtimeUpdateFailed": "ランタイムオーバーレイの更新に失敗しました",
     "runtimeNotAvailable": "ランタイムオーバーレイは利用できません（Docker 内で実行されていないか、OCD_RUNTIME_DIR が未設定）",
-    "runtimeRestartHint": "更新されたバイナリを有効にするにはコンテナを再起動してください"
+    "runtimeRestartHint": "更新されたバイナリを有効にするにはコンテナを再起動してください",
+    "logout": "ログアウト",
+    "logoutConfirm": "現在のセッションからログアウトしますか？再度ユーザー名とパスワードでサインインする必要があります。",
+    "logoutDesc": "現在のセッションを終了してログイン画面に戻ります。次回は再度サインインが必要です。"
   },
   "pref": {
     "title": "機能設定",

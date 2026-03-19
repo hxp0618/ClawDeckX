@@ -360,7 +360,10 @@
     "runtimeUpdateOk": "런타임 오버레이 업데이트 성공",
     "runtimeUpdateFailed": "런타임 오버레이 업데이트 실패",
     "runtimeNotAvailable": "런타임 오버레이를 사용할 수 없습니다 (Docker에서 실행 중이 아니거나 OCD_RUNTIME_DIR이 설정되지 않음)",
-    "runtimeRestartHint": "업데이트된 바이너리를 활성화하려면 컨테이너를 재시작하세요"
+    "runtimeRestartHint": "업데이트된 바이너리를 활성화하려면 컨테이너를 재시작하세요",
+    "logout": "로그아웃",
+    "logoutConfirm": "현재 세션에서 로그아웃하시겠습니까? 다시 사용자 이름과 비밀번호로 로그인해야 합니다.",
+    "logoutDesc": "현재 세션을 종료하고 로그인 화면으로 돌아갑니다. 다음에 다시 로그인해야 합니다."
   },
   "pref": {
     "title": "기능 설정",
