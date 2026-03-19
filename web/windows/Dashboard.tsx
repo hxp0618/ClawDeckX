@@ -749,7 +749,7 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
                   )}
                 </div>
                 {secSummary.total > 0 && (
-                  <p className="text-[10px] text-slate-500 dark:text-white/40 mt-0.5">
+                  <p className="text-[10px] theme-text-muted mt-0.5">
                     {(d.secAuditFindings || '{{total}} finding(s)').replace('{{total}}', String(secSummary.total))}
                   </p>
                 )}
@@ -826,9 +826,9 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
                 {showAllDisks && disks.length > 1 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-4">
                     {disks.slice(1).map((dk: any, i: number) => (
-                      <div key={i} className="rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-2 flex items-center gap-2 text-[10px]">
+                      <div key={i} className="rounded-lg theme-panel p-2 flex items-center gap-2 text-[10px]">
                         <span className="material-symbols-outlined text-[14px] text-emerald-500">hard_drive</span>
-                        <span className="text-slate-600 dark:text-white/60 font-mono">{dk.path || `Disk ${i+2}`}</span>
+                        <span className="theme-text-secondary font-mono">{dk.path || `Disk ${i+2}`}</span>
                         <span className="ms-auto font-bold" style={{ color: (dk.usedPct||0) > 90 ? '#ef4444' : (dk.usedPct||0) > 70 ? '#f59e0b' : '#10b981' }}>{(dk.usedPct||0).toFixed(0)}%</span>
                         <span className="text-slate-400 dark:text-white/40">{fmtBytes(dk.used||0)}/{fmtBytes(dk.total||0)}</span>
                       </div>
@@ -837,35 +837,35 @@ const Dashboard: React.FC<DashboardProps> = ({ language }) => {
                 )}
                 {/* Quick Stats Row */}
                 <div className="grid grid-cols-3 gap-3 mb-4">
-                  <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3 text-center">
+                  <div className="rounded-xl theme-panel p-3 text-center">
                     <p className="text-lg font-black text-emerald-500 tabular-nums text-glow-green">{hostInfo.numGoroutine || 0}</p>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase mt-0.5">{hi?.goroutines || 'Goroutines'}</p>
+                    <p className="text-[10px] font-bold theme-text-muted uppercase mt-0.5">{hi?.goroutines || 'Goroutines'}</p>
                   </div>
-                  <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3 text-center">
+                  <div className="rounded-xl theme-panel p-3 text-center">
                     <p className="text-lg font-black text-amber-500 tabular-nums text-glow-cyan">{fmtUptime(hostInfo.uptimeMs || 0, uptimeUnits)}</p>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase mt-0.5">{hi?.uptime || 'Uptime'}</p>
+                    <p className="text-[10px] font-bold theme-text-muted uppercase mt-0.5">{hi?.uptime || 'Uptime'}</p>
                   </div>
-                  <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3 text-center">
+                  <div className="rounded-xl theme-panel p-3 text-center">
                     <p className="text-base font-black text-blue-500 tabular-nums">{fmtUptimeYMDH(hostInfo.serverUptimeMs || hostInfo.uptimeMs || 0, { y: d.unitYear, mo: d.unitMonth, d: d.unitDay, h: d.unitHour })}</p>
-                    <p className="text-[10px] font-bold text-slate-400 dark:text-white/40 uppercase mt-0.5">{hi?.serverUptime || 'Server Uptime'}</p>
+                    <p className="text-[10px] font-bold theme-text-muted uppercase mt-0.5">{hi?.serverUptime || 'Server Uptime'}</p>
                   </div>
                 </div>
                 {/* Memory Detail + Environment */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3">
-                    <p className="text-[11px] font-bold text-slate-500 dark:text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span className="material-symbols-outlined text-[12px]">memory</span>{hi?.memory || 'Memory'}</p>
+                  <div className="rounded-xl theme-panel p-3">
+                    <p className="text-[11px] font-bold theme-text-muted uppercase tracking-wider mb-2 flex items-center gap-1.5"><span className="material-symbols-outlined text-[12px]">memory</span>{hi?.memory || 'Memory'}</p>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[10px]">
-                      {[[hi?.heap||'Heap', fmtBytes(mem.heapInuse||0), 'text-violet-500'],[hi?.stack||'Stack', fmtBytes(mem.stackInuse||0), 'text-blue-500'],[hi?.sysAlloc||'Sys', fmtBytes(mem.sys||0), 'text-slate-500'],[hi?.gc||'GC', String(mem.numGC||0), 'text-emerald-500']].map(([label, val, clr]) => (
+                      {[[hi?.heap||'Heap', fmtBytes(mem.heapInuse||0), 'text-violet-500'],[hi?.stack||'Stack', fmtBytes(mem.stackInuse||0), 'text-blue-500'],[hi?.sysAlloc||'Sys', fmtBytes(mem.sys||0), 'text-slate-500 dark:text-slate-400'],[hi?.gc||'GC', String(mem.numGC||0), 'text-emerald-500']].map(([label, val, clr]) => (
                         <div key={label as string} className="flex items-center justify-between"><span className="text-slate-400 dark:text-white/40">{label}</span><span className={`font-bold font-mono ${clr}`}>{val}</span></div>
                       ))}
                     </div>
                   </div>
-                  <div className="rounded-xl bg-slate-50 dark:bg-white/[0.02] border border-slate-100 dark:border-white/5 p-3">
-                    <p className="text-[11px] font-bold text-slate-500 dark:text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1.5"><span className="material-symbols-outlined text-[12px]">terminal</span>{hi?.env || 'Env'}</p>
+                  <div className="rounded-xl theme-panel p-3">
+                    <p className="text-[11px] font-bold theme-text-muted uppercase tracking-wider mb-2 flex items-center gap-1.5"><span className="material-symbols-outlined text-[12px]">terminal</span>{hi?.env || 'Env'}</p>
                     <div className="space-y-1.5 text-[10px]">
-                      {envInfo.user && <div className="flex items-center justify-between"><span className="text-slate-400 dark:text-white/40">{hi?.user||'User'}</span><span className="font-bold text-slate-600 dark:text-white/60 font-mono">{envInfo.user}</span></div>}
-                      {envInfo.shell && <div className="flex items-center justify-between"><span className="text-slate-400 dark:text-white/40">{hi?.shell||'Shell'}</span><span className="font-bold text-slate-600 dark:text-white/60 font-mono truncate ms-2 max-w-[140px]">{envInfo.shell.split(/[/\\]/).pop()}</span></div>}
-                      {envInfo.workDir && <div className="flex items-center justify-between"><span className="text-slate-400 dark:text-white/40 shrink-0">{hi?.workDir||'Dir'}</span><span className="font-bold text-slate-600 dark:text-white/60 font-mono truncate ms-2 max-w-[140px] text-end">{envInfo.workDir}</span></div>}
+                      {envInfo.user && <div className="flex items-center justify-between"><span className="text-slate-400 dark:text-white/40">{hi?.user||'User'}</span><span className="font-bold theme-text-secondary font-mono">{envInfo.user}</span></div>}
+                      {envInfo.shell && <div className="flex items-center justify-between"><span className="text-slate-400 dark:text-white/40">{hi?.shell||'Shell'}</span><span className="font-bold theme-text-secondary font-mono truncate ms-2 max-w-[140px]">{envInfo.shell.split(/[/\\]/).pop()}</span></div>}
+                      {envInfo.workDir && <div className="flex items-center justify-between"><span className="text-slate-400 dark:text-white/40 shrink-0">{hi?.workDir||'Dir'}</span><span className="font-bold theme-text-secondary font-mono truncate ms-2 max-w-[140px] text-end">{envInfo.workDir}</span></div>}
                     </div>
                   </div>
                 </div>

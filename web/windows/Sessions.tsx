@@ -1784,7 +1784,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             )}
           </div>
           <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-2">{c.disconnected}</h3>
-          <p className="text-xs text-slate-500 dark:text-white/40 mb-4">{wsError}</p>
+          <p className="text-xs theme-text-muted mb-4">{wsError}</p>
           <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-xl">
             {c.retry}
           </button>
@@ -1831,7 +1831,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           {initialDetecting && (
             <div className="mb-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 flex items-center gap-2">
               <span className="material-symbols-outlined text-[14px] text-primary animate-spin">progress_activity</span>
-              <span className="text-[11px] font-medium text-slate-600 dark:text-white/60">{c.connecting}</span>
+              <span className="text-[11px] font-medium theme-text-secondary">{c.connecting}</span>
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             </div>
           )}
@@ -1839,7 +1839,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             <div className="mb-2 px-2">
               <div className="rounded-lg border border-slate-200/70 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] px-2.5 py-1.5 flex items-center gap-2">
                 <span className="material-symbols-outlined text-[12px] text-slate-400 dark:text-white/35 animate-spin">progress_activity</span>
-                <span className="text-[10px] text-slate-500 dark:text-white/40">{c.connecting}</span>
+                <span className="text-[10px] theme-text-muted">{c.connecting}</span>
               </div>
             </div>
           )}
@@ -1942,7 +1942,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
 
         {/* Connection Status */}
         <div className="px-3 py-2 border-t border-slate-200 dark:border-white/5 flex items-center gap-2">
-          <div className={`w-1.5 h-1.5 rounded-full ${gwReady ? 'bg-mac-green animate-glow-pulse-green' : wsConnecting ? 'bg-mac-yellow animate-pulse' : 'bg-slate-300'}`} />
+          <div className={`w-1.5 h-1.5 rounded-full ${gwReady ? 'bg-mac-green animate-glow-pulse-green' : wsConnecting ? 'bg-mac-yellow animate-pulse' : 'bg-slate-300 dark:bg-white/20'}`} />
           <span className="text-[11px] font-medium text-slate-400 dark:text-white/40">
             {gwReady ? c.connected : wsConnecting ? c.connecting : c.disconnected}
           </span>
@@ -1979,7 +1979,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             <div className="truncate">
               <h2 className="text-xs md:text-sm font-bold text-slate-900 dark:text-white truncate">{activeLabel}</h2>
               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                <span className={`w-1 h-1 rounded-full ${gwReady ? 'bg-mac-green' : 'bg-slate-300'}`} />
+                <span className={`w-1 h-1 rounded-full ${gwReady ? 'bg-mac-green' : 'bg-slate-300 dark:bg-white/20'}`} />
                 <span className="text-[11px] text-slate-400 font-medium font-mono hidden sm:inline">{sessionKey}</span>
                 <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${runPhaseMeta.textClass}`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${runPhaseMeta.dot}`} />
@@ -2012,13 +2012,13 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                 <span className="material-symbols-outlined text-[18px]">download</span>
               </button>
               <div className="absolute top-full end-0 mt-1 hidden group-hover/export:block z-30">
-                <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-[#1a1c20] shadow-xl py-1 min-w-[120px]">
+                <div className="rounded-lg theme-panel sci-card shadow-xl py-1 min-w-[120px]">
                   <button onClick={() => exportChat('md')} disabled={messages.length === 0}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] theme-text-secondary hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
                     <span className="material-symbols-outlined text-[13px]">description</span>Markdown
                   </button>
                   <button onClick={() => exportChat('json')} disabled={messages.length === 0}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] text-slate-600 dark:text-white/60 hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] theme-text-secondary hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
                     <span className="material-symbols-outlined text-[13px]">data_object</span>JSON
                   </button>
                 </div>
@@ -2083,7 +2083,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
           <div className="shrink-0 border-b border-slate-200/60 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.015] px-4 py-3 animate-fade-in">
             <div className="max-w-4xl mx-auto">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[14px] text-primary">tune</span>
                   {c.overrides || 'Session Overrides'}
                 </h3>
@@ -2233,10 +2233,10 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                   ))}
                 </div>
                 <div className="hidden sm:flex flex-wrap justify-center gap-4 mt-7 text-[9px] text-slate-400 dark:text-white/20">
-                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[8px] border border-slate-200/60 dark:border-white/[0.06] shadow-sm">↑</kbd> {c.historyRecall || 'History'}</span>
-                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[8px] border border-slate-200/60 dark:border-white/[0.06] shadow-sm">/</kbd> {c.slashCommands || 'Commands'}</span>
-                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[8px] border border-slate-200/60 dark:border-white/[0.06] shadow-sm">Shift+Enter</kbd> {c.newLine || 'New line'}</span>
-                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-white/5 font-mono text-[8px] border border-slate-200/60 dark:border-white/[0.06] shadow-sm">Esc</kbd> {c.abort || 'Abort'}</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md theme-field font-mono text-[8px] shadow-sm">↑</kbd> {c.historyRecall || 'History'}</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md theme-field font-mono text-[8px] shadow-sm">/</kbd> {c.slashCommands || 'Commands'}</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md theme-field font-mono text-[8px] shadow-sm">Shift+Enter</kbd> {c.newLine || 'New line'}</span>
+                  <span className="flex items-center gap-1.5"><kbd className="px-1.5 py-0.5 rounded-md theme-field font-mono text-[8px] shadow-sm">Esc</kbd> {c.abort || 'Abort'}</span>
                 </div>
               </div>
             )}

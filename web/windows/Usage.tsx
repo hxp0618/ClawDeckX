@@ -824,7 +824,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                   </div>
                 </div>
                 <div className="flex gap-3 mt-3 text-[10px]">
-                  <span className="text-slate-400 dark:text-white/40">{u.toolCalls}: <b className="text-slate-600 dark:text-white/60">{agg?.tools?.totalCalls || 0}</b></span>
+                  <span className="text-slate-400 dark:text-white/40">{u.toolCalls}: <b className="theme-text-secondary">{agg?.tools?.totalCalls || 0}</b></span>
                   <span className="text-slate-400 dark:text-white/40">{u.errors}: <b className="text-red-400">{agg?.messages?.errors || 0}</b></span>
                   {errorRate > 0 && (
                     <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
@@ -848,8 +848,8 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                   </div>
                 </div>
                 <div className="flex gap-3 mt-3 text-[10px]">
-                  <span className="text-slate-400 dark:text-white/40">P95: <b className="text-slate-600 dark:text-white/60">{agg?.latency ? fmtMs(agg.latency.p95Ms) : '—'}</b></span>
-                  <span className="text-slate-400 dark:text-white/40">{u.sessions}: <b className="text-slate-600 dark:text-white/60">{sessions.length}</b></span>
+                  <span className="text-slate-400 dark:text-white/40">P95: <b className="theme-text-secondary">{agg?.latency ? fmtMs(agg.latency.p95Ms) : '—'}</b></span>
+                  <span className="text-slate-400 dark:text-white/40">{u.sessions}: <b className="theme-text-secondary">{sessions.length}</b></span>
                 </div>
                 <div className="mt-1">
                   <Sparkline data={daily.map(d => (d as DailyEntry).messages || 0)} color="#8b5cf6" height={20} width={100} />
@@ -909,7 +909,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                       <span className={`material-symbols-outlined text-[16px] ${isOverDaily || isOverMonthly ? 'text-red-500' : isNearDaily || isNearMonthly ? 'text-amber-500' : 'text-emerald-500'}`}>
                         {isOverDaily || isOverMonthly ? 'warning' : 'account_balance_wallet'}
                       </span>
-                      <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider">{es.budget}</h3>
+                      <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider">{es.budget}</h3>
                     </div>
                     <button onClick={() => { setEditBudget(budget); setShowBudgetModal(true); }}
                       className="text-[10px] font-bold text-primary hover:underline flex items-center gap-0.5">
@@ -954,7 +954,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                       {projectedMonthlyCost > 0 && (
                         <div className="col-span-2 mt-1 flex items-center gap-1.5 text-[10px] text-slate-400 dark:text-white/40">
                           <span className="material-symbols-outlined text-[12px]">trending_up</span>
-                          <span>{u?.projected || 'Projected'}: <b className="text-slate-600 dark:text-white/60">{fmtCost(projectedMonthlyCost)}/{u?.month || 'mo'}</b></span>
+                          <span>{u?.projected || 'Projected'}: <b className="theme-text-secondary">{fmtCost(projectedMonthlyCost)}/{u?.month || 'mo'}</b></span>
                         </div>
                       )}
                     </div>
@@ -971,7 +971,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
               <div className="lg:col-span-2 rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider">{u.costTrend}</h3>
+                    <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider">{u.costTrend}</h3>
                     <div className="flex bg-slate-100 dark:bg-white/[0.06] p-0.5 rounded-md">
                       {(['daily', 'weekly', 'monthly'] as const).map(v => (
                         <button key={v} onClick={() => setTrendView(v)}
@@ -1006,7 +1006,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
               {/* Token Distribution Donut — by Model */}
               <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider">{u.byModel}</h3>
+                  <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider">{u.byModel}</h3>
                   {selectedModel && (
                     <button onClick={() => setSelectedModel(null)}
                       className="text-[10px] px-2.5 py-1 rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
@@ -1041,7 +1041,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                       }`}>
                       <span className="w-2 h-2 rounded-full shrink-0" style={{ background: seg.color }} />
                       <span className="truncate flex-1 text-start text-slate-600 dark:text-white/50">{seg.label}</span>
-                      <span className="font-mono font-bold tabular-nums text-slate-500 dark:text-white/40">{fmtTokens(seg.value)}</span>
+                      <span className="font-mono font-bold tabular-nums theme-text-muted">{fmtTokens(seg.value)}</span>
                     </button>
                   ))}
                 </div>
@@ -1054,7 +1054,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                 {/* By Channel */}
                 {channelSegments.length > 0 && (
                   <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
-                    <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3">{u?.byChannel || 'By Channel'}</h3>
+                    <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider mb-3">{u?.byChannel || 'By Channel'}</h3>
                     <div className="flex items-center gap-4">
                       <div className="relative shrink-0">
                         <DonutChart segments={channelSegments} size={100} hoveredIndex={channelDonutHover} onHover={setChannelDonutHover} />
@@ -1079,7 +1079,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                             onMouseEnter={() => setChannelDonutHover(i)} onMouseLeave={() => setChannelDonutHover(null)}>
                             <span className="w-2 h-2 rounded-full shrink-0" style={{ background: seg.color }} />
                             <span className="truncate flex-1 text-slate-600 dark:text-white/50">{seg.label}</span>
-                            <span className="font-mono font-bold tabular-nums text-slate-500 dark:text-white/40 shrink-0">{fmtTokens(seg.value)}</span>
+                            <span className="font-mono font-bold tabular-nums theme-text-muted">{fmtTokens(seg.value)}</span>
                           </div>
                         ))}
                       </div>
@@ -1089,7 +1089,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                 {/* By Agent */}
                 {agentSegments.length > 0 && (
                   <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
-                    <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3">{u?.byAgent || 'By Agent'}</h3>
+                    <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider mb-3">{u?.byAgent || 'By Agent'}</h3>
                     <div className="flex items-center gap-4">
                       <div className="relative shrink-0">
                         <DonutChart segments={agentSegments} size={100} hoveredIndex={agentDonutHover} onHover={setAgentDonutHover} />
@@ -1114,7 +1114,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                             onMouseEnter={() => setAgentDonutHover(i)} onMouseLeave={() => setAgentDonutHover(null)}>
                             <span className="w-2 h-2 rounded-full shrink-0" style={{ background: seg.color }} />
                             <span className="truncate flex-1 text-slate-600 dark:text-white/50">{seg.label}</span>
-                            <span className="font-mono font-bold tabular-nums text-slate-500 dark:text-white/40 shrink-0">{fmtTokens(seg.value)}</span>
+                            <span className="font-mono font-bold tabular-nums theme-text-muted shrink-0">{fmtTokens(seg.value)}</span>
                           </div>
                         ))}
                       </div>
@@ -1126,7 +1126,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
 
             {/* Token I/O Breakdown */}
             <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
-              <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3">Token I/O</h3>
+              <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider mb-3">Token I/O</h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
                   { label: u.inputTokens, value: totals.input, cost: totals.inputCost, color: '#6366f1' },
@@ -1148,7 +1148,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
             {/* Top Tools */}
             {agg?.tools && agg.tools.tools.length > 0 && (
               <div className="rounded-2xl border border-slate-200/60 dark:border-white/[0.06] bg-white dark:bg-white/[0.02] p-4">
-                <h3 className="text-[11px] font-bold text-slate-600 dark:text-white/60 uppercase tracking-wider mb-3">{u.toolCalls} ({agg.tools.uniqueTools})</h3>
+                <h3 className="text-[11px] font-bold theme-text-secondary uppercase tracking-wider mb-3">{u.toolCalls} ({agg.tools.uniqueTools})</h3>
                 <div className="space-y-2">
                   {agg.tools.tools.slice(0, 8).map((tool, i) => (
                     <AnimatedBar
@@ -1292,7 +1292,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
               {totalSessionPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-4">
                   <button onClick={() => setSessionsPage(p => Math.max(1, p - 1))} disabled={sessionsPage === 1}
-                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold theme-field theme-text-secondary hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                     ← {u.prevPage}
                   </button>
                   <div className="flex items-center gap-1">
@@ -1307,7 +1307,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                           className={`w-7 h-7 rounded-lg text-[11px] font-bold transition-colors ${
                             sessionsPage === page
                               ? 'bg-primary text-white'
-                              : 'bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.1]'
+                              : 'theme-field theme-text-secondary hover:bg-slate-200 dark:hover:bg-white/[0.1]'
                           }`}>
                           {page}
                         </button>
@@ -1315,7 +1315,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                     })}
                   </div>
                   <button onClick={() => setSessionsPage(p => Math.min(totalSessionPages, p + 1))} disabled={sessionsPage === totalSessionPages}
-                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold theme-field theme-text-secondary hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                     {u.nextPage} →
                   </button>
                 </div>
@@ -1355,7 +1355,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                     <div className="flex-1 h-1.5 rounded-full bg-slate-100 dark:bg-white/[0.04] overflow-hidden">
                       <div className="h-full rounded-full bg-indigo-500" style={{ width: `${Math.min(100, ((pt.tokens || pt.value || 0) / maxVal) * 100)}%` }} />
                     </div>
-                    <span className="text-[10px] font-mono font-bold text-slate-600 dark:text-white/60 w-16 text-end">{fmtTokens(pt.tokens || pt.value || 0)}</span>
+                    <span className="text-[10px] font-mono font-bold theme-text-secondary w-16 text-end">{fmtTokens(pt.tokens || pt.value || 0)}</span>
                   </div>
                 ))}
               </div>
@@ -1398,7 +1398,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
                       <span className="font-mono text-slate-400 dark:text-white/40 w-32 shrink-0">{fmtTimestamp(log.timestamp || log.date || log.ts, u)}</span>
                       {log.model && <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 font-bold truncate max-w-[100px]">{log.model}</span>}
                       {log.session && <span className="text-slate-400 dark:text-white/35 truncate max-w-[100px]">{log.session}</span>}
-                      <span className="ms-auto font-mono font-bold text-slate-600 dark:text-white/60">{fmtTokens(log.tokens || 0)}</span>
+                      <span className="ms-auto font-mono font-bold theme-text-secondary">{fmtTokens(log.tokens || 0)}</span>
                       {log.cost != null && <span className="font-mono text-amber-500">{fmtCost(log.cost)}</span>}
                     </div>
                     {log.error && <p className="text-[11px] text-red-400 mt-0.5">{log.error}</p>}
@@ -1409,14 +1409,14 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
               {totalLogsPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-4">
                   <button onClick={() => setLogsPage(p => Math.max(1, p - 1))} disabled={logsPage === 1}
-                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold theme-field theme-text-secondary hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                     ← {u.prevPage}
                   </button>
                   <span className="text-[10px] text-slate-400 dark:text-white/40">
                     {logsPage} / {totalLogsPages}
                   </span>
                   <button onClick={() => setLogsPage(p => Math.min(totalLogsPages, p + 1))} disabled={logsPage === totalLogsPages}
-                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-slate-100 dark:bg-white/[0.06] text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold theme-field theme-text-secondary hover:bg-slate-200 dark:hover:bg-white/[0.1] disabled:opacity-40 disabled:cursor-not-allowed transition-colors">
                     {u.nextPage} →
                   </button>
                 </div>
@@ -1441,7 +1441,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
             <div className="space-y-4">
               {/* Daily Limit */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 mb-1 block">{es.dailyBudget} ($)</label>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 mb-1 block">{es.dailyBudget} ($)</label>
                 <NumberStepper
                   step={0.01}
                   min={0}
@@ -1456,7 +1456,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
 
               {/* Monthly Limit */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 mb-1 block">{es.monthlyBudget} ($)</label>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 mb-1 block">{es.monthlyBudget} ($)</label>
                 <NumberStepper
                   step={0.01}
                   min={0}
@@ -1471,7 +1471,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
 
               {/* Alert Threshold */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 mb-1 block">{es.budgetThreshold} (%)</label>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 mb-1 block">{es.budgetThreshold} (%)</label>
                 <div className="flex items-center gap-3">
                   <input type="range" min="50" max="100" step="5" value={editBudget.alertThreshold}
                     onChange={e => setEditBudget({ ...editBudget, alertThreshold: Number(e.target.value) })}
@@ -1483,7 +1483,7 @@ const Usage: React.FC<UsageProps> = ({ language, onNavigateToSession }) => {
 
               {/* Action */}
               <div>
-                <label className="text-[10px] font-bold text-slate-500 mb-1.5 block">{es.budgetAction}</label>
+                <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 mb-1.5 block">{es.budgetAction}</label>
                 <div className="flex gap-2">
                   {(['warn', 'pause', 'continue'] as const).map(action => (
                     <button key={action} onClick={() => setEditBudget({ ...editBudget, action })}

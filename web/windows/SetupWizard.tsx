@@ -368,7 +368,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
               type="checkbox"
               checked={disableAutoOpen}
               onChange={(e) => setDisableAutoOpen(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/30"
+              className="w-4 h-4 rounded border-slate-300 dark:border-white/20 text-primary focus:ring-primary/30"
             />
             <span>{sw.disableAutoOpen}</span>
           </label>
@@ -664,7 +664,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
                             <div className="space-y-2">
                               <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 dark:border-white/10 hover:border-primary/40 transition-colors cursor-pointer">
                                 <input type="checkbox" checked={installZeroTier} onChange={e => setInstallZeroTier(e.target.checked)}
-                                  className="mt-0.5 w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/30" />
+                                  className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-white/20 text-primary focus:ring-primary/30" />
                                 <div className="flex-1">
                                   <div className="text-sm font-medium text-slate-700 dark:text-white/80">🌐 {sw.installZeroTier}</div>
                                   <div className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5">{sw.zeroTierDesc}</div>
@@ -684,7 +684,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
                               )}
                               <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 dark:border-white/10 hover:border-primary/40 transition-colors cursor-pointer">
                                 <input type="checkbox" checked={installTailscale} onChange={e => setInstallTailscale(e.target.checked)}
-                                  className="mt-0.5 w-4 h-4 rounded border-slate-300 text-primary focus:ring-primary/30" />
+                                  className="mt-0.5 w-4 h-4 rounded border-slate-300 dark:border-white/20 text-primary focus:ring-primary/30" />
                                 <div className="flex-1">
                                   <div className="text-sm font-medium text-slate-700 dark:text-white/80">🔒 {sw.installTailscale}</div>
                                   <div className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5">{sw.tailscaleDesc}</div>
@@ -926,7 +926,7 @@ const SetupWizard: React.FC<SetupWizardProps> = ({ language, onClose, onOpenEdit
                 <div key={i} className="whitespace-pre-wrap">{log}</div>
               ))}
               {logs.length === 0 && (
-                <div className="text-slate-500">{sw.waitingOutput}</div>
+                <div className="text-slate-500 dark:text-white/40">{sw.waitingOutput}</div>
               )}
             </div>
           </div>

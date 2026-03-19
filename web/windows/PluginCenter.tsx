@@ -367,7 +367,7 @@ const PluginCenter: React.FC<PluginCenterProps> = ({ language }) => {
         <div className="mx-4 mt-3 p-3 rounded-lg bg-mac-red/5 dark:bg-mac-red/10 border border-mac-red/20">
           <div className="flex items-center justify-between mb-2">
             <h4 className="text-[11px] font-bold text-mac-red">{sk.pluginDiagnostics || 'Diagnostics'} ({diagnostics.length})</h4>
-            <button onClick={() => setShowDiagnostics(false)} className="text-slate-400 hover:text-slate-600"><span className="material-symbols-outlined text-[14px]">close</span></button>
+            <button onClick={() => setShowDiagnostics(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white/60"><span className="material-symbols-outlined text-[14px]">close</span></button>
           </div>
           <div className="space-y-1 max-h-32 overflow-y-auto custom-scrollbar neon-scrollbar">
             {diagnostics.map((d, i) => (
@@ -586,7 +586,7 @@ const PluginCenter: React.FC<PluginCenterProps> = ({ language }) => {
                 { items: detailPlugin.channelIds, label: sk.pluginDetailChannels || 'Channels', icon: 'forum', color: 'text-primary' },
                 { items: detailPlugin.providerIds, label: sk.pluginDetailProviders || 'Providers', icon: 'cloud', color: 'text-blue-500' },
                 { items: detailPlugin.gatewayMethods, label: sk.pluginDetailGatewayMethods || 'Gateway Methods', icon: 'route', color: 'text-teal-500' },
-                { items: detailPlugin.cliCommands, label: sk.pluginDetailCliCommands || 'CLI Commands', icon: 'terminal', color: 'text-slate-500' },
+                { items: detailPlugin.cliCommands, label: sk.pluginDetailCliCommands || 'CLI Commands', icon: 'terminal', color: 'text-slate-500 dark:text-slate-400' },
                 { items: detailPlugin.services, label: sk.pluginDetailServices || 'Services', icon: 'dns', color: 'text-indigo-500' },
                 { items: detailPlugin.commands, label: sk.pluginDetailCommands || 'Commands', icon: 'code', color: 'text-orange-500' },
               ] as const).filter(s => s.items && s.items.length > 0).map(section => (

@@ -45,7 +45,7 @@ const ExpandableDesc: React.FC<{ text: string; moreLabel: string }> = ({ text, m
   const needsExpand = text.length > 80;
   return (
     <div className="mb-3">
-      <p className={`text-[11px] text-slate-500 dark:text-white/40 leading-relaxed ${needsExpand ? 'cursor-pointer' : ''} ${expanded ? '' : 'line-clamp-2'}`}
+      <p className={`text-[11px] theme-text-muted leading-relaxed ${needsExpand ? 'cursor-pointer' : ''} ${expanded ? '' : 'line-clamp-2'}`}
         onClick={() => needsExpand && setExpanded(!expanded)}>
         {text}
       </p>
@@ -139,21 +139,21 @@ const ConfigModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-md mx-4 bg-white dark:bg-[#1c1e24] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-md mx-4 rounded-2xl shadow-2xl overflow-hidden theme-panel sci-card" onClick={e => e.stopPropagation()}>
         <div className="px-5 py-4 border-b border-slate-200 dark:border-white/5 flex items-center gap-3">
           <span className="text-xl">{skill.emoji || '⚙️'}</span>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-white truncate">{sk.configureSkill}: {skill.name}</h3>
-            <p className="text-[10px] text-slate-400 truncate">{skill.skillKey}</p>
+            <h3 className="font-bold text-sm text-[var(--color-text)] dark:text-white truncate">{sk.configureSkill}: {skill.name}</h3>
+            <p className="text-[10px] theme-text-muted truncate">{skill.skillKey}</p>
           </div>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-white/10">
-            <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
+            <span className="material-symbols-outlined text-[16px] theme-text-muted">close</span>
           </button>
         </div>
         <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar neon-scrollbar">
           {/* 启用/禁用 */}
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 dark:text-white/80">{enabled ? sk.enable : sk.disable}</span>
+            <span className="text-xs font-bold text-[var(--color-text)] dark:text-white/80">{enabled ? sk.enable : sk.disable}</span>
             <button onClick={() => setEnabled(!enabled)} className={`w-10 h-5 rounded-full transition-colors relative ${enabled ? 'bg-mac-green' : 'bg-slate-300 dark:bg-white/20'}`}>
               <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${enabled ? 'translate-x-5 rtl:-translate-x-5' : 'translate-x-0.5 rtl:-translate-x-0.5'}`} />
             </button>
@@ -161,20 +161,20 @@ const ConfigModal: React.FC<{
           {/* API Key */}
           {skill.primaryEnv && (
             <div>
-              <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider mb-1 block">{sk.apiKey} ({skill.primaryEnv})</label>
+              <label className="text-[10px] font-bold theme-text-muted uppercase tracking-wider mb-1 block">{sk.apiKey} ({skill.primaryEnv})</label>
               <input type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder={skill.primaryEnv}
-                className="w-full h-9 px-3 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-xs font-mono text-slate-800 dark:text-white outline-none focus:border-primary" />
+                className="w-full h-9 px-3 theme-field rounded-lg text-xs font-mono outline-none focus:border-primary sci-input" />
             </div>
           )}
           {/* 环境变量 */}
           <div>
-            <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider mb-1 block">{sk.envVars}</label>
+            <label className="text-[10px] font-bold theme-text-muted uppercase tracking-wider mb-1 block">{sk.envVars}</label>
             {envPairs.map(([k, v], i) => (
               <div key={i} className="flex gap-1.5 mb-1.5">
                 <input value={k} onChange={e => { const n = [...envPairs]; n[i] = [e.target.value, v]; setEnvPairs(n); }} placeholder={sk.key}
-                  className="flex-1 h-8 px-2 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded text-[10px] font-mono text-slate-800 dark:text-white outline-none focus:border-primary" />
+                  className="flex-1 h-8 px-2 theme-field rounded text-[10px] font-mono outline-none focus:border-primary sci-input" />
                 <input value={v} onChange={e => { const n = [...envPairs]; n[i] = [k, e.target.value]; setEnvPairs(n); }} placeholder={sk.value}
-                  className="flex-1 h-8 px-2 bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded text-[10px] font-mono text-slate-800 dark:text-white outline-none focus:border-primary" />
+                  className="flex-1 h-8 px-2 theme-field rounded text-[10px] font-mono outline-none focus:border-primary sci-input" />
                 <button onClick={() => setEnvPairs(envPairs.filter((_, j) => j !== i))} className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-mac-red">
                   <span className="material-symbols-outlined text-[14px]">remove_circle</span>
                 </button>
@@ -184,7 +184,7 @@ const ConfigModal: React.FC<{
           </div>
         </div>
         <div className="px-5 py-3 border-t border-slate-200 dark:border-white/5 flex justify-end gap-2">
-          <button onClick={onClose} className="h-8 px-4 text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-white/50 dark:hover:text-white">{sk.cancel}</button>
+          <button onClick={onClose} className="h-8 px-4 text-xs font-bold theme-text-secondary hover:text-[var(--color-text)] dark:hover:text-white">{sk.cancel}</button>
           <button onClick={handleSave} disabled={saving} className="h-8 px-5 bg-primary text-white text-xs font-bold rounded-lg disabled:opacity-50">
             {saving ? sk.loading : sk.save}
           </button>
@@ -221,7 +221,7 @@ const SkillCard: React.FC<{
   const unsupportedOs = missingOs > 0;
 
   return (
-    <div className={`bg-slate-50 dark:bg-white/[0.02] border rounded-2xl p-4 transition-all group shadow-sm flex flex-col ${isDisabled ? 'border-slate-200/50 dark:border-white/5 opacity-60' :
+    <div className={`theme-panel rounded-2xl p-4 transition-all group shadow-sm flex flex-col sci-card ${isDisabled ? 'border-slate-200/50 dark:border-white/5 opacity-60' :
         unsupportedOs ? 'border-slate-200/50 dark:border-white/5 opacity-40' :
           skill.eligible ? 'border-mac-green/30 dark:border-mac-green/20 hover:border-mac-green/60' :
             'border-slate-200 dark:border-white/10 hover:border-primary/40'
@@ -242,7 +242,7 @@ const SkillCard: React.FC<{
 
       {/* 状态标签行 */}
       <div className="flex flex-wrap gap-1 mb-2">
-        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40 font-bold">{skill.source}</span>
+        <span className="text-[10px] px-1.5 py-0.5 rounded-full theme-field theme-text-muted font-bold">{skill.source}</span>
         {skill.bundled && skill.source !== 'openclaw-bundled' && (
           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 font-bold">{sk.bundled}</span>
         )}
@@ -307,24 +307,24 @@ const SkillCard: React.FC<{
             </button>
           ) : (
             <button onClick={(e) => { e.stopPropagation(); onCopyInstall(skill); }}
-              className="flex-1 h-7 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/10 text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center gap-1 truncate">
+              className="flex-1 h-7 theme-field theme-text-secondary hover:bg-slate-200 dark:hover:bg-white/10 text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center gap-1 truncate">
               <span className="material-symbols-outlined text-[12px]">content_copy</span>
               <span className="truncate">{sk.copyInstallInfo}</span>
             </button>
           )
         )}
         {unsupportedOs && (
-          <span className="flex-1 h-7 bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/20 text-[10px] font-bold rounded-lg flex items-center justify-center gap-1">
+          <span className="flex-1 h-7 theme-field theme-text-muted text-[10px] font-bold rounded-lg flex items-center justify-center gap-1">
             <span className="material-symbols-outlined text-[12px]">block</span>
             {sk.missingOs}
           </span>
         )}
-        <button onClick={() => onConfigure(skill)} className="h-7 px-2.5 bg-white dark:bg-white/10 text-[10px] font-bold rounded-lg border border-slate-200 dark:border-white/5 hover:border-primary/40 transition-colors flex items-center gap-1 shrink-0">
+        <button onClick={() => onConfigure(skill)} className="h-7 px-2.5 theme-field text-[10px] font-bold rounded-lg hover:border-primary/40 transition-colors flex items-center gap-1 shrink-0">
           <span className="material-symbols-outlined text-[12px]">tune</span>
           {sk.configure}
         </button>
         {skill.homepage && (
-          <a href={skill.homepage} target="_blank" rel="noopener noreferrer" className="h-7 w-7 flex items-center justify-center bg-white dark:bg-white/10 rounded-lg border border-slate-200 dark:border-white/5 hover:border-primary/40 transition-colors shrink-0">
+          <a href={skill.homepage} target="_blank" rel="noopener noreferrer" className="h-7 w-7 flex items-center justify-center theme-field rounded-lg hover:border-primary/40 transition-colors shrink-0">
             <span className="material-symbols-outlined text-[12px] text-slate-400">open_in_new</span>
           </a>
         )}
@@ -381,22 +381,22 @@ const SourceConfigModal: React.FC<{
     setDirty(next.clawHubUrl !== originalRef.current.clawHubUrl || next.skillHubUrl !== originalRef.current.skillHubUrl);
   };
 
-  const inputCls = "w-full h-9 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 text-[13px] text-slate-800 dark:text-white font-mono focus:ring-2 focus:ring-primary/30 outline-none transition-all";
-  const labelCls = "text-[12px] font-medium text-slate-500 dark:text-white/40";
+  const inputCls = "w-full h-9 theme-field rounded-lg px-3 text-[13px] font-mono focus:ring-2 focus:ring-primary/30 outline-none transition-all sci-input";
+  const labelCls = "text-[12px] font-medium theme-text-muted";
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg mx-4 bg-white dark:bg-[#1c1e24] rounded-2xl shadow-2xl border border-slate-200 dark:border-white/10 overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="w-full max-w-lg mx-4 rounded-2xl shadow-2xl overflow-hidden theme-panel sci-card" onClick={e => e.stopPropagation()}>
         <div className="px-5 py-4 border-b border-slate-200 dark:border-white/5 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
             <span className="material-symbols-outlined text-primary text-[18px]">settings</span>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-sm text-slate-800 dark:text-white">{sk.sourceConfigTitle || 'Data Source Configuration'}</h3>
-            <p className="text-[10px] text-slate-400 dark:text-white/30 mt-0.5">{sk.sourceConfigDesc || 'Configure upstream endpoints for skill markets'}</p>
+            <h3 className="font-bold text-sm text-[var(--color-text)] dark:text-white">{sk.sourceConfigTitle || 'Data Source Configuration'}</h3>
+            <p className="text-[10px] theme-text-muted mt-0.5">{sk.sourceConfigDesc || 'Configure upstream endpoints for skill markets'}</p>
           </div>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-white/10">
-            <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
+            <span className="material-symbols-outlined text-[16px] theme-text-muted">close</span>
           </button>
         </div>
         <div className="p-5 space-y-4">
@@ -1045,7 +1045,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-[#0f1115]">
       {/* 顶部工具栏 */}
-      <div className="flex flex-col border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-black/20 shrink-0">
+      <div className="flex flex-col border-b border-slate-200 dark:border-white/5 theme-panel shrink-0">
         {/* 标签页 */}
         <div className="h-12 flex items-center px-4 border-b border-slate-200/50 dark:border-white/5">
           <div className="flex-1" />
@@ -1063,7 +1063,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
             <button onClick={() => setShowSourceConfig(true)}
               className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 transition-colors"
               title={sk.sourceConfigTitle || 'Data Source Configuration'}>
-              <span className="material-symbols-outlined text-[18px] text-slate-400 dark:text-white/40">settings</span>
+              <span className="material-symbols-outlined text-[18px] theme-text-muted">settings</span>
             </button>
           </div>
         </div>
@@ -1074,8 +1074,8 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
           {activeTab !== 'market' ? (
             <>
               <div className="relative flex-1 min-w-0">
-                <span className="material-symbols-outlined absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
-                <input ref={searchRef} className="w-full h-9 ps-9 pe-4 bg-white dark:bg-[#1a1c22] border border-slate-200 dark:border-white/10 rounded-lg text-xs text-slate-800 dark:text-white placeholder:text-slate-400 focus:ring-1 focus:ring-primary outline-none"
+                <span className="material-symbols-outlined absolute start-3 top-1/2 -translate-y-1/2 theme-text-muted text-[16px]">search</span>
+                <input ref={searchRef} className="w-full h-9 ps-9 pe-4 theme-field rounded-lg text-xs placeholder:text-slate-400 dark:placeholder:text-white/20 focus:ring-1 focus:ring-primary outline-none sci-input"
                   placeholder={`${sk.search} (Ctrl+K)`} value={searchInput} onChange={e => setSearchInput(e.target.value)} />
               </div>
               {/* Filter pills: all / eligible / missing */}
@@ -1132,7 +1132,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                     }
                     if (cached > 0 && cached < total) {
                       return (
-                        <span className="h-9 px-2 flex items-center gap-1 text-[10px] text-slate-500 dark:text-white/50 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg"
+                        <span className="h-9 px-2 flex items-center gap-1 text-[10px] theme-text-secondary theme-field rounded-lg"
                           title={`${sk.translated || 'Translated'}: ${cached}/${total}`}>
                           <span className="material-symbols-outlined text-[12px]">{translateEngine === 'free' ? 'g_translate' : 'smart_toy'}</span>
                           {cached}/{total}
@@ -1146,9 +1146,9 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
               {/* 刷新数据按钮 */}
               <button
                 onClick={() => { fetchSkills(); setSkillMessages({}); }}
-                className="h-9 w-9 flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg shrink-0"
+                className="h-9 w-9 flex items-center justify-center theme-field hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg shrink-0"
                 title={sk.refresh}>
-                <span className={`material-symbols-outlined text-[16px] text-slate-500 ${loading ? 'animate-spin' : ''}`}>{loading ? 'progress_activity' : 'refresh'}</span>
+                <span className={`material-symbols-outlined text-[16px] theme-text-secondary ${loading ? 'animate-spin' : ''}`}>{loading ? 'progress_activity' : 'refresh'}</span>
               </button>
               {/* Sort */}
               <CustomSelect
@@ -1159,26 +1159,26 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                   { value: 'status', label: sk.sortStatus || 'Status' },
                   { value: 'source', label: sk.sortSource || 'Source' },
                 ]}
-                className="h-9 px-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-bold text-slate-600 dark:text-white/60 outline-none shrink-0"
+                className="h-9 px-2 theme-field rounded-lg text-[10px] font-bold theme-text-secondary outline-none shrink-0"
               />
               {/* Batch mode */}
               <button onClick={() => { setBatchMode(!batchMode); setBatchSelected(new Set()); }}
-                className={`h-9 w-9 flex items-center justify-center border rounded-lg shrink-0 transition-all ${batchMode ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-500'}`}
+                className={`h-9 w-9 flex items-center justify-center border rounded-lg shrink-0 transition-all ${batchMode ? 'bg-primary/10 border-primary/30 text-primary' : 'theme-field theme-text-secondary'}`}
                 title={sk.batchMode || 'Batch'}>
                 <span className="material-symbols-outlined text-[16px]">checklist</span>
               </button>
               {/* Compact / Group / Flat */}
               <button onClick={() => { if (compactView) { setCompactView(false); } else if (groupView) { setGroupView(false); setCompactView(true); } else { setGroupView(true); } }}
-                className="h-9 w-9 flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg shrink-0"
+                className="h-9 w-9 flex items-center justify-center theme-field hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg shrink-0"
                 title={compactView ? sk.cardView || 'Cards' : groupView ? sk.flatView : sk.groupedView}>
-                <span className="material-symbols-outlined text-[16px] text-slate-500">{compactView ? 'grid_view' : groupView ? 'view_list' : 'folder'}</span>
+                <span className="material-symbols-outlined text-[16px] theme-text-secondary">{compactView ? 'grid_view' : groupView ? 'view_list' : 'folder'}</span>
               </button>
             </>
           ) : (
             <>
               <div className="relative flex-1 min-w-0">
-                <span className="material-symbols-outlined absolute start-3 top-1/2 -translate-y-1/2 text-slate-400 text-[16px]">search</span>
-                <input className="w-full h-9 ps-9 pe-4 bg-white dark:bg-[#1a1c22] border border-slate-200 dark:border-white/10 rounded-lg text-xs text-slate-800 dark:text-white placeholder:text-slate-400 focus:ring-1 focus:ring-primary outline-none"
+                <span className="material-symbols-outlined absolute start-3 top-1/2 -translate-y-1/2 theme-text-muted text-[16px]">search</span>
+                <input className="w-full h-9 ps-9 pe-4 theme-field rounded-lg text-xs placeholder:text-slate-400 dark:placeholder:text-white/20 focus:ring-1 focus:ring-primary outline-none sci-input"
                   placeholder={sk.searchMarket} value={marketQuery} onChange={e => setMarketQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleMarketSearch()} />
               </div>
@@ -1227,7 +1227,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                     }
                     if (cached > 0 && cached < total) {
                       return (
-                        <span className="h-9 px-2 flex items-center gap-1 text-[10px] text-slate-500 dark:text-white/50 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg"
+                        <span className="h-9 px-2 flex items-center gap-1 text-[10px] theme-text-secondary theme-field rounded-lg"
                           title={`${sk.translated || 'Translated'}: ${cached}/${total}`}>
                           <span className="material-symbols-outlined text-[12px]">{translateEngine === 'free' ? 'g_translate' : 'smart_toy'}</span>
                           {cached}/{total}
@@ -1240,7 +1240,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
               )}
               {/* 速率限制信息 — 仅当 API 返回有效限制数据时显示 */}
               {marketRateLimit && marketRateLimit.limit && marketRateLimit.remaining && (
-                <span className="h-9 px-2 flex items-center gap-1 text-[10px] text-slate-500 dark:text-white/50 bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-lg whitespace-nowrap shrink-0"
+                <span className="h-9 px-2 flex items-center gap-1 text-[10px] theme-text-secondary theme-field rounded-lg whitespace-nowrap shrink-0"
                   title={`${sk.rateLimitInfo || 'API Rate Limit'}: ${marketRateLimit.remaining}/${marketRateLimit.limit}${marketRateLimit.reset ? ` (reset: ${marketRateLimit.reset}s)` : ''}`}>
                   <span className="material-symbols-outlined text-[12px]">schedule</span>
                   {marketRateLimit.remaining}/{marketRateLimit.limit}
@@ -1249,9 +1249,9 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
               {/* 刷新数据按钮 */}
               <button onClick={() => { setMarketResults([]); setMarketCursor(null); setMarketLoaded(false); if (marketQuery.trim()) handleMarketSearch(); else fetchMarketList(marketSort); }}
                 disabled={marketLoading || marketSearching}
-                className="h-9 w-9 flex items-center justify-center bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 rounded-lg shrink-0 disabled:opacity-40"
+                className="h-9 w-9 flex items-center justify-center theme-field hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg shrink-0 disabled:opacity-40"
                 title={sk.refresh}>
-                <span className={`material-symbols-outlined text-[16px] text-slate-500 ${marketLoading || marketSearching ? 'animate-spin' : ''}`}>{marketLoading || marketSearching ? 'progress_activity' : 'refresh'}</span>
+                <span className={`material-symbols-outlined text-[16px] theme-text-secondary ${marketLoading || marketSearching ? 'animate-spin' : ''}`}>{marketLoading || marketSearching ? 'progress_activity' : 'refresh'}</span>
               </button>
               {/* 排序按钮组 */}
               <div className="flex bg-slate-200 dark:bg-black/40 p-0.5 rounded-lg shadow-inner shrink-0">
@@ -1431,7 +1431,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
               {!marketSearching && !marketLoading && marketResults.length === 0 && !marketQuery && marketLoaded && (
                 <div className="flex flex-col items-center justify-center py-16 text-slate-400">
                   <span className="material-symbols-outlined text-5xl mb-4 text-primary/30">store</span>
-                  <span className="text-sm font-bold mb-1 text-slate-600 dark:text-white/50">{sk.noMarketData}</span>
+                  <span className="text-sm font-bold mb-1 theme-text-secondary">{sk.noMarketData}</span>
                 </div>
               )}
               {/* 技能卡片列表 */}
@@ -1468,7 +1468,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                           {item.tags && typeof item.tags === 'object' && Object.keys(item.tags).length > 0 && (
                             <div className="flex flex-wrap gap-1 mb-2">
                               {Object.keys(item.tags).filter(t => t !== 'latest').slice(0, 5).map(tag => (
-                                <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/40">{tag}</span>
+                                <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-full theme-field theme-text-muted">{tag}</span>
                               ))}
                             </div>
                           )}
@@ -1509,7 +1509,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
                               </span>
                             )}
                             <button onClick={(e) => { e.stopPropagation(); handleCopyMarketInstall(item); }}
-                              className="h-6 px-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 hover:bg-slate-200 dark:hover:bg-white/10 text-[10px] font-bold rounded-md transition-colors flex items-center gap-1">
+                              className="h-6 px-2 theme-field theme-text-secondary hover:bg-slate-200 dark:hover:bg-white/10 text-[10px] font-bold rounded-md transition-colors flex items-center gap-1">
                               <span className="material-symbols-outlined text-[11px]">content_copy</span>
                               <span>{sk.copyInstallInfo}</span>
                             </button>
@@ -1553,7 +1553,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
           <span className="w-1 h-1 rounded-full bg-slate-200 dark:bg-white/10" />
           <span className="text-mac-green">{eligibleCount} {sk.eligibleCount}</span>
           <span className="text-amber-500">{missingCount} {sk.missingLabel || 'missing'}</span>
-          {(() => { const d = skills.filter(s => skillsConfig[s.skillKey]?.enabled === false).length; return d > 0 ? <span className="text-slate-500">{d} {sk.disabledLabel || 'off'}</span> : null; })()}
+          {(() => { const d = skills.filter(s => skillsConfig[s.skillKey]?.enabled === false).length; return d > 0 ? <span className="text-slate-500 dark:text-white/40">{d} {sk.disabledLabel || 'off'}</span> : null; })()}
         </div>
         <div className="flex items-center gap-1">
           <span className="material-symbols-outlined text-[12px]">verified_user</span>
@@ -1577,19 +1577,19 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
             <div className="px-5 py-4 border-b border-slate-200 dark:border-white/5 flex items-center gap-3 shrink-0">
               <span className="text-xl">{detailSkill.emoji || '⚙️'}</span>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-sm text-slate-800 dark:text-white truncate">{dShowTrans && dTrans?.name ? dTrans.name : detailSkill.name}</h3>
-                <p className="text-[10px] text-slate-400 font-mono truncate">{detailSkill.skillKey}</p>
+                <h3 className="font-bold text-sm text-[var(--color-text)] dark:text-white truncate">{dShowTrans && dTrans?.name ? dTrans.name : detailSkill.name}</h3>
+                <p className="text-[10px] theme-text-muted font-mono truncate">{detailSkill.skillKey}</p>
               </div>
               <button onClick={() => setDetailSkill(null)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-white/10">
-                <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
+                <span className="material-symbols-outlined text-[16px] theme-text-muted">close</span>
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar neon-scrollbar">
               {/* Description */}
-              {detailSkill.description && <p className="text-[12px] text-slate-600 dark:text-white/50 leading-relaxed">{dShowTrans && dTrans?.description ? dTrans.description : detailSkill.description}</p>}
+              {detailSkill.description && <p className="text-[12px] theme-text-secondary leading-relaxed">{dShowTrans && dTrans?.description ? dTrans.description : detailSkill.description}</p>}
               {/* Status badges */}
               <div className="flex flex-wrap gap-1.5">
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-500 font-bold">{detailSkill.source}</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full theme-field theme-text-muted font-bold">{detailSkill.source}</span>
                 {detailSkill.eligible ? <span className="text-[10px] px-2 py-0.5 rounded-full bg-mac-green/15 text-mac-green font-bold">{sk.eligible}</span>
                   : <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 font-bold">{sk.notEligible}</span>}
                 {detailSkill.bundled && <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 font-bold">{sk.bundled}</span>}
@@ -1598,10 +1598,10 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
               {/* Requirements */}
               {(detailSkill.requirements.bins.length > 0 || detailSkill.requirements.env.length > 0 || detailSkill.requirements.config.length > 0 || detailSkill.requirements.os.length > 0) && (
                 <div>
-                  <h4 className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider mb-1.5">{sk.requirements || 'Requirements'}</h4>
+                  <h4 className="text-[10px] font-bold theme-text-muted uppercase tracking-wider mb-1.5">{sk.requirements || 'Requirements'}</h4>
                   <div className="space-y-1 text-[11px]">
-                    {detailSkill.requirements.bins.length > 0 && <div className="flex gap-2"><span className="text-slate-400 shrink-0">bins:</span><span className="text-slate-600 dark:text-white/60">{detailSkill.requirements.bins.join(', ')}</span></div>}
-                    {detailSkill.requirements.anyBins?.length > 0 && <div className="flex gap-2"><span className="text-slate-400 shrink-0">anyBins:</span><span className="text-slate-600 dark:text-white/60">{detailSkill.requirements.anyBins.join(', ')}</span></div>}
+                    {detailSkill.requirements.bins.length > 0 && <div className="flex gap-2"><span className="theme-text-muted shrink-0">bins:</span><span className="theme-text-secondary">{detailSkill.requirements.bins.join(', ')}</span></div>}
+                    {detailSkill.requirements.anyBins?.length > 0 && <div className="flex gap-2"><span className="theme-text-muted shrink-0">anyBins:</span><span className="theme-text-secondary">{detailSkill.requirements.anyBins.join(', ')}</span></div>}
                     {detailSkill.requirements.env.length > 0 && <div className="flex gap-2"><span className="text-slate-400 shrink-0">env:</span><span className="text-slate-600 dark:text-white/60">{detailSkill.requirements.env.join(', ')}</span></div>}
                     {detailSkill.requirements.config.length > 0 && <div className="flex gap-2"><span className="text-slate-400 shrink-0">config:</span><span className="text-slate-600 dark:text-white/60">{detailSkill.requirements.config.join(', ')}</span></div>}
                     {detailSkill.requirements.os.length > 0 && <div className="flex gap-2"><span className="text-slate-400 shrink-0">os:</span><span className="text-slate-600 dark:text-white/60">{detailSkill.requirements.os.join(', ')}</span></div>}
@@ -1624,7 +1624,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
               {/* Config checks */}
               {detailSkill.configChecks.length > 0 && (
                 <div>
-                  <h4 className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase tracking-wider mb-1.5">{sk.configChecks || 'Config Checks'}</h4>
+                  <h4 className="text-[10px] font-bold theme-text-muted uppercase tracking-wider mb-1.5">{sk.configChecks || 'Config Checks'}</h4>
                   <div className="space-y-1">
                     {detailSkill.configChecks.map((c, i) => (
                       <div key={i} className="flex items-center gap-2 text-[11px]">
@@ -1657,12 +1657,12 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
             </div>
             <div className="px-5 py-3 border-t border-slate-200 dark:border-white/5 flex items-center gap-2 shrink-0">
               <button onClick={() => { setConfigSkill(detailSkill); setDetailSkill(null); }}
-                className="h-8 px-4 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 text-[11px] font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 flex items-center gap-1.5">
+                className="h-8 px-4 theme-field theme-text-secondary text-[11px] font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[14px]">tune</span>{sk.configure}
               </button>
               {detailSkill.homepage && (
                 <a href={detailSkill.homepage} target="_blank" rel="noopener noreferrer"
-                  className="h-8 px-4 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white/60 text-[11px] font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 flex items-center gap-1.5">
+                  className="h-8 px-4 theme-field theme-text-secondary text-[11px] font-bold rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[14px]">open_in_new</span>{sk.homepage}
                 </a>
               )}
