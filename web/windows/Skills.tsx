@@ -1069,34 +1069,22 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
     const reqId = ++marketSearchReqSeqRef.current;
     marketListReqSeqRef.current += 1;
     setMarketSearching(true);
-    const MAX_RETRIES = 3;
-    let lastErr: any = null;
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const res = await clawHubApi.search(marketQuery) as any;
       if (reqId !== marketSearchReqSeqRef.current) return;
-      try {
-        const res = await clawHubApi.search(marketQuery) as any;
-        if (reqId !== marketSearchReqSeqRef.current) return;
-        const items = Array.isArray(res) ? res : (res?.results || res?.skills || res?.data || res?.items || []);
-        setMarketResults(Array.isArray(items) ? items : []);
-        setMarketCursor(null);
-        if (res?._rateLimit) setMarketRateLimit(res._rateLimit);
-        lastErr = null;
-        break;
-      } catch (err: any) {
-        lastErr = err;
-        if (attempt < MAX_RETRIES - 1) {
-          await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempt)));
-        }
-      }
+      const items = Array.isArray(res) ? res : (res?.results || res?.skills || res?.data || res?.items || []);
+      setMarketResults(Array.isArray(items) ? items : []);
+      setMarketCursor(null);
+      if (res?._rateLimit) setMarketRateLimit(res._rateLimit);
+    } catch (err: any) {
+      if (reqId !== marketSearchReqSeqRef.current) return;
+      setMarketResults([]);
+      const isRateLimit = err?.code === 'RATE_LIMITED' || err?.code === 'CLAWHUB_UPSTREAM_ERROR' && err?.message?.includes('429');
+      toast('error', isRateLimit
+        ? (sk.marketRateLimited || 'ClawHub API rate limited, please try again later')
+        : `${sk.marketSearchFailed || 'Search failed'} (${err?.message || ''})`);
     }
     if (reqId === marketSearchReqSeqRef.current) {
-      if (lastErr) {
-        setMarketResults([]);
-        const isRateLimit = lastErr?.code === 'RATE_LIMITED' || lastErr?.code === 'CLAWHUB_UPSTREAM_ERROR' && lastErr?.message?.includes('429');
-        toast('error', isRateLimit
-          ? (sk.marketRateLimited || 'ClawHub API rate limited, please try again later')
-          : `${sk.marketSearchFailed || 'Search failed'} (${lastErr?.message || ''})`);
-      }
       setMarketSearching(false);
     }
   }, [marketQuery, marketSort, fetchMarketList, sk, toast]);
@@ -1112,7 +1100,7 @@ const Skills: React.FC<SkillsProps> = ({ language }) => {
     }
     marketSearchDebounceRef.current = setTimeout(() => {
       handleMarketSearch();
-    }, 300);
+    }, 500);
     return () => { if (marketSearchDebounceRef.current) clearTimeout(marketSearchDebounceRef.current); };
   }, [marketQuery, activeTab, handleMarketSearch, marketLoaded]);
 
