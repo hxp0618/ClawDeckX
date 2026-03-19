@@ -34,6 +34,75 @@ write_bootstrap() {
     node -e 'const fs = require("fs"); const payload = { status: process.env.BOOTSTRAP_STATUS, reason: process.env.BOOTSTRAP_REASON, gatewayPid: Number(process.env.BOOTSTRAP_PID || "0"), gatewayPort: Number(process.env.BOOTSTRAP_GATEWAY_PORT || "0"), openclawBin: process.env.BOOTSTRAP_OPENCLAW_BIN || "", openclawVersion: process.env.BOOTSTRAP_OPENCLAW_VERSION || "", configPath: process.env.BOOTSTRAP_CONFIG_PATH || "", stateDir: process.env.BOOTSTRAP_STATE_DIR || "", gatewayLog: process.env.BOOTSTRAP_GATEWAY_LOG || "", timestamp: process.env.BOOTSTRAP_TIMESTAMP || "" }; fs.writeFileSync(process.env.BOOTSTRAP_FILE, JSON.stringify(payload, null, 2));'
 }
 
+sanitize_openclaw_plugin_config() {
+    if [ ! -f "$OPENCLAW_CONFIG" ]; then
+        return 0
+    fi
+
+    if ! command -v node &>/dev/null; then
+        echo "[docker-entrypoint] node not found, skipping OpenClaw plugin config sanitization" >&2
+        return 1
+    fi
+
+    if OPENCLAW_CONFIG="$OPENCLAW_CONFIG" node <<'NODE'
+const fs = require('fs');
+
+const configPath = process.env.OPENCLAW_CONFIG;
+if (!configPath || !fs.existsSync(configPath)) {
+  process.exit(0);
+}
+
+const raw = fs.readFileSync(configPath, 'utf8');
+if (!raw.trim()) {
+  process.exit(0);
+}
+
+let config;
+try {
+  config = JSON.parse(raw);
+} catch (error) {
+  console.error(`[docker-entrypoint] ERROR: OpenClaw config is corrupted: ${configPath}`);
+  console.error(`[docker-entrypoint] ERROR: Please check ${configPath}`);
+  console.error(`[docker-entrypoint] ERROR: ${error.message}`);
+  process.exit(20);
+}
+const plugins = config.plugins;
+const entries = plugins && typeof plugins === 'object' ? plugins.entries : undefined;
+
+if (!entries || typeof entries !== 'object' || !Object.prototype.hasOwnProperty.call(entries, 'skillhub')) {
+  process.exit(0);
+}
+
+delete entries.skillhub;
+
+if (Object.keys(entries).length === 0) {
+  delete plugins.entries;
+}
+
+if (plugins && typeof plugins === 'object' && Object.keys(plugins).length === 0) {
+  delete config.plugins;
+}
+
+fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 });
+process.exit(10);
+NODE
+    then
+        return 0
+    else
+        status=$?
+        if [ "$status" -eq 10 ]; then
+            echo "[docker-entrypoint] Removed stale plugins.entries.skillhub from $OPENCLAW_CONFIG"
+            return 0
+        fi
+        if [ "$status" -eq 20 ]; then
+            echo "[docker-entrypoint] WARNING: OpenClaw plugin config sanitization skipped because the config file is invalid JSON" >&2
+            return 1
+        fi
+        echo "[docker-entrypoint] WARNING: Failed to sanitize OpenClaw plugin config (exit=$status)" >&2
+        return 1
+    fi
+}
+
 ensure_default_clawhub() {
     if command -v clawhub &>/dev/null; then
         return 0
@@ -114,6 +183,7 @@ if command -v openclaw &>/dev/null; then
     ensure_default_skillhub || true
 
     if ensure_default_openclaw_config; then
+        sanitize_openclaw_plugin_config || true
         echo "[docker-entrypoint] Starting OpenClaw gateway..."
         nohup openclaw gateway run --port "$GATEWAY_PORT" > "$GATEWAY_LOG" 2>&1 &
         GATEWAY_PID=$!

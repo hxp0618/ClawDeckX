@@ -91,7 +91,8 @@ COPY --from=openclaw-builder /usr/local/bin/openclaw /usr/local/bin/openclaw
 COPY --from=backend /clawdeckx ./clawdeckx
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 RUN mkdir -p /data/clawdeckx /data/openclaw/npm /data/openclaw/state /data/openclaw/logs /data/openclaw/bootstrap && \
-    chmod +x ./clawdeckx /app/docker-entrypoint.sh
+    chmod +x ./clawdeckx /app/docker-entrypoint.sh && \
+    ln -sf /app/clawdeckx /usr/local/bin/clawdeckx
 VOLUME ["/data"]
 EXPOSE 18788 18789
 ENV OCD_DB_SQLITE_PATH=/data/clawdeckx/ClawDeckX.db \
