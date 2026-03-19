@@ -1,8 +1,6 @@
 package database
 
 import (
-	"errors"
-
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -27,12 +25,12 @@ func NewSettingRepo() *SettingRepo {
 
 func (r *SettingRepo) Get(key string) (string, error) {
 	var setting Setting
-	err := r.db.Where("`key` = ?", key).First(&setting).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return "", nil
-		}
-		return "", err
+	result := r.db.Where("`key` = ?", key).Limit(1).Find(&setting)
+	if result.Error != nil {
+		return "", result.Error
+	}
+	if result.RowsAffected == 0 {
+		return "", nil
 	}
 	if isEncryptedSettingKey(key) {
 		return decryptStoredValue(setting.Value)
