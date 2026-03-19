@@ -64,59 +64,59 @@ const EventsPanel: React.FC<EventsPanelProps> = ({
     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar neon-scrollbar">
       {presetExceptionFilter && (
         <div className="mb-2 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-500/10 text-amber-300 text-[10px] font-bold">
+          <span className="inline-flex items-center gap-1 px-2 py-1 rounded bg-amber-500/10 text-amber-600 dark:text-amber-300 text-[10px] font-bold">
             <span className="material-symbols-outlined text-[12px]">filter_alt</span>
             {gw.presetFilterApplied || '已应用：异常事件筛选'}
           </span>
           <button onClick={() => { setEventRisk('all'); setEventType('all'); setEventSource('all'); setEventKeyword(''); setEventPage(1); setPresetExceptionFilter(false); }}
-            className="text-[10px] px-2 py-1 rounded bg-white/5 text-white/50 hover:text-white/80">
+            className="text-[10px] px-2 py-1 rounded bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white/80">
             {gw.clearFilter || '一键清除筛选'}
           </button>
         </div>
       )}
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <div className="relative w-full sm:w-[220px]">
-          <span className="material-symbols-outlined absolute start-2 top-1/2 -translate-y-1/2 text-white/20 text-[12px]">search</span>
+          <span className="material-symbols-outlined absolute start-2 top-1/2 -translate-y-1/2 text-slate-300 dark:text-white/20 text-[12px]">search</span>
           <input value={eventKeyword} onChange={e => setEventKeyword(e.target.value)} placeholder={gw.search}
-            className="w-full h-8 ps-7 pe-2 bg-white/5 border border-white/5 rounded text-[11px] text-white/80 placeholder:text-white/20 focus:ring-1 focus:ring-primary/50 outline-none" />
+            className="w-full h-8 ps-7 pe-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded text-[11px] text-slate-700 dark:text-white/80 placeholder:text-slate-300 dark:placeholder:text-white/20 focus:ring-1 focus:ring-primary/50 outline-none" />
         </div>
         <div className="flex items-center gap-1">
           {(['all', 'low', 'medium', 'high', 'critical'] as const).map(risk => (
             <button key={risk} onClick={() => setEventRisk(risk)}
-              className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all ${eventRisk === risk ? 'bg-white/10 text-white' : 'bg-white/5 text-white/40 hover:text-white/70'}`}>
+              className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all ${eventRisk === risk ? 'bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70'}`}>
               {gw[`risk${risk.charAt(0).toUpperCase()}${risk.slice(1)}` as keyof typeof gw] || risk}
             </button>
           ))}
         </div>
-        <div className="w-px h-5 bg-white/10 shrink-0" />
+        <div className="w-px h-5 bg-slate-200 dark:bg-white/10 shrink-0" />
         <div className="flex items-center gap-1">
           {(['all', 'activity', 'alert'] as const).map(tp => (
             <button key={tp} onClick={() => setEventType(tp)}
-              className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all ${eventType === tp ? 'bg-white/10 text-white' : 'bg-white/5 text-white/40 hover:text-white/70'}`}>
+              className={`px-2 py-1 rounded text-[10px] font-bold uppercase transition-all ${eventType === tp ? 'bg-slate-200 dark:bg-white/10 text-slate-800 dark:text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70'}`}>
               {gw[`type${tp.charAt(0).toUpperCase()}${tp.slice(1)}` as keyof typeof gw] || tp}
             </button>
           ))}
         </div>
         <CustomSelect value={eventSource} onChange={(v) => setEventSource(v)}
           options={eventSources.map((s) => ({ value: s, label: s }))}
-          className="h-8 px-2 bg-white/5 border border-white/10 rounded text-[11px] text-white/80" />
-        <button onClick={exportEvents} className="px-2 py-1 rounded text-[10px] font-bold bg-white/5 text-white/40 hover:text-white disabled:opacity-40" title={gw.exportEvents || 'Export'}>
+          className="h-8 px-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded text-[11px] text-slate-700 dark:text-white/80" />
+        <button onClick={exportEvents} className="px-2 py-1 rounded text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:text-slate-700 dark:hover:text-white disabled:opacity-40" title={gw.exportEvents || 'Export'}>
           <span className="material-symbols-outlined text-[12px] align-middle">download</span>
         </button>
         <button onClick={() => fetchEvents()} disabled={eventsLoading}
-          className="ms-auto px-2 py-1 rounded text-[10px] font-bold bg-white/5 text-white/60 hover:text-white disabled:opacity-40">
+          className="ms-auto px-2 py-1 rounded text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white disabled:opacity-40">
           <span className={`material-symbols-outlined text-[12px] align-middle me-1 ${eventsLoading ? 'animate-spin' : ''}`}>{eventsLoading ? 'progress_activity' : 'refresh'}</span>
           {gw.refresh}
         </button>
       </div>
 
       {eventsLoading && events.length === 0 ? (
-        <div className="flex items-center justify-center py-10 text-white/30 text-[11px]">
+        <div className="flex items-center justify-center py-10 text-slate-400 dark:text-white/30 text-[11px]">
           <span className="material-symbols-outlined text-[18px] animate-spin me-2">progress_activity</span>
           {gw.loading}
         </div>
       ) : events.length === 0 ? (
-        <div className="flex items-center justify-center py-10 text-white/20 text-[11px]">{gw.noEvents}</div>
+        <div className="flex items-center justify-center py-10 text-slate-300 dark:text-white/20 text-[11px]">{gw.noEvents}</div>
       ) : (
         <>
           <div className="space-y-2">
@@ -133,33 +133,33 @@ const EventsPanel: React.FC<EventsPanelProps> = ({
               const detailLines = (isGwLog && ev?.detail) ? ev.detail.split('\n').filter((l: string) => l.trim()) : null;
 
               return (
-                <div key={`${ev?.id || idx}`} className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                <div key={`${ev?.id || idx}`} className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] p-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-start gap-2 min-w-0 flex-1">
                       <span className={`material-symbols-outlined text-[16px] mt-0.5 shrink-0 ${evIconColor}`}>{evIcon}</span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[12px] font-bold text-white/85 break-all">{parseEventTitle(ev?.title || ev?.summary) || na}</p>
+                        <p className="text-[12px] font-bold text-slate-800 dark:text-white/85 break-all">{parseEventTitle(ev?.title || ev?.summary) || na}</p>
                         {detailLines ? (
                           <div className={`mt-1 space-y-0.5 ${!isExpanded ? 'line-clamp-2' : ''}`}>
                             {detailLines.map((line: string, li: number) => {
                               const colonIdx = line.indexOf(': ');
                               if (colonIdx > 0) {
-                                return <p key={li} className="text-[11px]"><span className="text-white/30 font-medium">{line.slice(0, colonIdx)}:</span> <span className="text-white/55">{line.slice(colonIdx + 2)}</span></p>;
+                                return <p key={li} className="text-[11px]"><span className="text-slate-400 dark:text-white/30 font-medium">{line.slice(0, colonIdx)}:</span> <span className="text-slate-500 dark:text-white/55">{line.slice(colonIdx + 2)}</span></p>;
                               }
-                              return <p key={li} className="text-[11px] text-white/45">{line}</p>;
+                              return <p key={li} className="text-[11px] text-slate-500 dark:text-white/45">{line}</p>;
                             })}
                           </div>
                         ) : (
-                          ev?.detail && <p className={`text-[11px] text-white/45 mt-1 break-all ${!isExpanded ? 'line-clamp-2' : ''}`}>{ev.detail}</p>
+                          ev?.detail && <p className={`text-[11px] text-slate-500 dark:text-white/45 mt-1 break-all ${!isExpanded ? 'line-clamp-2' : ''}`}>{ev.detail}</p>
                         )}
                       </div>
                     </div>
                     <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase ${riskCls}`}>{risk}</span>
                   </div>
                   {isExpanded && ev?.payload && (
-                    <pre className="mt-2 text-[10px] text-white/30 font-mono bg-white/[0.02] rounded p-2 max-h-[200px] overflow-y-auto custom-scrollbar neon-scrollbar break-all whitespace-pre-wrap">{JSON.stringify(ev.payload, null, 2)}</pre>
+                    <pre className="mt-2 text-[10px] text-slate-400 dark:text-white/30 font-mono bg-slate-50 dark:bg-white/[0.02] rounded p-2 max-h-[200px] overflow-y-auto custom-scrollbar neon-scrollbar break-all whitespace-pre-wrap">{JSON.stringify(ev.payload, null, 2)}</pre>
                   )}
-                  <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-white/35">
+                  <div className="mt-2 flex flex-wrap gap-2 text-[10px] text-slate-400 dark:text-white/35">
                     <span>{gw.eventSource}: {ev?.source || na}</span>
                     <span>{gw.eventCategory}: {ev?.category || na}</span>
                     <span>{gw.eventRisk}: {risk}</span>
@@ -167,7 +167,7 @@ const EventsPanel: React.FC<EventsPanelProps> = ({
                     <span>{ts ? new Date(ts).toLocaleString() : na}</span>
                     {(ev?.detail || ev?.payload) && (
                       <button onClick={() => setExpandedEvents(prev => { const n = new Set(prev); if (n.has(idx)) n.delete(idx); else n.add(idx); return n; })}
-                        className="px-1.5 py-0.5 rounded bg-white/5 text-white/40 hover:text-white/70">
+                        className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:text-slate-600 dark:hover:text-white/70">
                         {isExpanded ? '\u25be' : '\u25b8'} {gw.details || 'Details'}
                       </button>
                     )}
@@ -183,11 +183,11 @@ const EventsPanel: React.FC<EventsPanelProps> = ({
           {eventTotal > 50 && (
             <div className="flex items-center justify-center gap-3 mt-3 text-[11px]">
               <button onClick={() => { const p = Math.max(1, eventPage - 1); setEventPage(p); fetchEvents(p); }} disabled={eventPage <= 1}
-                className="px-2 py-1 rounded bg-white/5 text-white/50 hover:text-white disabled:opacity-30">{'\u2190'} {gw.prev || 'Prev'}</button>
-              <span className="text-white/40">{eventPage} / {Math.ceil(eventTotal / 50)}</span>
+                className="px-2 py-1 rounded bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white disabled:opacity-30">{'\u2190'} {gw.prev || 'Prev'}</button>
+              <span className="text-slate-400 dark:text-white/40">{eventPage} / {Math.ceil(eventTotal / 50)}</span>
               <button onClick={() => { const p = eventPage + 1; setEventPage(p); fetchEvents(p); }} disabled={eventPage >= Math.ceil(eventTotal / 50)}
-                className="px-2 py-1 rounded bg-white/5 text-white/50 hover:text-white disabled:opacity-30">{gw.next || 'Next'} {'\u2192'}</button>
-              <span className="text-white/25">{eventTotal} {gw.totalEvents || 'total'}</span>
+                className="px-2 py-1 rounded bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/50 hover:text-slate-700 dark:hover:text-white disabled:opacity-30">{gw.next || 'Next'} {'\u2192'}</button>
+              <span className="text-slate-300 dark:text-white/25">{eventTotal} {gw.totalEvents || 'total'}</span>
             </div>
           )}
         </>

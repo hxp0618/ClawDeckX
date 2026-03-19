@@ -19,23 +19,23 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-5 custom-scrollbar neon-scrollbar">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[12px] font-bold text-white/60 uppercase tracking-wider flex items-center gap-2">
+        <h3 className="text-[12px] font-bold text-slate-500 dark:text-white/60 uppercase tracking-wider flex items-center gap-2">
           <span className="material-symbols-outlined text-[16px] text-primary">cell_tower</span>
           {gw.channels || 'Channels'}
         </h3>
         <button onClick={() => fetchChannels(true)} disabled={channelsLoading}
-          className="px-2 py-1 rounded text-[10px] font-bold bg-white/5 text-white/60 hover:text-white disabled:opacity-40 flex items-center gap-1">
+          className="px-2 py-1 rounded text-[10px] font-bold bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/60 hover:text-slate-700 dark:hover:text-white disabled:opacity-40 flex items-center gap-1">
           <span className={`material-symbols-outlined text-[12px] ${channelsLoading ? 'animate-spin' : ''}`}>{channelsLoading ? 'progress_activity' : 'refresh'}</span>
           {gw.refresh}
         </button>
       </div>
       {channelsLoading && channelsList.length === 0 ? (
-        <div className="flex items-center justify-center py-10 text-white/30 text-[11px]">
+        <div className="flex items-center justify-center py-10 text-slate-400 dark:text-white/30 text-[11px]">
           <span className="material-symbols-outlined text-[18px] animate-spin me-2">progress_activity</span>
           {gw.loading}
         </div>
       ) : channelsList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-white/20">
+        <div className="flex flex-col items-center justify-center py-16 text-slate-300 dark:text-white/20">
           <span className="material-symbols-outlined text-[36px] mb-3">signal_disconnected</span>
           <p className="text-[12px]">{gw.noChannels || 'No channels configured'}</p>
         </div>
@@ -54,7 +54,7 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
             return (
               <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3 flex items-center gap-3 mb-1">
                 <span className="material-symbols-outlined text-[18px] text-red-400">warning</span>
-                <div className="text-[11px] text-red-300/80 space-x-3">
+                <div className="text-[11px] text-red-500 dark:text-red-300 space-x-3">
                   {stuckCount > 0 && <span className="font-bold">{stuckCount} {gw.chStuckCount || 'channel(s) stuck'}</span>}
                   {disconnectedCount > 0 && <span className="font-bold">{disconnectedCount} {gw.chDisconnectedCount || 'channel(s) disconnected'}</span>}
                 </div>
@@ -80,7 +80,7 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
               : isIdle ? (gw.channelIdle || 'Idle')
               : isDisabled ? (gw.channelDisabled || 'Disabled')
               : (gw.channelUnknown || 'Unknown');
-            const statusTextColor = isConnected ? 'text-emerald-400' : isDisconnected ? 'text-red-400' : isIdle ? 'text-amber-400' : 'text-white/30';
+            const statusTextColor = isConnected ? 'text-emerald-400' : isDisconnected ? 'text-red-400' : isIdle ? 'text-amber-400' : 'text-slate-400 dark:text-white/30';
 
             const lastEvent = ch.lastEventAt || ch.lastEvent || ch.last_event || ch.lastActivity || ch.last_activity;
             const lastEventStr = lastEvent ? new Date(lastEvent).toLocaleString() : null;
@@ -88,7 +88,7 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
             const lastOutAgo = fmtAgo(ch.lastOutboundAt, gw);
 
             return (
-              <div key={`${ch.channel || name}-${ch.accountId || ''}`} className="rounded-xl border border-white/5 bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-colors">
+              <div key={`${ch.channel || name}-${ch.accountId || ''}`} className="rounded-xl border border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] p-4 hover:bg-slate-100 dark:hover:bg-white/[0.04] transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="relative">
                     <div className={`w-3 h-3 rounded-full ${statusColor} shadow-lg`} />
@@ -96,9 +96,9 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[13px] font-bold text-white/80 truncate">{name}</span>
+                      <span className="text-[13px] font-bold text-slate-700 dark:text-white/80 truncate">{name}</span>
                       {ch.accountId && ch.accountId !== 'default' && (
-                        <span className="text-[9px] font-mono text-white/25 bg-white/5 px-1.5 py-0.5 rounded">{ch.accountId}</span>
+                        <span className="text-[9px] font-mono text-slate-400 dark:text-white/25 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded">{ch.accountId}</span>
                       )}
                       <span className={`text-[10px] font-bold uppercase ${statusTextColor}`}>{statusText}</span>
                       {isBusy && (
@@ -121,7 +121,7 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
                       )}
                     </div>
                     {lastEventStr && (
-                      <p className="text-[10px] text-white/30 mt-0.5">
+                      <p className="text-[10px] text-slate-400 dark:text-white/30 mt-0.5">
                         {gw.channelLastEvent || 'Last Activity'}: {lastEventStr}
                       </p>
                     )}
@@ -139,7 +139,7 @@ const ChannelsPanel: React.FC<ChannelsPanelProps> = ({
 
                 {/* Detail row: reconnects, inbound/outbound, error */}
                 {(ch.reconnectAttempts > 0 || lastInAgo || lastOutAgo || ch.lastError) && (
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-white/30 ps-7">
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-slate-400 dark:text-white/30 ps-7">
                     {typeof ch.reconnectAttempts === 'number' && ch.reconnectAttempts > 0 && (
                       <span className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-[11px] text-orange-400">sync</span>

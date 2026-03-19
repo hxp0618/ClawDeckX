@@ -82,7 +82,7 @@ const LIFECYCLE_COLOR: Record<string, string> = {
 const LIFECYCLE_BG: Record<string, string> = {
   started: 'bg-mac-green/10 border-mac-green/20',
   recovered: 'bg-mac-green/10 border-mac-green/20',
-  shutdown: 'bg-white/[0.04] border-white/[0.06]',
+  shutdown: 'bg-slate-100 dark:bg-white/[0.04] border-slate-200 dark:border-white/[0.06]',
   crashed: 'bg-mac-red/5 border-mac-red/20',
   unreachable: 'bg-mac-yellow/5 border-mac-yellow/20',
 };
@@ -167,64 +167,64 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
   }, []);
 
   return (
-    <div className="p-4 space-y-4 text-white/80 overflow-y-auto custom-scrollbar neon-scrollbar h-full">
+    <div className="p-4 space-y-4 text-slate-700 dark:text-white/80 overflow-y-auto custom-scrollbar neon-scrollbar h-full">
       {/* Process Info */}
       <div className="space-y-2">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/40 flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px]">info</span>
           {gw.serviceProcessInfo || 'Process Info'}
         </h4>
         {status?.running ? (
           <div className="grid grid-cols-2 gap-2">
-            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.status || 'Status'}</p>
+            <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06]">
+              <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.status || 'Status'}</p>
               <p className="text-[12px] font-bold text-mac-green flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-mac-green animate-pulse" />
                 {gw.running || 'Running'}
               </p>
             </div>
-            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.runtimeMode || 'Mode'}</p>
-              <p className="text-[12px] font-bold font-mono text-white/70">{status.runtime ? ((gw as any)[`runtime${status.runtime.charAt(0).toUpperCase()}${status.runtime.slice(1)}`] || status.runtime) : '-'}</p>
+            <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06]">
+              <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.runtimeMode || 'Mode'}</p>
+              <p className="text-[12px] font-bold font-mono text-slate-600 dark:text-white/70">{status.runtime ? ((gw as any)[`runtime${status.runtime.charAt(0).toUpperCase()}${status.runtime.slice(1)}`] || status.runtime) : '-'}</p>
             </div>
-            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06] col-span-2">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.serviceDetail || 'Detail'}</p>
-              <p className="text-[11px] font-mono text-white/50 break-all">{status.detail || '-'}</p>
+            <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06] col-span-2">
+              <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.serviceDetail || 'Detail'}</p>
+              <p className="text-[11px] font-mono text-slate-500 dark:text-white/50 break-all">{status.detail || '-'}</p>
             </div>
           </div>
         ) : (
-          <div className="px-3 py-4 rounded-lg bg-white/[0.02] border border-white/[0.06] text-center">
-            <span className="material-symbols-outlined text-[24px] text-white/15 mb-1">power_off</span>
-            <p className="text-[11px] text-white/30">{gw.serviceNotRunning || 'Gateway is not running'}</p>
+          <div className="px-3 py-4 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] text-center">
+            <span className="material-symbols-outlined text-[24px] text-slate-200 dark:text-white/15 mb-1">power_off</span>
+            <p className="text-[11px] text-slate-400 dark:text-white/30">{gw.serviceNotRunning || 'Gateway is not running'}</p>
           </div>
         )}
       </div>
 
       {/* Daemon Service Status */}
       <div className="space-y-2">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/40 flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px]">settings_system_daydream</span>
           {gw.serviceTitle || 'System Service'}
         </h4>
-        <p className="text-[10px] text-white/30 leading-relaxed">{gw.serviceDesc || 'Run gateway as an OS-level service for auto-start on boot'}</p>
+        <p className="text-[10px] text-slate-400 dark:text-white/30 leading-relaxed">{gw.serviceDesc || 'Run gateway as an OS-level service for auto-start on boot'}</p>
 
         {remote ? (
-          <div className="px-3 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06] flex items-center gap-2">
-            <span className="material-symbols-outlined text-[16px] text-white/20">cloud</span>
-            <p className="text-[11px] text-white/40">{gw.daemonRemoteHint || 'Remote gateways are already running as services. Daemon management is only available for local gateways.'}</p>
+          <div className="px-3 py-3 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] flex items-center gap-2">
+            <span className="material-symbols-outlined text-[16px] text-slate-300 dark:text-white/20">cloud</span>
+            <p className="text-[11px] text-slate-400 dark:text-white/40">{gw.daemonRemoteHint || 'Remote gateways are already running as services. Daemon management is only available for local gateways.'}</p>
           </div>
         ) : status?.runtime === 'systemd' || status?.runtime === 'docker' ? (
           <div className="px-3 py-3 rounded-lg bg-mac-green/5 border border-mac-green/20 flex items-center gap-2">
             <span className="material-symbols-outlined text-[16px] text-mac-green">check_circle</span>
             <div>
               <p className="text-[11px] font-bold text-mac-green">{gw.daemonAlreadyManaged || 'Already managed by system service'}</p>
-              <p className="text-[10px] text-white/40 mt-0.5">{status.runtime === 'systemd' ? 'systemd' : 'Docker'} — {status.detail || ''}</p>
+              <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5">{status.runtime === 'systemd' ? 'systemd' : 'Docker'} — {status.detail || ''}</p>
             </div>
           </div>
         ) : loading ? (
-          <div className="flex items-center gap-2 px-3 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-            <span className="material-symbols-outlined text-[16px] text-white/20 animate-spin">progress_activity</span>
-            <span className="text-[11px] text-white/30">{gw.loading || 'Loading...'}</span>
+          <div className="flex items-center gap-2 px-3 py-3 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06]">
+            <span className="material-symbols-outlined text-[16px] text-slate-300 dark:text-white/20 animate-spin">progress_activity</span>
+            <span className="text-[11px] text-slate-400 dark:text-white/30">{gw.loading || 'Loading...'}</span>
           </div>
         ) : daemon ? (
           <div className="space-y-2">
@@ -232,18 +232,18 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
             <div className={`px-3 py-3 rounded-lg border flex items-center gap-3 ${
               daemon.installed
                 ? 'bg-mac-green/5 border-mac-green/20'
-                : 'bg-white/[0.02] border-white/[0.06]'
+                : 'bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.06]'
             }`}>
-              <span className={`material-symbols-outlined text-[22px] ${daemon.installed ? 'text-mac-green' : 'text-white/20'}`}>
+              <span className={`material-symbols-outlined text-[22px] ${daemon.installed ? 'text-mac-green' : 'text-slate-300 dark:text-white/20'}`}>
                 {PLATFORM_ICONS[daemon.platform] || 'dns'}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold text-white/70">
+                <p className="text-[11px] font-bold text-slate-600 dark:text-white/70">
                   {PLATFORM_LABELS[daemon.platform] || daemon.platform}
                 </p>
-                <p className="text-[10px] text-white/40 mt-0.5">{daemon.detail}</p>
+                <p className="text-[10px] text-slate-400 dark:text-white/40 mt-0.5">{daemon.detail}</p>
                 {daemon.unitFile && (
-                  <p className="text-[9px] font-mono text-white/20 mt-0.5 truncate">{daemon.unitFile}</p>
+                  <p className="text-[9px] font-mono text-slate-300 dark:text-white/20 mt-0.5 truncate">{daemon.unitFile}</p>
                 )}
               </div>
               <div className="flex flex-col items-end gap-1 shrink-0">
@@ -272,15 +272,15 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
               <button
                 onClick={fetchDaemonStatus}
                 disabled={loading}
-                className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-white hover:bg-white/10 transition-all disabled:opacity-40"
+                className="p-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-400 dark:text-white/40 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 transition-all disabled:opacity-40"
               >
                 <span className="material-symbols-outlined text-[14px]">refresh</span>
               </button>
             </div>
           </div>
         ) : (
-          <div className="px-3 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06] text-center">
-            <p className="text-[11px] text-white/30">{gw.daemonStatusFailed || 'Failed to query daemon status'}</p>
+          <div className="px-3 py-3 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] text-center">
+            <p className="text-[11px] text-slate-400 dark:text-white/30">{gw.daemonStatusFailed || 'Failed to query daemon status'}</p>
             <button onClick={fetchDaemonStatus} className="mt-1 text-[10px] text-primary hover:underline">{gw.retry || 'Retry'}</button>
           </div>
         )}
@@ -288,7 +288,7 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
 
       {/* WebSocket Connection Status */}
       <div className="space-y-2">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/40 flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px]">cable</span>
           {gw.svcWsTitle || 'WebSocket Connection'}
         </h4>
@@ -308,14 +308,14 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
                 <p className={`text-[12px] font-bold ${wsStatus.connected ? 'text-mac-green' : 'text-mac-red'}`}>
                   {wsStatus.connected ? (gw.svcWsConnected || 'Connected') : (gw.svcWsDisconnected || 'Disconnected')}
                 </p>
-                <p className="text-[10px] text-white/40 font-mono mt-0.5">
+                <p className="text-[10px] text-slate-400 dark:text-white/40 font-mono mt-0.5">
                   {wsStatus.host}:{wsStatus.port}
                 </p>
               </div>
               <button
                 onClick={handleReconnect}
                 disabled={reconnecting}
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/5 text-white/50 font-bold text-[10px] transition-all hover:bg-white/10 hover:text-white disabled:opacity-40 shrink-0"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-white/50 font-bold text-[10px] transition-all hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-white disabled:opacity-40 shrink-0"
               >
                 <span className={`material-symbols-outlined text-[14px] ${reconnecting ? 'animate-spin' : ''}`}>
                   {reconnecting ? 'progress_activity' : 'refresh'}
@@ -325,13 +325,13 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-                <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.svcWsReconnects || 'Reconnects'}</p>
-                <p className="text-[12px] font-bold font-mono text-white/70">{wsStatus.reconnect_count}</p>
+              <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06]">
+                <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.svcWsReconnects || 'Reconnects'}</p>
+                <p className="text-[12px] font-bold font-mono text-slate-600 dark:text-white/70">{wsStatus.reconnect_count}</p>
               </div>
-              <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-                <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.svcWsBackoff || 'Backoff'}</p>
-                <p className="text-[12px] font-bold font-mono text-white/70">
+              <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06]">
+                <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.svcWsBackoff || 'Backoff'}</p>
+                <p className="text-[12px] font-bold font-mono text-slate-600 dark:text-white/70">
                   {wsStatus.backoff_ms >= 1000 ? `${(wsStatus.backoff_ms / 1000).toFixed(1)}s` : `${wsStatus.backoff_ms}ms`}
                 </p>
               </div>
@@ -339,41 +339,41 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
 
             {wsStatus.last_error && (
               <div className="px-3 py-2 rounded-lg bg-mac-red/5 border border-mac-red/20">
-                <p className="text-[9px] text-white/30 uppercase tracking-wider mb-0.5">{gw.svcWsLastError || 'Last Error'}</p>
+                <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider mb-0.5">{gw.svcWsLastError || 'Last Error'}</p>
                 <p className="text-[10px] font-mono text-mac-red/80 break-all">{wsStatus.last_error}</p>
               </div>
             )}
           </div>
         ) : (
-          <div className="flex items-center gap-2 px-3 py-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
-            <span className="material-symbols-outlined text-[16px] text-white/20 animate-spin">progress_activity</span>
-            <span className="text-[11px] text-white/30">{gw.loading || 'Loading...'}</span>
+          <div className="flex items-center gap-2 px-3 py-3 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06]">
+            <span className="material-symbols-outlined text-[16px] text-slate-300 dark:text-white/20 animate-spin">progress_activity</span>
+            <span className="text-[11px] text-slate-400 dark:text-white/30">{gw.loading || 'Loading...'}</span>
           </div>
         )}
       </div>
 
       {/* Watchdog Status */}
       <div className="space-y-2">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/40 flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px]">pets</span>
           {gw.serviceWatchdog || 'Watchdog'}
         </h4>
         <div className={`px-3 py-2.5 rounded-lg border flex items-center gap-2 ${
           healthCheckEnabled
             ? 'bg-mac-green/5 border-mac-green/20'
-            : 'bg-white/[0.02] border-white/[0.06]'
+            : 'bg-slate-50 dark:bg-white/[0.02] border-slate-200 dark:border-white/[0.06]'
         }`}>
-          <span className={`material-symbols-outlined text-[18px] ${healthCheckEnabled ? 'text-mac-green' : 'text-white/20'}`}>
+          <span className={`material-symbols-outlined text-[18px] ${healthCheckEnabled ? 'text-mac-green' : 'text-slate-300 dark:text-white/20'}`}>
             {healthCheckEnabled ? 'shield' : 'shield_question'}
           </span>
           <div className="flex-1 min-w-0">
-            <p className={`text-[11px] font-bold ${healthCheckEnabled ? 'text-mac-green' : 'text-white/40'}`}>
+            <p className={`text-[11px] font-bold ${healthCheckEnabled ? 'text-mac-green' : 'text-slate-400 dark:text-white/40'}`}>
               {healthCheckEnabled
                 ? (gw.serviceWatchdogActive || 'Active')
                 : (gw.serviceWatchdogInactive || 'Inactive')}
             </p>
             {healthCheckEnabled && healthStatus && (
-              <p className="text-[10px] text-white/30 mt-0.5">
+              <p className="text-[10px] text-slate-400 dark:text-white/30 mt-0.5">
                 {healthStatus.fail_count > 0
                   ? `${gw.hbUnhealthy || 'Unhealthy'} (${healthStatus.fail_count} fails)`
                   : `${gw.hbHealthy || 'Healthy'} — ${healthStatus.last_ok ? new Date(healthStatus.last_ok).toLocaleTimeString() : '-'}`}
@@ -384,21 +384,21 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
 
         {healthCheckEnabled && wsStatus && (
           <div className="grid grid-cols-3 gap-2">
-            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.wdFailCount || 'Fails'}</p>
+            <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06]">
+              <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.wdFailCount || 'Fails'}</p>
               <p className={`text-[12px] font-bold font-mono ${
                 wsStatus.fail_count > 0 ? (wsStatus.fail_count >= wsStatus.max_fails ? 'text-mac-red' : 'text-mac-yellow') : 'text-mac-green'
               }`}>
                 {wsStatus.fail_count}/{wsStatus.max_fails}
               </p>
             </div>
-            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.wdInterval || 'Interval'}</p>
-              <p className="text-[12px] font-bold font-mono text-white/70">{wsStatus.interval_sec}s</p>
+            <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06]">
+              <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.wdInterval || 'Interval'}</p>
+              <p className="text-[12px] font-bold font-mono text-slate-600 dark:text-white/70">{wsStatus.interval_sec}s</p>
             </div>
-            <div className="px-3 py-2 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-              <p className="text-[9px] text-white/30 uppercase tracking-wider">{gw.wdLastOk || 'Last OK'}</p>
-              <p className="text-[11px] font-mono text-white/60">
+            <div className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/[0.06]">
+              <p className="text-[9px] text-slate-400 dark:text-white/30 uppercase tracking-wider">{gw.wdLastOk || 'Last OK'}</p>
+              <p className="text-[11px] font-mono text-slate-500 dark:text-white/60">
                 {wsStatus.last_ok ? new Date(wsStatus.last_ok).toLocaleTimeString() : '-'}
               </p>
             </div>
@@ -410,7 +410,7 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
             <span className="material-symbols-outlined text-[14px] text-amber-500">hourglass_top</span>
             <div>
               <p className="text-[10px] font-bold text-amber-400">{gw.wdGracePeriod || 'Grace Period Active'}</p>
-              <p className="text-[9px] text-white/30 font-mono mt-0.5">
+              <p className="text-[9px] text-slate-400 dark:text-white/30 font-mono mt-0.5">
                 {gw.wdGraceUntil || 'Until'}: {new Date(wsStatus.grace_until).toLocaleTimeString()}
               </p>
             </div>
@@ -420,7 +420,7 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
         {healthCheckEnabled && remote && (
           <div className="px-3 py-2 rounded-lg bg-primary/5 border border-primary/20 flex items-center gap-2">
             <span className="material-symbols-outlined text-[14px] text-primary">cloud</span>
-            <p className="text-[10px] text-white/40">
+            <p className="text-[10px] text-slate-400 dark:text-white/40">
               {gw.wdRemoteHint || 'Remote mode: watchdog will only reconnect, never restart the remote gateway.'}
             </p>
           </div>
@@ -429,23 +429,23 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
 
       {/* Gateway Lifecycle Timeline */}
       <div className="space-y-2">
-        <h4 className="text-[11px] font-bold uppercase tracking-wider text-white/40 flex items-center gap-1.5">
+        <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-white/40 flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[14px]">history</span>
           {gw.lifecycleTitle || 'Gateway History'}
         </h4>
 
         {lifecycleRecords.length === 0 ? (
-          <div className="px-3 py-4 rounded-lg bg-white/[0.02] border border-white/[0.06] text-center">
-            <span className="material-symbols-outlined text-[24px] text-white/10 mb-1">timeline</span>
-            <p className="text-[11px] text-white/30">{gw.lifecycleEmpty || 'No lifecycle events yet'}</p>
+          <div className="px-3 py-4 rounded-lg bg-slate-50 dark:bg-white/[0.02] border border-slate-200 dark:border-white/[0.06] text-center">
+            <span className="material-symbols-outlined text-[24px] text-slate-200 dark:text-white/10 mb-1">timeline</span>
+            <p className="text-[11px] text-slate-400 dark:text-white/30">{gw.lifecycleEmpty || 'No lifecycle events yet'}</p>
           </div>
         ) : (
           <div className="space-y-0">
             {(lifecycleExpanded ? lifecycleRecords : lifecycleRecords.slice(0, 8)).map((rec, idx) => {
               const eventLabel = (gw as any)[`lifecycle${rec.event_type.charAt(0).toUpperCase()}${rec.event_type.slice(1)}`] || rec.event_type;
-              const color = LIFECYCLE_COLOR[rec.event_type] || 'text-white/50';
+              const color = LIFECYCLE_COLOR[rec.event_type] || 'text-slate-500 dark:text-white/50';
               const icon = LIFECYCLE_ICON[rec.event_type] || 'radio_button_checked';
-              const bg = LIFECYCLE_BG[rec.event_type] || 'bg-white/[0.04] border-white/[0.06]';
+              const bg = LIFECYCLE_BG[rec.event_type] || 'bg-slate-100 dark:bg-white/[0.04] border-slate-200 dark:border-white/[0.06]';
               const ts = new Date(rec.timestamp);
               const timeStr = ts.toLocaleString(undefined, { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
               const uptimeStr = fmtLifecycleUptime(rec.uptime_sec);
@@ -454,25 +454,25 @@ const ServicePanel: React.FC<ServicePanelProps> = ({ status, healthCheckEnabled,
                 <div key={rec.id || idx} className="flex items-start gap-0 group">
                   {/* Timeline line + dot */}
                   <div className="flex flex-col items-center w-6 shrink-0">
-                    <div className={`w-0.5 ${idx === 0 ? 'h-2' : 'h-3'} ${idx === 0 ? 'bg-transparent' : 'bg-white/10'}`} />
+                    <div className={`w-0.5 ${idx === 0 ? 'h-2' : 'h-3'} ${idx === 0 ? 'bg-transparent' : 'bg-slate-200 dark:bg-white/10'}`} />
                     <span className={`material-symbols-outlined text-[14px] ${color}`}>{icon}</span>
-                    <div className={`w-0.5 flex-1 ${idx === (lifecycleExpanded ? lifecycleRecords.length : Math.min(lifecycleRecords.length, 8)) - 1 ? 'bg-transparent' : 'bg-white/10'}`} />
+                    <div className={`w-0.5 flex-1 ${idx === (lifecycleExpanded ? lifecycleRecords.length : Math.min(lifecycleRecords.length, 8)) - 1 ? 'bg-transparent' : 'bg-slate-200 dark:bg-white/10'}`} />
                   </div>
 
                   {/* Content */}
                   <div className={`flex-1 min-w-0 px-2.5 py-1.5 my-0.5 rounded-lg border transition-all ${bg}`}>
                     <div className="flex items-center justify-between gap-2">
                       <p className={`text-[11px] font-bold ${color}`}>{eventLabel}</p>
-                      <span className="text-[9px] text-white/25 font-mono shrink-0">{timeStr}</span>
+                      <span className="text-[9px] text-slate-300 dark:text-white/25 font-mono shrink-0">{timeStr}</span>
                     </div>
                     <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                       {uptimeStr && (
-                        <span className="text-[9px] text-white/30">
-                          {gw.lifecycleUptime || 'Uptime'}: <span className="font-mono text-white/50">{uptimeStr}</span>
+                        <span className="text-[9px] text-slate-400 dark:text-white/30">
+                          {gw.lifecycleUptime || 'Uptime'}: <span className="font-mono text-slate-500 dark:text-white/50">{uptimeStr}</span>
                         </span>
                       )}
                       {rec.reason && (
-                        <span className="text-[9px] text-white/30 truncate max-w-[180px]" title={rec.reason}>
+                        <span className="text-[9px] text-slate-400 dark:text-white/30 truncate max-w-[180px]" title={rec.reason}>
                           {rec.reason}
                         </span>
                       )}
