@@ -42,8 +42,8 @@ const ExpandableDesc: React.FC<{ text: string; moreLabel: string }> = ({ text, m
   const needsExpand = text.length > 80;
   return (
     <div className="mb-3">
-      <p className={`text-[11px] theme-text-muted leading-relaxed ${needsExpand ? 'cursor-pointer' : ''} ${expanded ? '' : 'line-clamp-2'}`}
-        onClick={(e) => { e.stopPropagation(); needsExpand && setExpanded(!expanded); }}>
+      <p className={`text-[11px] theme-text-muted leading-relaxed ${needsExpand && !expanded ? 'cursor-pointer' : ''} ${expanded ? '' : 'line-clamp-2'}`}
+        onClick={needsExpand && !expanded ? (e) => { e.stopPropagation(); setExpanded(true); } : undefined}>
         {text}
       </p>
       {needsExpand && !expanded && (
