@@ -14,6 +14,7 @@ _2026-03-19_
 
 ### 🐛 Bug Fixes / 修复
 
+- change skip-docker marker to SKIP_DOCKER=true to avoid changelog false match
 - use GitHub API instead of checkout to read tag message in check-docker job
 - suppress GORM record-not-found log for missing settings
 
@@ -294,6 +295,7 @@ _2026-03-15_
 
 
 ---
+
 
 
 
