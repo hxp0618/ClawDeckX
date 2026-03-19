@@ -122,9 +122,34 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  check-docker:
+    name: Check Docker Skip
+    needs: release
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-tags: true
+
+      - name: Check tag message for [skip-docker]
+        id: check
+        run: |
+          TAG_MSG=$(git tag -l --format='%(contents)' "${GITHUB_REF_NAME}" 2>/dev/null || echo "")
+          echo "Tag message: $TAG_MSG"
+          if echo "$TAG_MSG" | grep -qF '[skip-docker]'; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "::notice::Docker build skipped via [skip-docker] tag marker"
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
   docker:
     name: Build & Push Docker Image
-    needs: release
+    needs: [release, check-docker]
+    if: needs.check-docker.outputs.skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
