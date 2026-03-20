@@ -425,6 +425,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
       });
       setCrudMode(null);
       loadAgents();
+      loadConfig();
     } catch (err: any) {
       setCrudError(aRef.current.createFailed + ': ' + (err?.message || ''));
     }
@@ -445,6 +446,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
       });
       setCrudMode(null);
       loadAgents();
+      loadConfig();
     } catch (err: any) {
       setCrudError(aRef.current.updateFailed + ': ' + (err?.message || ''));
     }
