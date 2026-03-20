@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Language } from '../../types';
 import { getTranslation } from '../../locales';
+import { resolveTemplateHex } from '../../utils/templateColors';
 
 interface Agent {
   id: string;
@@ -170,7 +171,7 @@ const WorkflowVisualizer: React.FC<WorkflowVisualizerProps> = ({
           width={size}
           height={size}
           rx={12}
-          fill={agent.color || '#6366f1'}
+          fill={resolveTemplateHex(agent.color)}
           className={isRunning ? 'animate-pulse' : ''}
         />
         

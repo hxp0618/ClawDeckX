@@ -8,6 +8,7 @@ import { FileApplyConfirm, FileApplyRequest } from '../FileApplyConfirm';
 import WorkflowVisualizer from './WorkflowVisualizer';
 import MultiAgentDeployWizard from './MultiAgentDeployWizard';
 import WorkflowRunner from './WorkflowRunner';
+import { resolveTemplateColor } from '../../utils/templateColors';
 
 interface MultiAgentCollaborationProps {
   language: Language;
@@ -258,7 +259,8 @@ ${blockEnd}
             >
               <div className="flex items-start gap-3">
                 <div
-                  className={`w-10 h-10 rounded-lg bg-gradient-to-br ${template.metadata.color || 'from-purple-500 to-pink-500'} flex items-center justify-center shrink-0`}
+                  className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                  style={resolveTemplateColor(template.metadata.color)}
                 >
                   <span className="material-symbols-outlined text-white text-[20px]">{template.metadata.icon || 'groups'}</span>
                 </div>
@@ -287,7 +289,8 @@ ${blockEnd}
               <div className="p-4 border-b border-slate-100 dark:border-white/5">
                 <div className="flex items-start gap-3">
                   <div
-                    className={`w-12 h-12 rounded-xl bg-gradient-to-br ${selectedTemplate.metadata.color || 'from-purple-500 to-pink-500'} flex items-center justify-center shrink-0`}
+                    className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                    style={resolveTemplateColor(selectedTemplate.metadata.color)}
                   >
                     <span className="material-symbols-outlined text-white text-[24px]">{selectedTemplate.metadata.icon || 'groups'}</span>
                   </div>
@@ -361,7 +364,8 @@ ${blockEnd}
                   {selectedTemplate.content.agents.map((agent) => (
                     <div key={agent.id} className="text-center">
                       <div
-                        className={`w-12 h-12 mx-auto rounded-xl ${agent.color || 'bg-slate-500'} flex items-center justify-center mb-2`}
+                        className="w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-2"
+                        style={resolveTemplateColor(agent.color)}
                       >
                         <span className="material-symbols-outlined text-white text-[20px]">{agent.icon || 'person'}</span>
                       </div>

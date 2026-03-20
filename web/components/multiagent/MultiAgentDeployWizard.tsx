@@ -4,6 +4,7 @@ import { getTranslation } from '../../locales';
 import { multiAgentApi, MultiAgentDeployRequest, MultiAgentDeployResult } from '../../services/api';
 import { MultiAgentTemplate } from '../../services/template-system';
 import { useToast } from '../Toast';
+import { resolveTemplateColor } from '../../utils/templateColors';
 
 interface MultiAgentDeployWizardProps {
   template: MultiAgentTemplate;
@@ -127,7 +128,7 @@ const MultiAgentDeployWizard: React.FC<MultiAgentDeployWizardProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${template.metadata.color || 'from-purple-500 to-pink-500'} flex items-center justify-center`}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={resolveTemplateColor(template.metadata.color)}>
               <span className="material-symbols-outlined text-white text-[20px]">{template.metadata.icon || 'groups'}</span>
             </div>
             <div>
@@ -193,7 +194,7 @@ const MultiAgentDeployWizard: React.FC<MultiAgentDeployWizardProps> = ({
                 <div className="divide-y divide-slate-100 dark:divide-white/5">
                   {template.content.agents.map((agent) => (
                     <div key={agent.id} className="px-4 py-3 flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl ${agent.color || 'bg-slate-500'} flex items-center justify-center shrink-0`}>
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={resolveTemplateColor(agent.color)}>
                         <span className="material-symbols-outlined text-white text-[18px]">{agent.icon || 'person'}</span>
                       </div>
                       <div className="flex-1 min-w-0">
