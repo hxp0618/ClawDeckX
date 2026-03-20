@@ -396,15 +396,17 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
   const openEdit = useCallback(() => {
     if (!selected) return;
     setCrudMode('edit');
-    const cfg = resolveAgentConfig(selected.id);
-    // For workspace, use the raw config value (not the i18n display label)
+    // Read raw values from config entry (not display labels)
     const cfg0 = config?.agents || config?.parsed?.agents || config?.config?.agents || {};
     const list = cfg0?.list || [];
     const entry = list.find((e: any) => e?.id === selected.id);
-    const rawWorkspace = entry?.workspace || cfg0?.defaults?.workspace || '';
+    const defaults = cfg0?.defaults;
+    const rawWorkspace = entry?.workspace || defaults?.workspace || '';
+    const rawModel = entry?.model || defaults?.model || '';
+    const modelStr = typeof rawModel === 'string' ? rawModel : (rawModel?.primary || '');
     setCrudName(resolveLabel(selected));
     setCrudWorkspace(rawWorkspace);
-    setCrudModel(cfg.model.replace(/ \(\+\d+\)$/, ''));
+    setCrudModel(modelStr);
     setCrudEmoji(resolveEmoji(selected));
     setCrudError(null);
   }, [selected, config]);
@@ -437,25 +439,20 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
     if (!gwReady || crudBusy || !selectedId) return;
     setCrudBusy(true); setCrudError(null);
     try {
-      // Fetch current config and patch the agent entry directly
+      // Build a minimal agent entry patch
+      const agentEntry: Record<string, any> = { id: selectedId };
+      if (crudName.trim()) agentEntry.name = crudName.trim();
+      if (crudWorkspace.trim()) agentEntry.workspace = crudWorkspace.trim();
+      if (crudModel.trim()) agentEntry.model = crudModel.trim();
+      // Patch config via config.patch (merges agents.list by id)
       const cfgRaw = await gwApi.configGet() as any;
-      const parsed = cfgRaw?.parsed || cfgRaw?.config || cfgRaw || {};
-      const agentsCfg = parsed?.agents || {};
-      const list: any[] = Array.isArray(agentsCfg.list) ? [...agentsCfg.list] : [];
-      const idx = list.findIndex((e: any) => e?.id === selectedId);
-      const entry: any = idx >= 0 ? { ...list[idx] } : { id: selectedId };
-      if (crudWorkspace.trim()) entry.workspace = crudWorkspace.trim();
-      if (crudModel.trim()) entry.model = crudModel.trim();
-      else delete entry.model;
-      if (idx >= 0) list[idx] = entry; else list.push(entry);
-      const patch = { agents: { ...agentsCfg, list } };
-      const baseHash = cfgRaw?.hash || cfgRaw?.baseHash || undefined;
+      const baseHash = cfgRaw?.hash || cfgRaw?.baseHash || '';
+      const patch = { agents: { list: [agentEntry] } };
       await gwApi.configPatch(JSON.stringify(patch), baseHash);
-      // Update identity (name/emoji) via agents.update if supported
+      // Update identity (emoji) via agents.update if supported
       try {
         await gwApi.proxy('agents.update', {
           agentId: selectedId,
-          name: crudName.trim() || undefined,
           avatar: crudEmoji.trim() || undefined,
         });
       } catch { /* best-effort */ }
