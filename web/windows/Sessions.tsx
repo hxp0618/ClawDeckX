@@ -400,6 +400,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
 
   // Session override settings panel
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [toolbarMenuOpen, setToolbarMenuOpen] = useState(false);
   const [patchBusy, setPatchBusy] = useState(false);
   const [savedField, setSavedField] = useState<string | null>(null);
   // Grace window: recently-patched session fields that loadSessions should not overwrite.
@@ -2159,55 +2160,11 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-1">
-            <button onClick={() => setToolsExpanded(v => !v)}
-              className={`p-2 rounded-lg transition-colors ${toolsExpanded ? 'text-purple-500 bg-purple-500/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
-              title={toolsExpanded ? (c.toolsCollapse || 'Collapse tools') : (c.toolsExpand || 'Expand tools')}>
-              <span className="material-symbols-outlined text-[18px]">{toolsExpanded ? 'unfold_less' : 'unfold_more'}</span>
-            </button>
+          <div className="flex items-center gap-0.5">
             <button onClick={() => setSettingsOpen(v => !v)}
               className={`p-2 rounded-lg transition-colors ${settingsOpen ? 'text-primary bg-primary/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
               title={c.overrides || 'Overrides'}>
               <span className="material-symbols-outlined text-[18px]">tune</span>
-            </button>
-            <div className="relative group/export">
-              <button onClick={() => exportChat('md')} disabled={messages.length === 0}
-                className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600 rounded-lg transition-colors disabled:opacity-30"
-                title={c.exportChat || 'Export Markdown'}>
-                <span className="material-symbols-outlined text-[18px]">download</span>
-              </button>
-              <div className="absolute top-full end-0 mt-1 hidden group-hover/export:block z-30">
-                <div className="rounded-lg theme-panel sci-card shadow-xl py-1 min-w-[120px]">
-                  <button onClick={() => exportChat('md')} disabled={messages.length === 0}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] theme-text-secondary hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
-                    <span className="material-symbols-outlined text-[13px]">description</span>Markdown
-                  </button>
-                  <button onClick={() => exportChat('json')} disabled={messages.length === 0}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-[11px] theme-text-secondary hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30">
-                    <span className="material-symbols-outlined text-[13px]">data_object</span>JSON
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button onClick={() => setInjectOpen(true)} disabled={!gwReady}
-              className="p-2 text-slate-400 hover:bg-purple-100 dark:hover:bg-purple-500/10 hover:text-purple-500 rounded-lg transition-colors disabled:opacity-30"
-              title={c.inject}>
-              <span className="material-symbols-outlined text-[18px]">add_comment</span>
-            </button>
-            <button onClick={handleResolve} disabled={!gwReady || resolving || !sessionKey.trim()}
-              className="p-2 text-slate-400 hover:bg-blue-100 dark:hover:bg-blue-500/10 hover:text-blue-500 rounded-lg transition-colors disabled:opacity-30"
-              title={c.resolve}>
-              <span className={`material-symbols-outlined text-[18px] ${resolving ? 'animate-spin' : ''}`}>{resolving ? 'progress_activity' : 'link'}</span>
-            </button>
-            <button onClick={handleCompact} disabled={!gwReady || compacting || !sessionKey.trim()}
-              className="p-2 text-slate-400 hover:bg-amber-100 dark:hover:bg-amber-500/10 hover:text-amber-500 rounded-lg transition-colors disabled:opacity-30"
-              title={c.compact}>
-              <span className={`material-symbols-outlined text-[18px] ${compacting ? 'animate-spin' : ''}`}>{compacting ? 'progress_activity' : 'compress'}</span>
-            </button>
-            <button onClick={() => { setRepairOpen(true); handleRepairScan(); }}
-              className={`p-2 rounded-lg transition-colors ${repairIssues.length > 0 ? 'text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-500/10' : 'text-slate-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/10 hover:text-emerald-500'} disabled:opacity-30`}
-              title={c.repair}>
-              <span className={`material-symbols-outlined text-[18px] ${repairScanning ? 'animate-spin' : ''}`}>{repairScanning ? 'progress_activity' : 'healing'}</span>
             </button>
             <button onClick={() => { setMsgSearchOpen(v => !v); if (!msgSearchOpen) setTimeout(() => msgSearchRef.current?.focus(), 100); }}
               className={`p-2 rounded-lg transition-colors ${msgSearchOpen ? 'text-primary bg-primary/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
@@ -2215,9 +2172,62 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               <span className="material-symbols-outlined text-[18px]">search</span>
             </button>
             <button onClick={() => { loadSessions(); loadHistory(); }}
-              className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors">
+              className="p-2 text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-colors"
+              title={c.refresh || 'Refresh'}>
               <span className="material-symbols-outlined text-[18px]">refresh</span>
             </button>
+            {/* Overflow menu for secondary actions */}
+            <div className="relative">
+              <button onClick={() => setToolbarMenuOpen(v => !v)}
+                className={`p-2 rounded-lg transition-colors ${toolbarMenuOpen ? 'text-primary bg-primary/10' : 'text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10 hover:text-slate-600'}`}
+                title={c.moreActions || 'More actions'}>
+                <span className="material-symbols-outlined text-[18px]">more_horiz</span>
+              </button>
+              {toolbarMenuOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setToolbarMenuOpen(false)} />
+                  <div className="absolute top-full end-0 mt-1 z-50 rounded-xl theme-panel sci-card shadow-xl py-1.5 min-w-[180px] animate-fade-in">
+                    <button onClick={() => { setToolsExpanded(v => !v); setToolbarMenuOpen(false); }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] theme-text-secondary hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                      <span className={`material-symbols-outlined text-[16px] ${toolsExpanded ? 'text-purple-500' : ''}`}>{toolsExpanded ? 'unfold_less' : 'unfold_more'}</span>
+                      {toolsExpanded ? (c.toolsCollapse || 'Collapse tools') : (c.toolsExpand || 'Expand tools')}
+                    </button>
+                    <button onClick={() => { exportChat('md'); setToolbarMenuOpen(false); }} disabled={messages.length === 0}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] theme-text-secondary hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 transition-colors">
+                      <span className="material-symbols-outlined text-[16px]">description</span>
+                      {c.exportMarkdown || 'Export Markdown'}
+                    </button>
+                    <button onClick={() => { exportChat('json'); setToolbarMenuOpen(false); }} disabled={messages.length === 0}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] theme-text-secondary hover:bg-slate-100 dark:hover:bg-white/5 disabled:opacity-30 transition-colors">
+                      <span className="material-symbols-outlined text-[16px]">data_object</span>
+                      {c.exportJson || 'Export JSON'}
+                    </button>
+                    <div className="my-1 border-t border-slate-200/60 dark:border-white/[0.06]" />
+                    <button onClick={() => { setInjectOpen(true); setToolbarMenuOpen(false); }} disabled={!gwReady}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] hover:bg-purple-50 dark:hover:bg-purple-500/10 text-purple-500/70 hover:text-purple-600 dark:hover:text-purple-400 disabled:opacity-30 transition-colors">
+                      <span className="material-symbols-outlined text-[16px]">add_comment</span>
+                      {c.inject || 'Inject Message'}
+                    </button>
+                    <button onClick={() => { handleResolve(); setToolbarMenuOpen(false); }} disabled={!gwReady || resolving || !sessionKey.trim()}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] hover:bg-blue-50 dark:hover:bg-blue-500/10 text-blue-500/70 hover:text-blue-600 dark:hover:text-blue-400 disabled:opacity-30 transition-colors">
+                      <span className={`material-symbols-outlined text-[16px] ${resolving ? 'animate-spin' : ''}`}>{resolving ? 'progress_activity' : 'link'}</span>
+                      {c.resolve || 'Resolve'}
+                    </button>
+                    <button onClick={() => { handleCompact(); setToolbarMenuOpen(false); }} disabled={!gwReady || compacting || !sessionKey.trim()}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-[11px] hover:bg-amber-50 dark:hover:bg-amber-500/10 text-amber-500/70 hover:text-amber-600 dark:hover:text-amber-400 disabled:opacity-30 transition-colors">
+                      <span className={`material-symbols-outlined text-[16px] ${compacting ? 'animate-spin' : ''}`}>{compacting ? 'progress_activity' : 'compress'}</span>
+                      {c.compact || 'Compact'}
+                    </button>
+                    <button onClick={() => { setRepairOpen(true); handleRepairScan(); setToolbarMenuOpen(false); }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 text-[11px] transition-colors ${repairIssues.length > 0 ? 'text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10' : 'hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-emerald-500/70 hover:text-emerald-600 dark:hover:text-emerald-400'} disabled:opacity-30`}>
+                      <span className={`material-symbols-outlined text-[16px] ${repairScanning ? 'animate-spin' : ''}`}>{repairScanning ? 'progress_activity' : 'healing'}</span>
+                      {c.repair || 'Repair'}
+                      {repairIssues.length > 0 && <span className="ms-auto text-[9px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-full px-1.5 py-0.5">{repairIssues.length}</span>}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </header>
 
