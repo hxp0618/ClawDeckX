@@ -437,13 +437,28 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
     if (!gwReady || crudBusy || !selectedId) return;
     setCrudBusy(true); setCrudError(null);
     try {
-      await gwApi.proxy('agents.update', {
-        agentId: selectedId,
-        name: crudName.trim() || undefined,
-        workspace: crudWorkspace.trim() || undefined,
-        model: crudModel.trim() || undefined,
-        avatar: crudEmoji.trim() || undefined,
-      });
+      // Fetch current config and patch the agent entry directly
+      const cfgRaw = await gwApi.configGet() as any;
+      const parsed = cfgRaw?.parsed || cfgRaw?.config || cfgRaw || {};
+      const agentsCfg = parsed?.agents || {};
+      const list: any[] = Array.isArray(agentsCfg.list) ? [...agentsCfg.list] : [];
+      const idx = list.findIndex((e: any) => e?.id === selectedId);
+      const entry: any = idx >= 0 ? { ...list[idx] } : { id: selectedId };
+      if (crudWorkspace.trim()) entry.workspace = crudWorkspace.trim();
+      if (crudModel.trim()) entry.model = crudModel.trim();
+      else delete entry.model;
+      if (idx >= 0) list[idx] = entry; else list.push(entry);
+      const patch = { agents: { ...agentsCfg, list } };
+      const baseHash = cfgRaw?.hash || cfgRaw?.baseHash || undefined;
+      await gwApi.configPatch(JSON.stringify(patch), baseHash);
+      // Update identity (name/emoji) via agents.update if supported
+      try {
+        await gwApi.proxy('agents.update', {
+          agentId: selectedId,
+          name: crudName.trim() || undefined,
+          avatar: crudEmoji.trim() || undefined,
+        });
+      } catch { /* best-effort */ }
       setCrudMode(null);
       loadAgents();
       loadConfig();
