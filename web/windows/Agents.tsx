@@ -181,6 +181,23 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
   const defaultId = agentsList?.defaultId || null;
   const selected = agents.find((ag: any) => ag.id === selectedId) || null;
 
+  // Build model options from gateway config for the edit agent dropdown
+  const modelOptions = useMemo(() => {
+    const opts: { value: string; label: string }[] = [];
+    const providers = config?.models?.providers || {};
+    for (const [pName, pCfg] of Object.entries(providers) as [string, any][]) {
+      const models = Array.isArray(pCfg?.models) ? pCfg.models : [];
+      for (const m of models) {
+        const id = typeof m === 'string' ? m : m?.id;
+        if (!id) continue;
+        const path = `${pName}/${id}`;
+        const name = typeof m === 'object' && m?.name ? m.name : id;
+        opts.push({ value: path, label: `${pName} / ${name}` });
+      }
+    }
+    return opts;
+  }, [config]);
+
   const hasUnsavedDraft = useCallback((): boolean => {
     if (!fileActive) return false;
     return fileDrafts[fileActive] != null && fileDrafts[fileActive] !== fileContents[fileActive];
@@ -348,20 +365,47 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
 
   const openCreate = useCallback(() => {
     setCrudMode('create');
-    setCrudName(''); setCrudWorkspace(''); setCrudModel(''); setCrudEmoji('');
+    // Generate a unique default name
+    const existingIds = new Set(agents.map((ag: any) => ag.id));
+    let idx = agents.length + 1;
+    let suggestedName = `agent-${idx}`;
+    while (existingIds.has(suggestedName)) { idx++; suggestedName = `agent-${idx}`; }
+    // Derive workspace base path from existing agents
+    let wsBase = '';
+    if (config) {
+      const list = config?.agents?.list || [];
+      const defaults = config?.agents?.defaults;
+      const refEntry = list.find((e: any) => e?.workspace) || defaults;
+      const refWs = refEntry?.workspace || '';
+      if (refWs) {
+        // Extract base dir: e.g. "/home/user/.openclaw/workspace-shop" → "/home/user/.openclaw"
+        const sep = refWs.includes('\\') ? '\\' : '/';
+        const lastSep = refWs.lastIndexOf(sep);
+        wsBase = lastSep > 0 ? refWs.slice(0, lastSep) : refWs;
+      }
+    }
+    const suggestedWs = wsBase ? `${wsBase}${wsBase.includes('\\') ? '\\' : '/'}workspace-${suggestedName}` : '';
+    setCrudName(suggestedName);
+    setCrudWorkspace(suggestedWs);
+    setCrudModel('');
+    setCrudEmoji('🤖');
     setCrudError(null);
-  }, []);
+  }, [agents, config]);
 
   const openEdit = useCallback(() => {
     if (!selected) return;
     setCrudMode('edit');
     const cfg = resolveAgentConfig(selected.id);
+    // For workspace, use the raw config value (not the i18n display label)
+    const list = config?.agents?.list || [];
+    const entry = list.find((e: any) => e?.id === selected.id);
+    const rawWorkspace = entry?.workspace || config?.agents?.defaults?.workspace || '';
     setCrudName(resolveLabel(selected));
-    setCrudWorkspace(cfg.workspace);
+    setCrudWorkspace(rawWorkspace);
     setCrudModel(cfg.model.replace(/ \(\+\d+\)$/, ''));
     setCrudEmoji(resolveEmoji(selected));
     setCrudError(null);
-  }, [selected]);
+  }, [selected, config]);
 
   const handleCreate = useCallback(async () => {
     if (!gwReady || crudBusy) return;
@@ -1188,8 +1232,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
                             </div>
                             {job.description && <p className="text-[11px] text-slate-400 dark:text-white/35 mt-0.5">{job.description}</p>}
                             <div className="flex gap-3 mt-1.5 text-[11px] text-slate-400 dark:text-white/35 font-mono">
-                              {job.schedule && <span>{a.schedule}: {job.schedule}</span>}
-                              {job.cronExpression && <span>{job.cronExpression}</span>}
+                              {job.schedule && <span>{a.schedule}: {typeof job.schedule === 'string' ? job.schedule : job.schedule.kind === 'every' ? `${Math.round((job.schedule.everyMs || 0) / 60000)}m` : job.schedule.kind === 'at' ? (job.schedule.at ? new Date(job.schedule.at).toLocaleString() : '-') : job.schedule.expr || '-'}</span>}
                               {job.sessionTarget && <span>→ {job.sessionTarget}</span>}
                             </div>
                           </div>
@@ -1246,7 +1289,22 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
             <div className="space-y-3">
               <div>
                 <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase block mb-1">{a.agentName}</label>
-                <input value={crudName} onChange={e => setCrudName(e.target.value)}
+                <input value={crudName} onChange={e => {
+                    const newName = e.target.value;
+                    setCrudName(newName);
+                    if (crudMode === 'create' && config) {
+                      const list = config?.agents?.list || [];
+                      const defaults = config?.agents?.defaults;
+                      const refEntry = list.find((en: any) => en?.workspace) || defaults;
+                      const refWs = refEntry?.workspace || '';
+                      if (refWs) {
+                        const sep = refWs.includes('\\') ? '\\' : '/';
+                        const lastSep = refWs.lastIndexOf(sep);
+                        const wsBase = lastSep > 0 ? refWs.slice(0, lastSep) : refWs;
+                        setCrudWorkspace(newName.trim() ? `${wsBase}${sep}workspace-${newName.trim()}` : '');
+                      }
+                    }
+                  }}
                   placeholder={a.agentNameHint}
                   className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-[12px] text-slate-800 dark:text-white/80 focus:outline-none focus:ring-1 focus:ring-primary/30"
                   disabled={crudBusy} />
@@ -1261,10 +1319,20 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
               {crudMode === 'edit' && (
                 <div>
                   <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase block mb-1">{a.model}</label>
-                  <input value={crudModel} onChange={e => setCrudModel(e.target.value)}
-                    placeholder={a.modelHint}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-[12px] font-mono text-slate-800 dark:text-white/80 focus:outline-none focus:ring-1 focus:ring-primary/30"
-                    disabled={crudBusy} />
+                  {modelOptions.length > 0 ? (
+                    <CustomSelect
+                      value={crudModel}
+                      onChange={setCrudModel}
+                      options={[{ value: '', label: a.modelHint || 'Select model...' }, ...modelOptions]}
+                      disabled={crudBusy}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-[12px] font-mono text-slate-800 dark:text-white/80"
+                    />
+                  ) : (
+                    <input value={crudModel} onChange={e => setCrudModel(e.target.value)}
+                      placeholder={a.modelHint}
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 text-[12px] font-mono text-slate-800 dark:text-white/80 focus:outline-none focus:ring-1 focus:ring-primary/30"
+                      disabled={crudBusy} />
+                  )}
                 </div>
               )}
               <div>
