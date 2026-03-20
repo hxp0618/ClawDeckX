@@ -494,17 +494,19 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
 
   const resolveAgentConfig = (agentId: string) => {
     if (!config) return { model: na, workspace: a.workspaceDefault, skills: null, tools: null };
-    const list = config?.agents?.list || [];
+    const cfg0 = config?.agents || config?.parsed?.agents || config?.config?.agents || {};
+    const list = cfg0?.list || [];
     const entry = list.find((e: any) => e?.id === agentId);
-    const defaults = config?.agents?.defaults;
+    const defaults = cfg0?.defaults;
     const model = entry?.model || defaults?.model;
     const modelLabel = typeof model === 'string' ? model : (model?.primary || na);
     const fallbacks = typeof model === 'object' ? model?.fallbacks : null;
+    const toolsCfg = config?.tools || config?.parsed?.tools || config?.config?.tools || null;
     return {
       model: modelLabel + (Array.isArray(fallbacks) && fallbacks.length > 0 ? ` (+${fallbacks.length})` : ''),
       workspace: entry?.workspace || defaults?.workspace || a.workspaceDefault,
       skills: entry?.skills || null,
-      tools: entry?.tools || config?.tools || null,
+      tools: entry?.tools || toolsCfg,
     };
   };
 
