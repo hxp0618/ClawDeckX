@@ -1911,10 +1911,16 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     setSavedField(null);
     try {
       await gwApi.sessionsPatch(sessionKey, patch as any);
-      setSessions(prev => prev.map(s => s.key === sessionKey ? { ...s, ...patch } as GwSession : s));
+      // For model patches, split "provider/model" into separate fields for correct local display
+      let localPatch = patch;
+      if (field === 'model' && typeof patch.model === 'string' && patch.model.includes('/')) {
+        const parts = patch.model.split('/');
+        localPatch = { ...patch, model: parts.slice(1).join('/'), modelProvider: parts[0] };
+      }
+      setSessions(prev => prev.map(s => s.key === sessionKey ? { ...s, ...localPatch } as GwSession : s));
       // Protect patched fields from being overwritten by the next loadSessions for 10s
       const existing = patchGraceRef.current.get(sessionKey);
-      const merged = { ...(existing?.fields ?? {}), ...patch };
+      const merged = { ...(existing?.fields ?? {}), ...localPatch };
       patchGraceRef.current.set(sessionKey, { fields: merged, expiresAt: Date.now() + 10_000 });
       setSavedField(field);
       setTimeout(() => setSavedField(f => f === field ? null : f), 2000);
@@ -2344,7 +2350,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                     {savedField === 'model' && <span className="material-symbols-outlined text-[11px] text-mac-green">check_circle</span>}
                   </span>
                   {modelOptions.length > 1 ? (
-                    <CustomSelect value={activeSession.model || ''} disabled={patchBusy}
+                    <CustomSelect value={activeSession.modelProvider && activeSession.model ? `${activeSession.modelProvider}/${activeSession.model}` : activeSession.model || ''} disabled={patchBusy}
                       onChange={v => patchSession('model', { model: v || null })}
                       options={modelOptions}
                       className="w-full mt-0.5 px-2 py-1 rounded-lg bg-white dark:bg-white/[0.03] border border-slate-200/60 dark:border-white/[0.06] text-[10px] text-slate-700 dark:text-white/70" />
@@ -3023,7 +3029,11 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         onModelChange={async (model) => {
           try {
             await gwApi.sessionsPatch(sessionKey, { model: model || null });
-            const patch = { model: model || '' };
+            // Split "provider/model" into separate fields for correct local display
+            const parts = model ? model.split('/') : [];
+            const patch = parts.length >= 2
+              ? { model: parts.slice(1).join('/'), modelProvider: parts[0] }
+              : { model: model || '' };
             setSessions(prev => prev.map(s => s.key === sessionKey ? { ...s, ...patch } as GwSession : s));
             // Protect from loadSessions overwrite for 10s
             const existing = patchGraceRef.current.get(sessionKey);
