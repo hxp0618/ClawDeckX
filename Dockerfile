@@ -47,7 +47,7 @@ RUN npm install -g "openclaw@${OPENCLAW_VERSION}" && \
     printf '%s\n' '#!/bin/sh' "exec ${OPENCLAW_TARGET} \"\$@\"" > /usr/local/bin/openclaw && \
     chmod +x /usr/local/bin/openclaw && \
     /usr/local/bin/openclaw --version > /tmp/openclaw-version && \
-    find /opt/openclaw -name '*.md' -o -name '*.map' -o -name 'LICENSE*' -o -name 'CHANGELOG*' | xargs rm -f 2>/dev/null || true
+    find /opt/openclaw -name '*.map' -print | xargs rm -f 2>/dev/null || true
 
 # Stage 4: Runtime (no build tools)
 FROM ubuntu:22.04
