@@ -697,6 +697,12 @@ docker_install() {
     if [ "$PORT" -ne "$DEFAULT_PORT" ]; then
         sed_inplace "s/\"${DEFAULT_PORT}:${DEFAULT_PORT}\"/\"${PORT}:${DEFAULT_PORT}\"/" "$compose_file"
     fi
+    # Inject OCD_HOST_PORT so the container banner shows the correct external URL
+    if grep -q "OCD_HOST_PORT" "$compose_file" 2>/dev/null; then
+        sed_inplace "s/OCD_HOST_PORT: .*/OCD_HOST_PORT: \"${PORT}\"/" "$compose_file"
+    else
+        sed_inplace "/OCD_OPENCLAW_GATEWAY_PORT:/a\\      OCD_HOST_PORT: \"${PORT}\"" "$compose_file"
+    fi
     echo -e "${GREEN}✓ Port set to $PORT / 端口已设置为 $PORT${NC}"
 
     # Step 5: Apply image mirror if needed, then pull and start

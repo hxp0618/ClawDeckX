@@ -932,6 +932,14 @@ function Install-DockerClawDeckX {
         $content = $content -replace "`"${DEFAULT_PORT}:${DEFAULT_PORT}`"", "`"$($script:PORT):${DEFAULT_PORT}`""
         Set-Content -Path $composeFile -Value $content -NoNewline
     }
+    # Inject OCD_HOST_PORT so the container banner shows the correct external URL
+    $content = Get-Content $composeFile -Raw
+    if ($content -match "OCD_HOST_PORT") {
+        $content = $content -replace "OCD_HOST_PORT: .*", "OCD_HOST_PORT: `"$($script:PORT)`""
+    } else {
+        $content = $content -replace "(OCD_OPENCLAW_GATEWAY_PORT: \d+)", "`$1`n      OCD_HOST_PORT: `"$($script:PORT)`""
+    }
+    Set-Content -Path $composeFile -Value $content -NoNewline
     Write-C "✓ Port set to $($script:PORT) / 端口已设置为 $($script:PORT)" Green
 
     # Step 5: Apply image mirror if needed, then pull and start

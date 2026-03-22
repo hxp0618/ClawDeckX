@@ -925,27 +925,40 @@ func RunServe(args []string) int {
 		fmt.Println(sectionBorder)
 	}
 
+	// OCD_HOST_PORT: when running in Docker, the install script sets this to the
+	// host-mapped port so the banner shows the correct external access URL.
+	displayPort := cfg.Server.Port
+	if hp := os.Getenv("OCD_HOST_PORT"); hp != "" {
+		if p, err := strconv.Atoi(hp); err == nil && p > 0 {
+			displayPort = p
+		}
+	}
+
 	if cfg.Server.Bind == "0.0.0.0" || cfg.Server.Bind == "" {
 		printBi(i18n.MsgServeAccessUrls)
 		fmt.Println(subSectionBorder)
-		printLink("-> ", fmt.Sprintf("http://localhost:%d", cfg.Server.Port))
-		printLink("-> ", fmt.Sprintf("http://127.0.0.1:%d", cfg.Server.Port))
+		printLink("-> ", fmt.Sprintf("http://localhost:%d", displayPort))
+		printLink("-> ", fmt.Sprintf("http://127.0.0.1:%d", displayPort))
 
 		if addrs, err := net.InterfaceAddrs(); err == nil {
 			for _, a := range addrs {
 				if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() && ipnet.IP.To4() != nil {
 					ip := ipnet.IP.String()
-					printLink("-> ", fmt.Sprintf("http://%s:%d", ip, cfg.Server.Port))
+					// Container-internal IPs are not useful when host port differs
+					if displayPort != cfg.Server.Port {
+						continue
+					}
+					printLink("-> ", fmt.Sprintf("http://%s:%d", ip, displayPort))
 				}
 			}
 		}
 
 		if pubIP := getPublicIP(); pubIP != "" {
-			printLink("-> ", fmt.Sprintf("http://%s:%d", pubIP, cfg.Server.Port))
+			printLink("-> ", fmt.Sprintf("http://%s:%d", pubIP, displayPort))
 		}
 
 	} else {
-		printLink("-> ", fmt.Sprintf("http://%s:%d", cfg.Server.Bind, cfg.Server.Port))
+		printLink("-> ", fmt.Sprintf("http://%s:%d", cfg.Server.Bind, displayPort))
 	}
 
 	fmt.Printf("%s\n\n", bottomBorder)
