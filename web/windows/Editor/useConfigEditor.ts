@@ -243,16 +243,12 @@ export function useConfigEditor(): UseConfigEditorReturn {
     if (!config) return false;
     setSaving(true);
     setSaveError('');
-    // Refresh hash with retries — gateway needs time to reload after config.apply
-    const refreshHash = async (retries = 5, delayMs = 1500) => {
-      for (let i = 0; i < retries; i++) {
-        if (i > 0) await new Promise(r => setTimeout(r, delayMs));
-        const freshData: any = await gwApi.configGet().catch(() => null);
-        if (freshData?.hash) {
-          baseHashRef.current = freshData.hash;
-          return;
-        }
-      }
+    // Refresh baseHash after gateway reload. The rpc() layer auto-retries on
+    // transient 502 / GW_PROXY_FAILED errors, so a brief initial delay is enough.
+    const refreshHash = async () => {
+      await new Promise(r => setTimeout(r, 1000));
+      const freshData: any = await gwApi.configGet().catch(() => null);
+      if (freshData?.hash) baseHashRef.current = freshData.hash;
     };
     try {
       const raw = JSON.stringify(config, null, 2);

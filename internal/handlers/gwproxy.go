@@ -617,10 +617,6 @@ func (h *GWProxyHandler) GenericProxy(w http.ResponseWriter, r *http.Request) {
 	}
 	timeout := proxyTimeoutForMethod(req.Method)
 	data, err := h.client.RequestWithTimeout(req.Method, req.Params, timeout)
-	// One fast retry for chat history to smooth transient gateway hiccups.
-	if err != nil && req.Method == "chat.history" {
-		data, err = h.client.RequestWithTimeout(req.Method, req.Params, timeout)
-	}
 	if err != nil {
 		web.Fail(w, r, "GW_PROXY_FAILED", err.Error(), http.StatusBadGateway)
 		return

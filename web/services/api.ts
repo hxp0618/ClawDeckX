@@ -892,8 +892,28 @@ export const wallpaperApi = {
 // 统一通过 GenericProxy (/api/v1/gw/proxy) 透传 JSON-RPC 到 Gateway。
 // 仅保留少量 REST 路由：status（本地连接检查）、sessionsUsage / usageCost（Go 层有额外参数/超时）、
 // skillsConfig / skillsConfigure（Go 层有复杂聚合逻辑）。
-const rpc = <T = any>(method: string, params?: any): Promise<T> =>
-  post<T>('/api/v1/gw/proxy', { method, params: params ?? {} });
+// Retry-aware RPC: automatically retries on gateway connectivity errors (502 / GW_PROXY_FAILED)
+// caused by transient WebSocket disconnections during gateway reload.
+// Only gateway-unavailable errors are retried; business logic errors propagate immediately.
+const GW_RETRY_COUNT = 3;
+const GW_RETRY_DELAY_MS = 1500;
+
+const isGatewayTransientError = (e: any): boolean =>
+  e?.status === 502 || e?.code === 'GW_PROXY_FAILED' || /gateway.*not.*connect/i.test(e?.message || '');
+
+const rpc = async <T = any>(method: string, params?: any): Promise<T> => {
+  let lastErr: any;
+  for (let attempt = 0; attempt <= GW_RETRY_COUNT; attempt++) {
+    try {
+      return await post<T>('/api/v1/gw/proxy', { method, params: params ?? {} });
+    } catch (e: any) {
+      lastErr = e;
+      if (!isGatewayTransientError(e) || attempt === GW_RETRY_COUNT) break;
+      await new Promise(r => setTimeout(r, GW_RETRY_DELAY_MS));
+    }
+  }
+  throw lastErr;
+};
 
 export const gwApi = {
   // --- 保留 REST（Go 层有额外逻辑） ---
