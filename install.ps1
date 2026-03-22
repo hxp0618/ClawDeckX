@@ -155,7 +155,11 @@ function Install-ScheduledTask {
 
     $workDir = Split-Path $BinaryPath -Parent
     # Wrap in powershell -WindowStyle Hidden to prevent a visible console window at logon
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -Command `"Start-Process -FilePath '$BinaryPath' -WorkingDirectory '$workDir' -WindowStyle Hidden`"" -WorkingDirectory $workDir
+    $portArg = ""
+    if ($script:PORT -and $script:PORT -ne $DEFAULT_PORT) {
+        $portArg = " --port $($script:PORT)"
+    }
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-WindowStyle Hidden -Command `"Start-Process -FilePath '$BinaryPath' -ArgumentList '$portArg' -WorkingDirectory '$workDir' -WindowStyle Hidden`"" -WorkingDirectory $workDir
     $trigger = New-ScheduledTaskTrigger -AtLogOn
     $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit ([TimeSpan]::Zero)
 
@@ -510,6 +514,32 @@ function Get-ConfigPort {
     return $DEFAULT_PORT
 }
 
+function Test-PortAvailable {
+    param([int]$Port)
+    try {
+        $listener = [System.Net.Sockets.TcpClient]::new()
+        $listener.Connect("127.0.0.1", $Port)
+        $listener.Close()
+        return $false  # Port is in use (connection succeeded)
+    } catch {
+        return $true   # Port is available (connection refused)
+    }
+}
+
+function Find-AvailablePort {
+    param([int]$StartPort = $DEFAULT_PORT)
+    $port = $StartPort
+    $maxAttempts = 20
+    for ($i = 0; $i -lt $maxAttempts; $i++) {
+        if (Test-PortAvailable $port) {
+            return $port
+        }
+        Write-C "  Port $port is in use / 端口 $port 已被占用" Yellow
+        $port++
+    }
+    return $StartPort
+}
+
 function Get-Architecture {
     switch ($env:PROCESSOR_ARCHITECTURE) {
         "AMD64"   { return "amd64" }
@@ -816,26 +846,39 @@ function Install-DockerClawDeckX {
         Write-C "✓ Downloaded / 已下载" Green
     }
 
-    # Step 4: Optional port configuration
+    # Step 4: Smart port configuration — auto-detect available port
     Write-Host ""
-    Write-C "Default port / 默认端口: $DEFAULT_PORT" Cyan
-    if (Read-YesNo "Use a different port? / 使用其他端口？" $false) {
+    Write-C "Detecting available port... / 正在检测可用端口..." Cyan
+    $autoPort = Find-AvailablePort $DEFAULT_PORT
+
+    if ($autoPort -ne $DEFAULT_PORT) {
+        Write-C "Default port $DEFAULT_PORT is occupied, auto-selected: $autoPort" Yellow
+        Write-C "默认端口 $DEFAULT_PORT 已被占用，自动选择：$autoPort" Yellow
+    } else {
+        Write-C "✓ Port $autoPort is available / 端口 $autoPort 可用" Green
+    }
+
+    if (-not (Read-YesNo "Use port ${autoPort}? / 使用端口 ${autoPort}？" $true)) {
         $customPort = Read-Host "Enter port / 输入端口"
         try {
             $p = [int]$customPort
             if ($p -gt 0 -and $p -le 65535) {
-                $content = Get-Content $DOCKER_COMPOSE_FILE -Raw
-                $content = $content -replace "`"${DEFAULT_PORT}:${DEFAULT_PORT}`"", "`"${p}:${DEFAULT_PORT}`""
-                Set-Content -Path $DOCKER_COMPOSE_FILE -Value $content -NoNewline
-                $script:PORT = $p
-                Write-C "✓ Port set to $p / 端口已设置为 $p" Green
+                $autoPort = $p
             } else {
-                Write-C "Invalid port, using default $DEFAULT_PORT / 端口无效，使用默认 $DEFAULT_PORT" Yellow
+                Write-C "Invalid port, using $autoPort / 端口无效，使用 $autoPort" Yellow
             }
         } catch {
-            Write-C "Invalid port, using default $DEFAULT_PORT / 端口无效，使用默认 $DEFAULT_PORT" Yellow
+            Write-C "Invalid port, using $autoPort / 端口无效，使用 $autoPort" Yellow
         }
     }
+
+    $script:PORT = $autoPort
+    if ($script:PORT -ne $DEFAULT_PORT) {
+        $content = Get-Content $DOCKER_COMPOSE_FILE -Raw
+        $content = $content -replace "`"${DEFAULT_PORT}:${DEFAULT_PORT}`"", "`"$($script:PORT):${DEFAULT_PORT}`""
+        Set-Content -Path $DOCKER_COMPOSE_FILE -Value $content -NoNewline
+    }
+    Write-C "✓ Port set to $($script:PORT) / 端口已设置为 $($script:PORT)" Green
 
     # Step 5: Apply image mirror if needed, then pull and start
     Set-ImageMirror $DOCKER_COMPOSE_FILE
@@ -1327,8 +1370,33 @@ Write-Host ""
 Write-C "✓ Installed in current directory / 已安装在当前目录" Green
 Write-Host ""
 
-# Resolve port (config may not exist yet on fresh install, will use default)
-$script:PORT = Get-ConfigPort
+# Smart port detection for binary install
+Write-C "Detecting available port... / 正在检测可用端口..." Cyan
+$autoPort = Find-AvailablePort $DEFAULT_PORT
+
+if ($autoPort -ne $DEFAULT_PORT) {
+    Write-C "Default port $DEFAULT_PORT is occupied, auto-selected: $autoPort" Yellow
+    Write-C "默认端口 $DEFAULT_PORT 已被占用，自动选择：$autoPort" Yellow
+} else {
+    Write-C "✓ Port $autoPort is available / 端口 $autoPort 可用" Green
+}
+
+if (-not (Read-YesNo "Use port ${autoPort}? / 使用端口 ${autoPort}？" $true)) {
+    $customPort = Read-Host "Enter port / 输入端口"
+    try {
+        $p = [int]$customPort
+        if ($p -gt 0 -and $p -le 65535) {
+            $autoPort = $p
+        } else {
+            Write-C "Invalid port, using $autoPort / 端口无效，使用 $autoPort" Yellow
+        }
+    } catch {
+        Write-C "Invalid port, using $autoPort / 端口无效，使用 $autoPort" Yellow
+    }
+}
+$script:PORT = $autoPort
+Write-C "✓ Port set to $($script:PORT) / 端口已设置为 $($script:PORT)" Green
+Write-Host ""
 
 # Ask if user wants to install auto-start service
 $serviceJustInstalled = $false
@@ -1361,7 +1429,11 @@ if (Read-YesNo "Start ClawDeckX now? / 立即启动 ClawDeckX?" $true) {
 
     $binaryPath = $script:INSTALLED_BINARY
     if (-not $binaryPath) { $binaryPath = $script:INSTALLED_LOCATION }
-    & $binaryPath $args
+    if ($script:PORT -ne $DEFAULT_PORT) {
+        & $binaryPath --port $script:PORT $args
+    } else {
+        & $binaryPath $args
+    }
 } else {
     Write-Host ""
     Write-C "You can start it later with: / 稍后可以使用以下命令启动：" Yellow

@@ -73,6 +73,52 @@ get_config_port() {
     PORT=$DEFAULT_PORT
 }
 
+# Check if a specific port is available (not in use)
+check_port_available() {
+    local port=$1
+    # Method 1: ss (most common on modern Linux)
+    if command -v ss &>/dev/null; then
+        if ss -tlnH 2>/dev/null | grep -qE ":${port}\b"; then
+            return 1
+        fi
+        return 0
+    fi
+    # Method 2: lsof
+    if command -v lsof &>/dev/null; then
+        if lsof -iTCP:"$port" -sTCP:LISTEN -P -n >/dev/null 2>&1; then
+            return 1
+        fi
+        return 0
+    fi
+    # Method 3: /dev/tcp (bash built-in, connect test)
+    if (echo >/dev/tcp/127.0.0.1/"$port") 2>/dev/null; then
+        return 1
+    fi
+    return 0
+}
+
+# Find the next available port starting from a given port
+# Usage: find_available_port [start_port]
+# Sets FOUND_PORT to the available port
+find_available_port() {
+    local start=${1:-$DEFAULT_PORT}
+    local port=$start
+    local max_attempts=20
+    local attempt=0
+    while [ $attempt -lt $max_attempts ]; do
+        if check_port_available "$port"; then
+            FOUND_PORT=$port
+            return 0
+        fi
+        echo -e "${YELLOW}  Port $port is in use / 端口 $port 已被占用${NC}"
+        port=$((port + 1))
+        attempt=$((attempt + 1))
+    done
+    # All ports occupied, return the start port and let user decide
+    FOUND_PORT=$start
+    return 1
+}
+
 # Ensure XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS are set for systemctl --user.
 # Without these, systemctl --user fails with "Failed to connect to bus: No medium found"
 # when the user session was started via su (not a login shell).
@@ -159,7 +205,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=$INSTALLED_BINARY
+ExecStart=$INSTALLED_BINARY --port $PORT
 WorkingDirectory=$(pwd)
 Restart=on-failure
 RestartSec=5
@@ -569,24 +615,37 @@ docker_install() {
         echo -e "${GREEN}✓ Downloaded / 已下载${NC}"
     fi
 
-    # Step 4: Optional port configuration
+    # Step 4: Smart port configuration — auto-detect available port
     echo ""
-    echo -e "${CYAN}Default port / 默认端口: $DEFAULT_PORT${NC}"
-    echo -n "Use a different port? / 使用其他端口？ [y/N] "
+    echo -e "${CYAN}Detecting available port... / 正在检测可用端口...${NC}"
+    find_available_port $DEFAULT_PORT
+    local auto_port=$FOUND_PORT
+
+    if [ "$auto_port" -ne "$DEFAULT_PORT" ]; then
+        echo -e "${YELLOW}Default port $DEFAULT_PORT is occupied, auto-selected: $auto_port"
+        echo -e "默认端口 $DEFAULT_PORT 已被占用，自动选择：$auto_port${NC}"
+    else
+        echo -e "${GREEN}✓ Port $auto_port is available / 端口 $auto_port 可用${NC}"
+    fi
+
+    echo -n "Use port $auto_port? / 使用端口 $auto_port？ [Y/n] "
     read -n 1 -r </dev/tty
     echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    if [[ $REPLY =~ ^[Nn]$ ]]; then
         echo -n "Enter port / 输入端口: "
         read -r CUSTOM_PORT </dev/tty
         if [ -n "$CUSTOM_PORT" ] && [ "$CUSTOM_PORT" -gt 0 ] 2>/dev/null && [ "$CUSTOM_PORT" -le 65535 ] 2>/dev/null; then
-            # Replace port mapping in docker-compose.yml
-            sed_inplace "s/\"${DEFAULT_PORT}:${DEFAULT_PORT}\"/\"${CUSTOM_PORT}:${DEFAULT_PORT}\"/" "$DOCKER_COMPOSE_FILE"
-            PORT=$CUSTOM_PORT
-            echo -e "${GREEN}✓ Port set to $CUSTOM_PORT / 端口已设置为 $CUSTOM_PORT${NC}"
+            auto_port=$CUSTOM_PORT
         else
-            echo -e "${YELLOW}Invalid port, using default $DEFAULT_PORT / 端口无效，使用默认 $DEFAULT_PORT${NC}"
+            echo -e "${YELLOW}Invalid port, using $auto_port / 端口无效，使用 $auto_port${NC}"
         fi
     fi
+
+    PORT=$auto_port
+    if [ "$PORT" -ne "$DEFAULT_PORT" ]; then
+        sed_inplace "s/\"${DEFAULT_PORT}:${DEFAULT_PORT}\"/\"${PORT}:${DEFAULT_PORT}\"/" "$DOCKER_COMPOSE_FILE"
+    fi
+    echo -e "${GREEN}✓ Port set to $PORT / 端口已设置为 $PORT${NC}"
 
     # Step 5: Apply image mirror if needed, then pull and start
     apply_image_mirror "$DOCKER_COMPOSE_FILE"
@@ -1290,8 +1349,12 @@ start_clawdeckx() {
     
     # Fallback: start binary directly
     local err_file="/tmp/.clawdeckx-start-err.log"
-    echo -e "${BLUE}Starting ClawDeckX... / 正在启动 ClawDeckX...${NC}"
-    "$INSTALLED_LOCATION" > /dev/null 2>"$err_file" &
+    echo -e "${BLUE}Starting ClawDeckX on port $PORT... / 正在启动 ClawDeckX (端口 $PORT)...${NC}"
+    if [ "$PORT" -ne "$DEFAULT_PORT" ]; then
+        "$INSTALLED_LOCATION" --port "$PORT" > /dev/null 2>"$err_file" &
+    else
+        "$INSTALLED_LOCATION" > /dev/null 2>"$err_file" &
+    fi
     sleep 2
     
     if pgrep -f "$BINARY_NAME" > /dev/null 2>&1; then
@@ -1833,6 +1896,34 @@ echo ""
 echo -e "${GREEN}✓ Installed in current directory / 已安装在当前目录${NC}"
 echo ""
 
+# Smart port detection for binary install
+echo -e "${CYAN}Detecting available port... / 正在检测可用端口...${NC}"
+find_available_port $DEFAULT_PORT
+BINARY_PORT=$FOUND_PORT
+
+if [ "$BINARY_PORT" -ne "$DEFAULT_PORT" ]; then
+    echo -e "${YELLOW}Default port $DEFAULT_PORT is occupied, auto-selected: $BINARY_PORT"
+    echo -e "默认端口 $DEFAULT_PORT 已被占用，自动选择：$BINARY_PORT${NC}"
+else
+    echo -e "${GREEN}✓ Port $BINARY_PORT is available / 端口 $BINARY_PORT 可用${NC}"
+fi
+
+echo -n "Use port $BINARY_PORT? / 使用端口 $BINARY_PORT？ [Y/n] "
+read -n 1 -r </dev/tty
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]; then
+    echo -n "Enter port / 输入端口: "
+    read -r CUSTOM_PORT </dev/tty
+    if [ -n "$CUSTOM_PORT" ] && [ "$CUSTOM_PORT" -gt 0 ] 2>/dev/null && [ "$CUSTOM_PORT" -le 65535 ] 2>/dev/null; then
+        BINARY_PORT=$CUSTOM_PORT
+    else
+        echo -e "${YELLOW}Invalid port, using $BINARY_PORT / 端口无效，使用 $BINARY_PORT${NC}"
+    fi
+fi
+PORT=$BINARY_PORT
+echo -e "${GREEN}✓ Port set to $PORT / 端口已设置为 $PORT${NC}"
+echo ""
+
 # Ask if user wants to install systemd service
 SERVICE_JUST_INSTALLED=false
 if ! check_systemd_service; then
@@ -1874,7 +1965,11 @@ if [[ $REPLY =~ ^[Nn]$ ]]; then
     exit 0
 fi
 
-# 6. Run with arguments
-echo -e "${BLUE}>> Starting ClawDeckX...${NC}"
+# 6. Run with arguments (include --port if non-default)
+echo -e "${BLUE}>> Starting ClawDeckX on port $PORT...${NC}"
 echo "----------------------------------------"
-"$INSTALLED_BINARY" "$@"
+if [ "$PORT" -ne "$DEFAULT_PORT" ]; then
+    "$INSTALLED_BINARY" --port "$PORT" "$@"
+else
+    "$INSTALLED_BINARY" "$@"
+fi
