@@ -243,6 +243,17 @@ export function useConfigEditor(): UseConfigEditorReturn {
     if (!config) return false;
     setSaving(true);
     setSaveError('');
+    // Refresh hash with retries — gateway needs time to reload after config.apply
+    const refreshHash = async (retries = 5, delayMs = 1500) => {
+      for (let i = 0; i < retries; i++) {
+        if (i > 0) await new Promise(r => setTimeout(r, delayMs));
+        const freshData: any = await gwApi.configGet().catch(() => null);
+        if (freshData?.hash) {
+          baseHashRef.current = freshData.hash;
+          return;
+        }
+      }
+    };
     try {
       const raw = JSON.stringify(config, null, 2);
       // 统一优先走 WebSocket 保存（本地/远程网关均适用）
@@ -250,16 +261,14 @@ export function useConfigEditor(): UseConfigEditorReturn {
         // 有 hash → 用 configApply（原子写入+重载）
         const res: any = await gwApi.configApply(raw, baseHashRef.current);
         if (res?.config) setConfig(res.config);
-        const freshData: any = await gwApi.configGet().catch(() => null);
-        if (freshData?.hash) baseHashRef.current = freshData.hash;
+        await refreshHash();
       } else {
         // 无 hash → 尝试 configSetAll + reload，失败时降级本地写入
         try {
           await gwApi.configSetAll(config);
           await gwApi.configReload().catch(() => {});
           // 刷新 hash 以便后续保存走 configApply
-          const freshData: any = await gwApi.configGet().catch(() => null);
-          if (freshData?.hash) baseHashRef.current = freshData.hash;
+          await refreshHash();
         } catch {
           // WS 不可用，降级本地写入
           if (mode === 'local') {
