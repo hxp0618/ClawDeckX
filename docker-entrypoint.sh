@@ -198,25 +198,31 @@ if command -v openclaw &>/dev/null; then
         echo "[docker-entrypoint] Starting OpenClaw gateway..."
         nohup openclaw gateway run --port "$GATEWAY_PORT" > "$GATEWAY_LOG" 2>&1 &
         GATEWAY_PID=$!
-        GATEWAY_WAIT_SECONDS=15
+        GATEWAY_WAIT_SECONDS=30
         if [ "$OPENCLAW_CONFIG_CREATED" = "1" ]; then
-            GATEWAY_WAIT_SECONDS=60
+            GATEWAY_WAIT_SECONDS=120
         fi
         echo "[docker-entrypoint] Waiting up to ${GATEWAY_WAIT_SECONDS}s for OpenClaw gateway readiness..."
         # Wait for gateway to be ready
         GATEWAY_STARTED=false
         for i in $(seq 1 "$GATEWAY_WAIT_SECONDS"); do
             if curl -sf "http://127.0.0.1:${GATEWAY_PORT}/health" &>/dev/null; then
-                echo "[docker-entrypoint] OpenClaw gateway started successfully (pid=$GATEWAY_PID)"
+                echo ""
+                echo "[docker-entrypoint] OpenClaw gateway started successfully (pid=$GATEWAY_PID, ${i}s)"
                 GATEWAY_STARTED=true
                 break
             fi
             # Check if process exited early
             if ! kill -0 "$GATEWAY_PID" 2>/dev/null; then
+                echo ""
                 echo "[docker-entrypoint] ERROR: OpenClaw gateway process exited prematurely" >&2
                 tail -10 "$GATEWAY_LOG" 2>/dev/null >&2 || true
                 write_bootstrap "failed" "gateway process exited prematurely" 0 "$OPENCLAW_BIN" "$OPENCLAW_VER"
                 break
+            fi
+            # Print progress every 10 seconds
+            if [ $((i % 10)) -eq 0 ]; then
+                printf "[docker-entrypoint] Still waiting... (%ds/%ds)\n" "$i" "$GATEWAY_WAIT_SECONDS"
             fi
             sleep 1
         done
@@ -224,8 +230,8 @@ if command -v openclaw &>/dev/null; then
             write_bootstrap "running" "gateway started successfully" "$GATEWAY_PID" "$OPENCLAW_BIN" "$OPENCLAW_VER"
         elif kill -0 "$GATEWAY_PID" 2>/dev/null; then
             echo "[docker-entrypoint] WARNING: OpenClaw gateway not ready within ${GATEWAY_WAIT_SECONDS}s (pid=$GATEWAY_PID)" >&2
-            echo "[docker-entrypoint] Last gateway log lines:" >&2
-            tail -10 "$GATEWAY_LOG" 2>/dev/null >&2 || true
+            echo "[docker-entrypoint] Gateway is still running — it may need more time on first boot." >&2
+            echo "[docker-entrypoint] Check gateway logs: docker compose exec clawdeckx tail -30 $GATEWAY_LOG" >&2
             write_bootstrap "timeout" "gateway not ready within ${GATEWAY_WAIT_SECONDS}s" "$GATEWAY_PID" "$OPENCLAW_BIN" "$OPENCLAW_VER"
         fi
     else
