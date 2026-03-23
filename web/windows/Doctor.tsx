@@ -885,47 +885,7 @@ const Doctor: React.FC<DoctorProps> = ({ language }) => {
     }
   }, [confirm, fetchAll, loadSummary, text, toast]);
 
-  const handleFix = useCallback(async () => {
-    if (!wsConnected) {
-      return handleCliFix();
-    }
-
-    const shouldProceed = await confirm({
-      title: text.fixConfirmTitle || '确认执行修复',
-      message: text.fixConfirmMessage || '将尝试自动修复可修复项，是否继续？',
-      confirmText: text.fixConfirmOk || text.ok || '确认',
-      cancelText: text.fixConfirmCancel || text.cancel || '取消',
-      danger: true,
-    });
-    if (!shouldProceed) return;
-
-    setFixing(true);
-    try {
-      const data = await doctorApi.fix() as { fixed?: string[]; results?: Array<{ id: string; code?: string; name: string; status: string; message: string }>; selected?: number };
-      const results = Array.isArray(data?.results) ? data.results.map(r => ({
-        id: r.id || r.code || '',
-        name: r.name || r.id || '',
-        status: (r.status === 'success' || r.status === 'skipped' || r.status === 'failed' ? r.status : 'skipped') as 'success' | 'skipped' | 'failed',
-        message: r.message || '',
-      })) : [];
-      setFixResult(results);
-      const successCount = results.filter(r => r.status === 'success').length;
-      const failCount = results.filter(r => r.status === 'failed').length;
-      if (failCount > 0) {
-        toast('error', `${successCount} fixed, ${failCount} failed`);
-      } else if (successCount > 0) {
-        toast('success', text.fixedOk);
-      } else {
-        toast('info', text.noFix || 'Nothing to fix');
-      }
-      await fetchAll(true);
-      await loadSummary(true);
-    } catch (err: any) {
-      toast('error', `${text.fixedFail}: ${err?.message || ''}`);
-    } finally {
-      setFixing(false);
-    }
-  }, [confirm, fetchAll, handleCliFix, loadSummary, text.cancel, text.fixConfirmCancel, text.fixConfirmMessage, text.fixConfirmOk, text.fixConfirmTitle, text.fixedFail, text.fixedOk, text.noFix, text.ok, toast, wsConnected]);
+  const handleFix = handleCliFix;
 
 
   const jumpToWindow = useCallback((id: string, opts?: { section?: string }) => {
@@ -1542,8 +1502,8 @@ const Doctor: React.FC<DoctorProps> = ({ language }) => {
                 <span className={`material-symbols-outlined text-[14px] ${loading ? 'animate-spin' : ''}`}>{loading ? 'progress_activity' : 'troubleshoot'}</span>
                 {loading ? text.running : text.run}
               </button>
-              <button onClick={handleFix} disabled={fixing || (wsConnected && fixableCount === 0)} className="h-8 px-3 rounded-lg text-[11px] font-bold bg-primary text-white disabled:opacity-40 flex items-center gap-1.5" title={!wsConnected ? (text.cliFixTip || 'Run openclaw doctor --fix locally') : undefined}>
-                {!wsConnected && <span className="material-symbols-outlined text-[14px]">terminal</span>}
+              <button onClick={handleFix} disabled={fixing} className="h-8 px-3 rounded-lg text-[11px] font-bold bg-primary text-white disabled:opacity-40 flex items-center gap-1.5" title={text.cliFixTip || 'Run openclaw doctor --fix locally'}>
+                <span className="material-symbols-outlined text-[14px]">terminal</span>
                 {fixing ? text.fixing : text.fix}
               </button>
             </div>
