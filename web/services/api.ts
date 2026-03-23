@@ -962,6 +962,22 @@ export const gwApi = {
     rpc('sessions.resolve', { key }),
   sessionsCompact: (key: string) =>
     rpc('sessions.compact', { key }),
+  sessionsCreate: (params: { agentId?: string; label?: string; sessionKey?: string }) =>
+    rpc('sessions.create', params),
+  sessionsSend: (key: string, message: string, params?: { thinking?: string; attachments?: any[]; timeoutMs?: number; idempotencyKey?: string }) =>
+    rpc('sessions.send', { sessionKey: key, message, ...params }),
+  sessionsAbort: (key: string, runId?: string) =>
+    rpc('sessions.abort', { sessionKey: key, ...(runId ? { runId } : {}) }),
+  sessionsSubscribe: () =>
+    rpc('sessions.subscribe', {}),
+  sessionsUnsubscribe: () =>
+    rpc('sessions.unsubscribe', {}),
+  sessionsMessagesSubscribe: (key: string) =>
+    rpc('sessions.messages.subscribe', { sessionKey: key }),
+  sessionsMessagesUnsubscribe: (key: string) =>
+    rpc('sessions.messages.unsubscribe', { sessionKey: key }),
+  gatewayIdentity: () =>
+    rpc('gateway.identity.get', {}),
   sessionsUsageTimeseries: (key: string, params?: { startDate?: string; endDate?: string; granularity?: string }) =>
     rpc('sessions.usage.timeseries', { key, ...params }),
   sessionsUsageLogs: (key: string, params?: { startDate?: string; endDate?: string; limit?: number; offset?: number }) =>

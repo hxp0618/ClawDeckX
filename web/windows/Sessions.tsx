@@ -598,6 +598,8 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
               setBtwMessage({ question, text, isError: d.isError });
             }
           }
+        } else if (msg.type === 'sessions.changed') {
+          loadSessionsRef.current?.({ silent: true });
         } else if (msg.type === 'talk.mode') {
           // Gateway payload: { enabled: boolean, phase?: string, ts: number }
           const d = msg.data;

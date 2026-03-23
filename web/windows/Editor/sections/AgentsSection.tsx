@@ -21,6 +21,8 @@ export const AgentsSection: React.FC<SectionProps> = ({ config, setField, getFie
   const TYPING_OPTIONS = useMemo(() => [{ value: 'never', label: es.optNever }, { value: 'instant', label: es.optInstant }, { value: 'thinking', label: es.optThinking }, { value: 'message', label: es.optMessage }], [es]);
   const COMPACTION_OPTIONS = useMemo(() => [{ value: 'default', label: es.default }, { value: 'safeguard', label: es.optSafeguard }, { value: 'aggressive', label: es.optAggressive }, { value: 'off', label: es.optOff }], [es]);
   const HUMAN_DELAY_OPTIONS = useMemo(() => [{ value: 'off', label: es.optOff }, { value: 'natural', label: es.optNatural }, { value: 'fixed', label: es.optFixed }], [es]);
+  const SANDBOX_MODE_OPTIONS = useMemo(() => [{ value: 'off', label: es.optOff }, { value: 'non-main', label: es.optNonMain || 'Non-main' }, { value: 'all', label: es.optAll || 'All' }], [es]);
+  const SANDBOX_BACKEND_OPTIONS = useMemo(() => [{ value: 'docker', label: 'Docker' }, { value: 'openshell', label: 'OpenShell' }, { value: 'ssh', label: 'SSH' }], [es]);
 
   const rawAgentList = getField(['agents', 'list']);
   const agentList: any[] = Array.isArray(rawAgentList) ? rawAgentList : [];
@@ -79,6 +81,8 @@ export const AgentsSection: React.FC<SectionProps> = ({ config, setField, getFie
       </ConfigSection>
 
       <ConfigSection title={es.sandbox} icon="shield" iconColor="text-emerald-500" defaultOpen={false}>
+        <SelectField label={es.sandboxMode || 'Sandbox Mode'} tooltip={tip('agents.defaults.sandbox.mode')} value={d(['sandbox', 'mode']) || 'off'} onChange={v => sd(['sandbox', 'mode'], v)} options={SANDBOX_MODE_OPTIONS} />
+        <SelectField label={es.sandboxBackend || 'Sandbox Backend'} tooltip={tip('agents.defaults.sandbox.backend')} value={d(['sandbox', 'backend']) || 'docker'} onChange={v => sd(['sandbox', 'backend'], v)} options={SANDBOX_BACKEND_OPTIONS} />
         <SwitchField label={es.dockerEnabled} tooltip={tip('agents.defaults.sandbox.docker.enabled')} value={d(['sandbox', 'docker', 'enabled']) === true} onChange={v => sd(['sandbox', 'docker', 'enabled'], v)} />
         <TextField label={es.image} tooltip={tip('agents.defaults.sandbox.docker.image')} value={d(['sandbox', 'docker', 'image']) || ''} onChange={v => sd(['sandbox', 'docker', 'image'], v)} placeholder={es.phDockerImage} />
         <TextField label={es.network} tooltip={tip('agents.defaults.sandbox.docker.network')} value={d(['sandbox', 'docker', 'network']) || ''} onChange={v => sd(['sandbox', 'docker', 'network'], v)} placeholder={es.phHost} />
@@ -104,6 +108,8 @@ export const AgentsSection: React.FC<SectionProps> = ({ config, setField, getFie
 
             {/* Overrides */}
             <SelectField label={es.thinkingDefault} tooltip={tip('agents.list.thinking')} value={agent.thinking || ''} onChange={v => setField(['agents', 'list', String(i), 'thinking'], v)} options={[{ value: '', label: es.default }, ...THINKING_OPTIONS]} />
+            <SelectField label={es.verboseDefault} tooltip={tip('agents.list.verbose')} value={agent.verbose || ''} onChange={v => setField(['agents', 'list', String(i), 'verbose'], v)} options={[{ value: '', label: es.default }, ...VERBOSE_OPTIONS]} />
+            <SwitchField label={es.fastMode || 'Fast Mode'} tooltip={tip('agents.list.fastMode')} value={agent.fastMode === true} onChange={v => setField(['agents', 'list', String(i), 'fastMode'], v || undefined)} />
             <TextField label={es.subagentModel} tooltip={tip('agents.list.subagentModel')} value={agent.subagents?.model || ''} onChange={v => setField(['agents', 'list', String(i), 'subagents', 'model'], v)} placeholder={es.phUseDefault} />
           </ConfigCard>
         ))}

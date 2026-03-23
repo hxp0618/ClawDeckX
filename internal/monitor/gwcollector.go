@@ -113,6 +113,10 @@ func (c *GWCollector) handleEvent(event string, payload json.RawMessage) {
 		c.handleSessionEvent(event, payload)
 	case event == "session.message":
 		c.handleMessageEvent(payload)
+	case event == "session.tool":
+		c.handleToolEvent(event, payload)
+	case event == "sessions.changed":
+		c.handleSessionEvent(event, payload)
 	case event == "chat":
 		c.handleChatStreamEvent(payload)
 	case strings.HasPrefix(event, "tool."):
