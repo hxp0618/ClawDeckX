@@ -310,6 +310,7 @@ const Doctor: React.FC<DoctorProps> = ({ language }) => {
   const [onlyFixable, setOnlyFixable] = useState(false);
   const [fixingOne, setFixingOne] = useState<string>('');
   const [wsConnected, setWsConnected] = useState(true);
+  const [cliFixOutput, setCliFixOutput] = useState<string | null>(null);
   const [showFirstRunPrompt, setShowFirstRunPrompt] = useState(false);
   const [showExceptionModal, setShowExceptionModal] = useState(false);
   const [summarySourceFilter, setSummarySourceFilter] = useState<SummarySourceKey>(() => {
@@ -851,7 +852,44 @@ const Doctor: React.FC<DoctorProps> = ({ language }) => {
 
   // Full diagnostics stay manual.
 
+  const handleCliFix = useCallback(async () => {
+    const shouldProceed = await confirm({
+      title: text.fixConfirmTitle || '确认执行修复',
+      message: text.cliFixConfirmMessage || 'Will run "openclaw doctor --fix" locally. Continue?',
+      confirmText: text.fixConfirmOk || text.ok || '确认',
+      cancelText: text.fixConfirmCancel || text.cancel || '取消',
+      danger: true,
+    });
+    if (!shouldProceed) return;
+
+    setFixing(true);
+    try {
+      const data = await doctorApi.cliFix();
+      setCliFixOutput(data?.output || '');
+      if (data?.success) {
+        toast('success', text.cliFixSuccess || 'CLI fix completed');
+      } else {
+        toast('error', text.cliFixFailed || 'CLI fix failed');
+      }
+      await fetchAll(true);
+      await loadSummary(true);
+    } catch (err: any) {
+      const code = err?.error_code || err?.code || '';
+      if (code === 'CLI_NOT_INSTALLED') {
+        toast('error', text.cliNotInstalled || 'openclaw CLI is not installed');
+      } else {
+        toast('error', `${text.fixedFail}: ${err?.message || ''}`);
+      }
+    } finally {
+      setFixing(false);
+    }
+  }, [confirm, fetchAll, loadSummary, text, toast]);
+
   const handleFix = useCallback(async () => {
+    if (!wsConnected) {
+      return handleCliFix();
+    }
+
     const shouldProceed = await confirm({
       title: text.fixConfirmTitle || '确认执行修复',
       message: text.fixConfirmMessage || '将尝试自动修复可修复项，是否继续？',
@@ -887,7 +925,7 @@ const Doctor: React.FC<DoctorProps> = ({ language }) => {
     } finally {
       setFixing(false);
     }
-  }, [confirm, fetchAll, loadSummary, text.cancel, text.fixConfirmCancel, text.fixConfirmMessage, text.fixConfirmOk, text.fixConfirmTitle, text.fixedFail, text.fixedOk, text.ok, toast]);
+  }, [confirm, fetchAll, handleCliFix, loadSummary, text.cancel, text.fixConfirmCancel, text.fixConfirmMessage, text.fixConfirmOk, text.fixConfirmTitle, text.fixedFail, text.fixedOk, text.noFix, text.ok, toast, wsConnected]);
 
 
   const jumpToWindow = useCallback((id: string, opts?: { section?: string }) => {
@@ -1504,7 +1542,8 @@ const Doctor: React.FC<DoctorProps> = ({ language }) => {
                 <span className={`material-symbols-outlined text-[14px] ${loading ? 'animate-spin' : ''}`}>{loading ? 'progress_activity' : 'troubleshoot'}</span>
                 {loading ? text.running : text.run}
               </button>
-              <button onClick={handleFix} disabled={fixing || fixableCount === 0} className="h-8 px-3 rounded-lg text-[11px] font-bold bg-primary text-white disabled:opacity-40">
+              <button onClick={handleFix} disabled={fixing || (wsConnected && fixableCount === 0)} className="h-8 px-3 rounded-lg text-[11px] font-bold bg-primary text-white disabled:opacity-40 flex items-center gap-1.5" title={!wsConnected ? (text.cliFixTip || 'Run openclaw doctor --fix locally') : undefined}>
+                {!wsConnected && <span className="material-symbols-outlined text-[14px]">terminal</span>}
                 {fixing ? text.fixing : text.fix}
               </button>
             </div>
@@ -2398,6 +2437,31 @@ const Doctor: React.FC<DoctorProps> = ({ language }) => {
               </button>
               <button onClick={() => setShowExceptionModal(false)} className="h-8 px-3 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-white/10 text-slate-500 dark:text-white/50 hover:bg-slate-50 dark:hover:bg-white/[0.03]">
                 {text.exceptionModalClose}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CLI Fix Output Modal */}
+      {cliFixOutput !== null && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setCliFixOutput(null)}>
+          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-[90%] max-w-2xl max-h-[70vh] flex flex-col border border-slate-200 dark:border-white/10" onClick={e => e.stopPropagation()}>
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[16px] text-primary">terminal</span>
+                <h3 className="text-[13px] font-bold text-slate-800 dark:text-white">openclaw doctor --fix</h3>
+              </div>
+              <button onClick={() => setCliFixOutput(null)} className="w-6 h-6 rounded-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-white/10">
+                <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              <pre className="text-[11px] leading-relaxed font-mono text-slate-700 dark:text-white/70 whitespace-pre-wrap break-all">{cliFixOutput}</pre>
+            </div>
+            <div className="px-4 py-3 border-t border-slate-200 dark:border-white/10 flex justify-end">
+              <button onClick={() => setCliFixOutput(null)} className="h-8 px-4 rounded-lg text-[11px] font-bold bg-primary text-white hover:opacity-90">
+                {text.ok || 'OK'}
               </button>
             </div>
           </div>

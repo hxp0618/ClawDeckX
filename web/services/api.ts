@@ -638,6 +638,7 @@ export const doctorApi = {
     actions: Array<{ id: string; title: string; target: string; priority: 'high' | 'medium' | 'low' }>;
   }>('/api/v1/doctor/overview', ttlMs, force),
   fix: (checks?: string[]) => post('/api/v1/doctor/fix', checks && checks.length > 0 ? { checks } : {}),
+  cliFix: () => post<{ exitCode: number; output: string; success: boolean }>('/api/v1/doctor/cli-fix', {}),
 };
 
 // ==================== Recipe 步骤操作 ====================

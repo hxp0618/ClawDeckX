@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
@@ -870,6 +871,55 @@ func (h *DoctorHandler) Fix(w http.ResponseWriter, r *http.Request) {
 		"results":  results,
 		"selected": len(selected),
 		"message":  "ok",
+	})
+}
+
+// CLIFix runs "openclaw doctor --fix --yes --non-interactive" on the local machine.
+// This does not require a gateway WS connection — only a local openclaw CLI install.
+func (h *DoctorHandler) CLIFix(w http.ResponseWriter, r *http.Request) {
+	if !openclaw.CommandExists("openclaw") {
+		web.Fail(w, r, "CLI_NOT_INSTALLED", "openclaw CLI is not installed on this machine", http.StatusUnprocessableEntity)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 60*time.Second)
+	defer cancel()
+
+	cmd := exec.CommandContext(ctx, "openclaw", "doctor", "--fix", "--yes", "--non-interactive")
+	executil.HideWindow(cmd)
+	output, err := cmd.CombinedOutput()
+	exitCode := 0
+	if err != nil {
+		if exitErr, ok := err.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else if ctx.Err() != nil {
+			web.Fail(w, r, "CLI_FIX_TIMEOUT", "openclaw doctor --fix timed out after 60s", http.StatusGatewayTimeout)
+			return
+		} else {
+			web.Fail(w, r, "CLI_FIX_EXEC_FAILED", err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}
+
+	h.auditRepo.Create(&database.AuditLog{
+		UserID:   web.GetUserID(r),
+		Username: web.GetUsername(r),
+		Action:   constants.ActionDoctorFix,
+		Result:   fmt.Sprintf("cli-fix exit=%d", exitCode),
+		Detail: func(s string) string {
+			if len(s) > 2000 {
+				return s[:2000] + "..."
+			}
+			return s
+		}(string(output)),
+		IP: r.RemoteAddr,
+	})
+
+	logger.Doctor.Info().Int("exitCode", exitCode).Msg("openclaw doctor --fix completed")
+	web.OK(w, r, map[string]interface{}{
+		"exitCode": exitCode,
+		"output":   string(output),
+		"success":  exitCode == 0,
 	})
 }
 
