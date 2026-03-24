@@ -159,7 +159,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	logger.Auth.Info().Str("username", user.Username).Str("ip", r.RemoteAddr).Msg("user logged in")
 
 	http.SetCookie(w, &http.Cookie{
-		Name:     web.CookieName(),
+		Name:     web.CookieNameFromRequest(r),
 		Value:    token,
 		Path:     "/",
 		Expires:  expiresAt,
@@ -385,7 +385,7 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		IP:       r.RemoteAddr,
 	})
 	http.SetCookie(w, &http.Cookie{
-		Name:     web.CookieName(),
+		Name:     web.CookieNameFromRequest(r),
 		Value:    "",
 		Path:     "/",
 		Expires:  time.Now().Add(-1 * time.Hour),

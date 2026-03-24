@@ -5,8 +5,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"net"
 	"net/http"
-	"sync"
 )
 
 type contextKey string
@@ -18,25 +18,42 @@ const (
 	roleKey      contextKey = "role"
 )
 
-// cookieName is the port-specific cookie name used for auth tokens.
-// This prevents cross-instance cookie collision when multiple ClawDeckX
-// instances run on the same host with different ports.
-var (
-	cookieName     string = "claw_token"
-	cookieNameOnce sync.Once
-)
+// fallbackPort is the server's listen port, used when the Host header
+// does not include a port (e.g. behind a reverse proxy on port 80/443).
+var fallbackPort int
 
-// InitCookieName sets the auth cookie name based on the server port.
-// Must be called once during startup before any auth middleware runs.
+// InitCookieName stores the server listen port as a fallback for
+// CookieNameFromRequest. Must be called once during startup.
 func InitCookieName(port int) {
-	cookieNameOnce.Do(func() {
-		cookieName = fmt.Sprintf("claw_token_%d", port)
-	})
+	fallbackPort = port
 }
 
-// CookieName returns the current auth cookie name.
+// CookieName returns the cookie name using the fallback (listen) port.
+// Prefer CookieNameFromRequest when an *http.Request is available.
 func CookieName() string {
-	return cookieName
+	if fallbackPort > 0 {
+		return fmt.Sprintf("claw_token_%d", fallbackPort)
+	}
+	return "claw_token"
+}
+
+// CookieNameFromRequest returns a port-specific cookie name derived from
+// the request's Host header. This ensures that Docker-mapped ports
+// (e.g. host:18700 → container:18788) produce distinct cookie names,
+// preventing cross-instance collision in the browser.
+func CookieNameFromRequest(r *http.Request) string {
+	host := r.Host
+	if host == "" {
+		host = r.Header.Get("X-Forwarded-Host")
+	}
+	if host != "" {
+		// host may be "ip:port" or just "ip"
+		if _, portStr, err := net.SplitHostPort(host); err == nil && portStr != "" {
+			return "claw_token_" + portStr
+		}
+	}
+	// No port in Host header (port 80/443 or missing) → use fallback
+	return CookieName()
 }
 
 func SetRequestID(r *http.Request, id string) *http.Request {

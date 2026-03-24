@@ -2,6 +2,8 @@
 
 ### 🐛 Bug Fixes / 修复
 
+- derive cookie name from request Host header for Docker port mapping
+- restart with overlay binary after runtime update
 - read tokens from multi-account config path in test-channel
 - port-specific cookie name to prevent cross-instance collision
 - enhance config load diagnostics for JWT secret persistence tracking
