@@ -16,6 +16,7 @@ services:
       # 持久化运行时覆盖二进制文件，容器重建后保留更新
       - clawdeckx-runtime:/data/runtime
     environment:
+      OCD_CONFIG: /data/clawdeckx/ClawDeckX.json
       OPENCLAW_HOME: /data/openclaw/home
       OPENCLAW_STATE_DIR: /data/openclaw/state
       OPENCLAW_CONFIG_PATH: /data/openclaw/state/openclaw.json

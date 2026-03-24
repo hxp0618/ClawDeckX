@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -184,8 +185,13 @@ func Load() (Config, error) {
 			return cfg, err
 		}
 		cfg.Auth.JWTSecret = secret
+		fmt.Fprintf(os.Stderr, "[webconfig] generated new JWT secret (config path: %s)\n", path)
 		// Persist so the secret survives restarts
-		_ = Save(cfg)
+		if err := Save(cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "[webconfig] WARNING: failed to persist JWT secret: %v\n", err)
+		}
+	} else {
+		fmt.Fprintf(os.Stderr, "[webconfig] loaded JWT secret from config (path: %s)\n", path)
 	}
 
 	if cfg.OpenClaw.GatewayToken != "" {

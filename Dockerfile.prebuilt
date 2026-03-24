@@ -116,7 +116,8 @@ RUN mkdir -p /data/clawdeckx /data/openclaw/npm /data/openclaw/state /data/openc
     ln -sf /app/clawdeckx /usr/local/bin/clawdeckx
 VOLUME ["/data"]
 EXPOSE 18788 18789
-ENV OCD_DB_SQLITE_PATH=/data/clawdeckx/ClawDeckX.db \
+ENV OCD_CONFIG=/data/clawdeckx/ClawDeckX.json \
+    OCD_DB_SQLITE_PATH=/data/clawdeckx/ClawDeckX.db \
     OCD_LOG_FILE=/data/clawdeckx/ClawDeckX.log \
     OPENCLAW_HOME=/data/openclaw/home \
     OPENCLAW_STATE_DIR=/data/openclaw/state \
