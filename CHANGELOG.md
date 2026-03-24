@@ -12,6 +12,10 @@ _2026-03-24_
 - use correct param name 'key' for sessions.messages RPC
 - persist JWT secret across Docker restarts and add diagnostic logging
 
+### 🎨 UI & Styling / 界面优化
+
+- fix model dropdown dark mode contrast
+
 ### 🔧 Maintenance / 维护
 
 - bump openclawCompat to >=2026.3.23
@@ -536,6 +540,7 @@ _2026-03-15_
 
 
 ---
+
 
 
 

@@ -369,18 +369,18 @@ const ModelPathSearch: React.FC<ModelPathSearchProps> = ({ value, onChange, opti
           className="w-full h-8 ps-8 pe-3 theme-field rounded-md text-xs font-mono outline-none focus:border-primary" />
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute start-0 end-0 mt-1 max-h-48 overflow-y-auto custom-scrollbar neon-scrollbar rounded-lg border border-slate-200 dark:border-white/10 theme-panel shadow-xl z-50">
+        <div className="absolute start-0 end-0 mt-1 max-h-48 overflow-y-auto custom-scrollbar neon-scrollbar rounded-lg border border-slate-200 dark:border-white/10 bg-[var(--color-surface)] dark:bg-[var(--color-surface-overlay)] backdrop-blur-xl shadow-xl z-50">
           {filtered.map((o, idx) => (
             <button key={o.path}
               onMouseEnter={() => setHl(idx)}
               onClick={() => handleSelect(o.path)}
               ref={el => { if (idx === hl && el) el.scrollIntoView({ block: 'nearest' }); }}
-              className={`w-full text-start px-3 py-2 flex items-center gap-2 transition-colors border-b border-slate-100 dark:border-white/[0.04] last:border-b-0 ${idx === hl ? 'bg-primary/10 dark:bg-primary/20' : 'hover:bg-slate-50 dark:hover:bg-white/[0.04]'}`}>
+              className={`w-full text-start px-3 py-2 flex items-center gap-2 transition-colors border-b border-slate-100 dark:border-white/[0.06] last:border-b-0 ${idx === hl ? 'bg-primary/10 dark:bg-primary/20' : 'hover:bg-slate-50 dark:hover:bg-white/[0.06]'}`}>
               <div className="min-w-0 flex-1">
-                <div className="text-[11px] font-mono font-bold text-[var(--color-text)] dark:text-white/80 truncate">{o.path}</div>
-                {o.name && o.name !== o.model && <div className="text-[11px] text-slate-400 truncate">{o.name}</div>}
+                <div className="text-[11px] font-mono font-bold text-[var(--color-text)] truncate">{o.path}</div>
+                {o.name && o.name !== o.model && <div className="text-[11px] text-[var(--color-text-secondary)] truncate">{o.name}</div>}
               </div>
-              <span className="text-[11px] px-1.5 py-0.5 theme-field theme-text-muted rounded shrink-0">{o.provider}</span>
+              <span className="text-[11px] px-1.5 py-0.5 rounded shrink-0 bg-slate-100 dark:bg-white/10 text-[var(--color-text-muted)]">{o.provider}</span>
             </button>
           ))}
         </div>
