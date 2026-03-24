@@ -119,6 +119,7 @@
   "loginSuccess": "Anmeldung erfolgreich",
   "loginTimeout": "Anmeldung abgelaufen, bitte erneut versuchen",
   "loginFailed": "Anmeldung fehlgeschlagen",
+  "webLoginPluginError": "Das Kanal-Plugin konnte nicht geladen werden oder ist nicht installiert. Bitte stellen Sie sicher, dass das Plugin korrekt installiert und mit Ihrer OpenClaw-Version kompatibel ist. Siehe GitHub Issue openclaw/openclaw#52341 für Details.",
   "started": "Anmeldung gestartet",
   "pitfallTitle": "Wichtige Hinweise",
   "telegramPitfall": "⚠️ Häufige Fehler: 1) Nach Deaktivierung des Privacy Mode Bot aus Gruppe entfernen und neu hinzufügen; 2) Token-Format: Zahlen:alphanumerisch; 3) Max 20 Nachrichten/Min in Gruppen, Fehler 429; 4) Bei vorherigem Webhook erst deleteWebhook aufrufen",

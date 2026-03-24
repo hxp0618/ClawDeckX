@@ -119,6 +119,7 @@
   "loginSuccess": "로그인 성공",
   "loginTimeout": "로그인 시간 초과, 다시 시도해 주세요",
   "loginFailed": "로그인 실패",
+  "webLoginPluginError": "채널 플러그인을 로드하지 못했거나 설치되지 않았습니다. 플러그인이 올바르게 설치되었고 현재 OpenClaw 버전과 호환되는지 확인하세요. 자세한 내용은 GitHub issue openclaw/openclaw#52341을 참조하세요.",
   "started": "로그인 시작됨",
   "pitfallTitle": "주의사항",
   "telegramPitfall": "⚠️ 주의: 1) Privacy Mode 비활성화 후 Bot을 그룹에서 제거 후 다시 추가해야 적용됨; 2) Bot Token 형식은 숫자:영숫자 혼합, 복사 시 공백/줄바꿈 주의; 3) 그룹 내 Bot은 분당 최대 20개 메시지, 초과 시 429 에러; 4) 이전에 Webhook을 설정했다면 polling 모드 전환 전 deleteWebhook 호출 필요",

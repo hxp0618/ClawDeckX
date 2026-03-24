@@ -119,6 +119,7 @@
   "loginSuccess": "ログイン成功",
   "loginTimeout": "ログインタイムアウト、再試行してください",
   "loginFailed": "ログイン失敗",
+  "webLoginPluginError": "チャンネルプラグインの読み込みに失敗したか、インストールされていません。プラグインが正しくインストールされ、OpenClaw バージョンと互換性があることを確認してください。詳細は GitHub issue openclaw/openclaw#52341 を参照してください。",
   "started": "ログイン開始",
   "pitfallTitle": "注意事項",
   "telegramPitfall": "⚠️ よくある落とし穴：1) Privacy Mode無効化後、Botをグループから一度削除して再追加しないと反映されません（公式ドキュメントに明記）；2) Bot Tokenの形式は 数字:英数字混合 です。コピー時に余分なスペースや改行が入らないよう注意；3) グループ内のBotは1分間に最大20件のメッセージ送信が可能で、超過すると429エラー；4) 以前Webhookを設定していた場合、pollingモードに切り替えるにはまずdeleteWebhookを呼び出す必要があります",

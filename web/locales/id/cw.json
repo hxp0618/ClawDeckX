@@ -119,6 +119,7 @@
   "loginSuccess": "Login berhasil",
   "loginTimeout": "Login kedaluwarsa, silakan coba lagi",
   "loginFailed": "Login gagal",
+  "webLoginPluginError": "Plugin channel gagal dimuat atau belum terpasang. Pastikan plugin telah terpasang dengan benar dan kompatibel dengan versi OpenClaw Anda. Lihat GitHub issue openclaw/openclaw#52341 untuk detail.",
   "started": "Login dimulai",
   "pitfallTitle": "Catatan Penting",
   "telegramPitfall": "⚠️ Kesalahan umum: 1) Setelah menonaktifkan Privacy Mode, Anda HARUS menghapus dan menambahkan ulang Bot ke grup (dikonfirmasi docs resmi); 2) Format Bot Token adalah angka:alfanumerik — perhatikan spasi/baris baru saat menyalin; 3) Maks 20 pesan/menit di grup, melebihi mengembalikan 429; 4) Jika Webhook sebelumnya diatur, panggil deleteWebhook sebelum beralih ke polling",

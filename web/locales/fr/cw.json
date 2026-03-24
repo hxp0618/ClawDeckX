@@ -119,6 +119,7 @@
   "loginSuccess": "Connexion réussie",
   "loginTimeout": "Délai de connexion dépassé, veuillez réessayer",
   "loginFailed": "Échec de la connexion",
+  "webLoginPluginError": "Le plugin du canal n'a pas pu être chargé ou n'est pas installé. Veuillez vérifier que le plugin est correctement installé et compatible avec votre version d'OpenClaw. Voir l'issue GitHub openclaw/openclaw#52341 pour plus de détails.",
   "started": "Connexion démarrée",
   "pitfallTitle": "Notes importantes",
   "telegramPitfall": "⚠️ Erreurs courantes : 1) Après désactivation du Privacy Mode, retirer le Bot du groupe et le rajouter ; 2) Format token : chiffres:alphanumérique ; 3) Max 20 msgs/min en groupe, erreur 429 ; 4) Si Webhook existant, appeler deleteWebhook avant polling",

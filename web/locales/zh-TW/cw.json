@@ -119,6 +119,7 @@
   "loginSuccess": "登入成功",
   "loginTimeout": "登入逾時，請重試",
   "loginFailed": "登入失敗",
+  "webLoginPluginError": "頻道外掛載入失敗或尚未安裝。請確認外掛已正確安裝且與當前 OpenClaw 版本相容。詳情請參閱 GitHub issue openclaw/openclaw#52341。",
   "started": "登入已啟動",
   "pitfallTitle": "注意事項",
   "telegramPitfall": "⚠️ 常见踩坑：1) 關閉 Privacy Mode 后必须将 Bot 移出群组再重新添加才能生效（官方文档明确说明）；2) Bot Token 格式为 数字:字母数字混合，複製时注意不要多带空格或换行；3) 群组内 Bot 每分鐘最多发 20 条消息，超出返回 429 错误；4) 如果之前设置过 Webhook，需要先调用 deleteWebhook 才能切换到 polling 模式",

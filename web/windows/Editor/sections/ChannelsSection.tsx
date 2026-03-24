@@ -396,6 +396,7 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [restarting, setRestarting] = useState(false);
   const [showPairing, setShowPairing] = useState(false);
+  const [showWebLogin, setShowWebLogin] = useState(false);
   const [pairingCode, setPairingCode] = useState('');
   const [pairingStatus, setPairingStatus] = useState<'idle' | 'approving' | 'success' | 'error'>('idle');
   const [pairingError, setPairingError] = useState('');
@@ -466,7 +467,9 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
         setWebLoginResult({ ok: true, text: res?.message || res?.status || cw.started });
       }
     } catch (err: any) {
-      setWebLoginResult({ ok: false, text: `${cw.loginFailed}: ${err?.message || ''}` });
+      const msg = err?.message || '';
+      const isPluginError = /web\.login\.start|no provider|provider is not available|plugin.*load|not found/i.test(msg);
+      setWebLoginResult({ ok: false, text: isPluginError ? (cw.webLoginPluginError || `${cw.loginFailed}: ${msg}`) : `${cw.loginFailed}: ${msg}` });
     }
     setWebLoginBusy(false);
   }, [cw]);
@@ -620,6 +623,7 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
     setWizardStep(0);
     setWizardAccount(null);
     setShowPairing(false);
+    setShowWebLogin(false);
     setPairingCode('');
     setPairingStatus('idle');
     setPairingError('');
@@ -651,7 +655,10 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
       console.error('Failed to finish wizard:', err);
     }
     setRestarting(false);
-    if (requiresPairing) {
+    const isQrChannel = chId === 'whatsapp' || chId === 'openclaw-weixin';
+    if (isQrChannel) {
+      setShowWebLogin(true);
+    } else if (requiresPairing) {
       setShowPairing(true);
     } else {
       resetWizard();
@@ -2064,44 +2071,7 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
                   <div className="pt-3 space-y-2">
                     {renderChannelFields(chId, cfg, wizBasePath)}
                   </div>
-                  {/* QR Login (WhatsApp / Weixin) */}
-                  {(chId === 'whatsapp' || chId === 'openclaw-weixin') && (
-                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/[0.04]">
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="material-symbols-outlined text-primary text-[18px]">qr_code_2</span>
-                          <span className="text-[11px] font-bold text-slate-700 dark:text-white/80">
-                            {chId === 'openclaw-weixin' ? (cw.weixinLogin || 'WeChat QR Login') : cw.whatsappLogin}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 dark:text-white/50">
-                          {chId === 'openclaw-weixin' ? (cw.weixinLoginDesc || 'Scan the QR code with WeChat to connect your account.') : cw.whatsappLoginDesc}
-                        </p>
-                        <button onClick={handleWebLogin} disabled={webLoginBusy}
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[11px] font-bold bg-green-500 hover:bg-green-600 text-white transition-all disabled:opacity-50">
-                          <span className={`material-symbols-outlined text-[16px] ${webLoginBusy ? 'animate-spin' : ''}`}>
-                            {webLoginBusy ? 'progress_activity' : 'qr_code_2'}
-                          </span>
-                          {webLoginBusy ? cw.generating : cw.generateQR}
-                        </button>
-                        {webLoginResult && (
-                          <div className={`px-3 py-2.5 rounded-lg text-[10px] ${webLoginResult.ok ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-500 border border-red-200 dark:border-red-500/20'}`}>
-                            <p className="font-bold">{webLoginResult.text}</p>
-                            {webLoginResult.qrDataUrl && (
-                              <div className="mt-2 flex flex-col items-center gap-2">
-                                <img src={webLoginResult.qrDataUrl} alt="WeChat QR" className="w-48 h-48 rounded-lg border border-slate-200 dark:border-white/10" />
-                                <a href={webLoginResult.qrDataUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] text-blue-500 hover:underline break-all">{cw.openQrInBrowser || 'Open QR in browser'}</a>
-                              </div>
-                            )}
-                            {webLoginResult.qr && (
-                              <pre className="mt-2 p-2 bg-white dark:bg-black/20 rounded text-[9px] font-mono whitespace-pre overflow-x-auto">{webLoginResult.qr}</pre>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  {/* Test connection */}
+                  {/* Test connection (non-QR channels only; QR login moved to Step 4 post-save) */}
                   {chId !== 'whatsapp' && chId !== 'openclaw-weixin' && (
                     <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/[0.04]">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -2237,7 +2207,41 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
               {stepActive(4) && chId && (
                 <div className="px-4 pb-4 border-t border-slate-100 dark:border-white/[0.04]">
                   <div className="pt-3 space-y-3">
-                    {!showPairing ? (
+                    {showWebLogin ? (
+                      /* ── QR Login (post-save) ── */
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="material-symbols-outlined text-primary text-[18px]">qr_code_2</span>
+                          <span className="text-[11px] font-bold text-slate-700 dark:text-white/80">
+                            {chId === 'openclaw-weixin' ? (cw.weixinLogin || 'WeChat QR Login') : cw.whatsappLogin}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 dark:text-white/50">
+                          {chId === 'openclaw-weixin' ? (cw.weixinLoginDesc || 'Scan the QR code with WeChat to connect your account.') : cw.whatsappLoginDesc}
+                        </p>
+                        <button onClick={handleWebLogin} disabled={webLoginBusy}
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-[11px] font-bold bg-green-500 hover:bg-green-600 text-white transition-all disabled:opacity-50">
+                          <span className={`material-symbols-outlined text-[16px] ${webLoginBusy ? 'animate-spin' : ''}`}>
+                            {webLoginBusy ? 'progress_activity' : 'qr_code_2'}
+                          </span>
+                          {webLoginBusy ? cw.generating : cw.generateQR}
+                        </button>
+                        {webLoginResult && (
+                          <div className={`px-3 py-2.5 rounded-lg text-[10px] ${webLoginResult.ok ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-500/20' : 'bg-red-50 dark:bg-red-500/10 text-red-500 border border-red-200 dark:border-red-500/20'}`}>
+                            <p className="font-bold">{webLoginResult.text}</p>
+                            {webLoginResult.qrDataUrl && (
+                              <div className="mt-2 flex flex-col items-center gap-2">
+                                <img src={webLoginResult.qrDataUrl} alt="QR" className="w-48 h-48 rounded-lg border border-slate-200 dark:border-white/10" />
+                                <a href={webLoginResult.qrDataUrl} target="_blank" rel="noopener noreferrer" className="text-[9px] text-blue-500 hover:underline break-all">{cw.openQrInBrowser || 'Open QR in browser'}</a>
+                              </div>
+                            )}
+                            {webLoginResult.qr && (
+                              <pre className="mt-2 p-2 bg-white dark:bg-black/20 rounded text-[9px] font-mono whitespace-pre overflow-x-auto">{webLoginResult.qr}</pre>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : !showPairing ? (
                       <>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                           <div className="p-2.5 rounded-lg bg-slate-50 dark:bg-white/[0.03]">
@@ -2309,7 +2313,18 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
                       className="px-4 py-1.5 text-[11px] font-bold text-red-500 hover:text-red-600">
                       {es.deleteCancel}
                     </button>
-                    {!showPairing ? (
+                    {showWebLogin ? (
+                      <button onClick={() => {
+                        setShowWebLogin(false);
+                        const acctKey = wizardAccount || 'default';
+                        const dmPolicy = getField(['channels', chId, 'accounts', acctKey, 'dmPolicy']) || 'pairing';
+                        const requiresPairing = chId !== 'yuanbao' && dmPolicy === 'pairing';
+                        if (requiresPairing) { setShowPairing(true); } else { resetWizard(); }
+                      }}
+                        className="px-5 py-1.5 bg-primary hover:bg-primary/90 text-white text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1">
+                        {cw.next || es.done} <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                      </button>
+                    ) : !showPairing ? (
                       <button onClick={() => handleFinishWizard(chId)} disabled={restarting}
                         className="px-5 py-1.5 bg-green-500 hover:bg-green-600 text-white text-[11px] font-bold rounded-lg transition-colors flex items-center gap-1 disabled:opacity-50">
                         {restarting ? <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span> : <span className="material-symbols-outlined text-[14px]">check</span>}

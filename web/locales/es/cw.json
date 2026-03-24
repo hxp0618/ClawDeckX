@@ -119,6 +119,7 @@
   "loginSuccess": "Inicio de sesión exitoso",
   "loginTimeout": "Tiempo de espera agotado, intente de nuevo",
   "loginFailed": "Error de inicio de sesión",
+  "webLoginPluginError": "El plugin del canal no se pudo cargar o no está instalado. Verifique que el plugin esté correctamente instalado y sea compatible con su versión de OpenClaw. Consulte el issue de GitHub openclaw/openclaw#52341 para más detalles.",
   "started": "Inicio de sesión iniciado",
   "pitfallTitle": "Notas importantes",
   "telegramPitfall": "⚠️ Errores comunes: 1) Tras desactivar Privacy Mode, debe quitar el Bot del grupo y volver a añadirlo; 2) El formato del token es número:alfanumérico, cuidado con espacios; 3) Máximo 20 mensajes/minuto en grupo, error 429 al exceder; 4) Si tenía Webhook, llame deleteWebhook antes de polling",

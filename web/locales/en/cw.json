@@ -119,6 +119,7 @@
   "loginSuccess": "Login successful",
   "loginTimeout": "Login timed out, please try again",
   "loginFailed": "Login failed",
+  "webLoginPluginError": "The channel plugin failed to load or is not installed. Please check that the plugin is correctly installed and compatible with your OpenClaw version. See GitHub issue openclaw/openclaw#52341 for details.",
   "started": "Login started",
   "pitfallTitle": "Important Notes",
   "telegramPitfall": "⚠️ Common pitfalls: 1) After disabling Privacy Mode, you MUST remove and re-add the Bot to the group (official docs confirm this); 2) Bot Token format is digits:alphanumeric — watch for extra spaces/newlines when copying; 3) Max 20 messages/minute in groups, exceeding returns 429; 4) If Webhook was previously set, call deleteWebhook before switching to polling",

@@ -119,6 +119,7 @@
   "loginSuccess": "تم تسجيل الدخول بنجاح",
   "loginTimeout": "انتهت مهلة تسجيل الدخول، يرجى المحاولة مرة أخرى",
   "loginFailed": "فشل تسجيل الدخول",
+  "webLoginPluginError": "فشل تحميل إضافة القناة أو أنها غير مثبتة. يرجى التحقق من أن الإضافة مثبتة بشكل صحيح ومتوافقة مع إصدار OpenClaw الحالي. راجع GitHub issue openclaw/openclaw#52341 للتفاصيل.",
   "started": "بدأ تسجيل الدخول",
   "pitfallTitle": "أخطاء شائعة",
   "telegramPitfall": "تأكد من أن الرمز من @BotFather وليس رمز API",
