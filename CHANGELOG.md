@@ -6,6 +6,7 @@ _2026-03-24_
 
 ### 🐛 Bug Fixes / 修复
 
+- read tokens from multi-account config path in test-channel
 - port-specific cookie name to prevent cross-instance collision
 - enhance config load diagnostics for JWT secret persistence tracking
 - add diagnostic logging for 401 auth failures in middleware
@@ -540,6 +541,7 @@ _2026-03-15_
 
 
 ---
+
 
 
 

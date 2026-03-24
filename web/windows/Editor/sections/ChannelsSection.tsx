@@ -407,11 +407,14 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
   const [pluginInstalling, setPluginInstalling] = useState(false);
   const [pluginInstallResult, setPluginInstallResult] = useState<{ ok: boolean; msg: string; phase?: 'installed' | 'restarting' | 'ready' } | null>(null);
 
-  const handleWizardTest = useCallback(async (chId: string) => {
+  const handleWizardTest = useCallback(async (chId: string, acctKey?: string) => {
     setWizTestStatus('testing');
     setWizTestMsg('');
     try {
-      const cfg = channels[chId] || {};
+      // Read from multi-account path: channels.{ch}.accounts.{acct}
+      const chCfg = channels[chId] || {};
+      const acct = acctKey || 'default';
+      const cfg = chCfg?.accounts?.[acct] || chCfg || {};
       const tokenMap: Record<string, string> = {};
       // Extract token fields from current config for the channel
       if (chId === 'telegram') { tokenMap.botToken = cfg.botToken || ''; }
@@ -2075,7 +2078,7 @@ export const ChannelsSection: React.FC<SectionProps> = ({ config, setField, getF
                   {chId !== 'whatsapp' && chId !== 'openclaw-weixin' && (
                     <div className="mt-3 pt-3 border-t border-slate-100 dark:border-white/[0.04]">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <button onClick={() => handleWizardTest(chId)} disabled={wizTestStatus === 'testing'}
+                        <button onClick={() => handleWizardTest(chId, wizAcctKey)} disabled={wizTestStatus === 'testing'}
                           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 transition-all disabled:opacity-50">
                           <span className={`material-symbols-outlined text-[14px] ${wizTestStatus === 'testing' ? 'animate-spin' : ''} ${wizTestStatus === 'ok' ? 'text-green-500' : wizTestStatus === 'fail' ? 'text-red-500' : 'text-primary'}`}>
                             {wizTestStatus === 'testing' ? 'progress_activity' : wizTestStatus === 'ok' ? 'check_circle' : wizTestStatus === 'fail' ? 'error' : 'wifi_tethering'}
