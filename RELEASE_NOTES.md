@@ -1,25 +1,27 @@
 ﻿## What's Changed
 
+### ✨ New Features / 新功能
+
+- schema-aware tooltips with auto-fallback and range/enum display
+- unified OpenClaw binary discovery across all platforms and install methods
+
 ### 🐛 Bug Fixes / 修复
 
-- derive cookie name from request Host header for Docker port mapping
-- restart with overlay binary after runtime update
-- read tokens from multi-account config path in test-channel
-- port-specific cookie name to prevent cross-instance collision
-- enhance config load diagnostics for JWT secret persistence tracking
-- add diagnostic logging for 401 auth failures in middleware
-- use correct param name 'key' for sessions.messages RPC
-- persist JWT secret across Docker restarts and add diagnostic logging
+- hide MCP from unmapped config section, remove unused tools toggle
 
 ### 🎨 UI & Styling / 界面优化
 
-- fix model dropdown dark mode contrast
+- remove expand/collapse tools button from AI chat menu
+- remove TTS speak button from AI chat messages
+- optimize AI chat layout and wallpaper toolbar UX
+- remove language label from chat code blocks
 
-### 🔧 Maintenance / 维护
+### 🌐 Internationalization / 国际化
 
-- bump openclawCompat to >=2026.3.23
+- add missing tooltip keys to all 10 remaining locales
+- translate DM to native terms in zh and zh-TW locales
 
 ---
-**Full Changelog**: [v0.0.26...v0.0.27](https://github.com/ClawDeckX/ClawDeckX/compare/v0.0.26...v0.0.27)
+**Full Changelog**: [v0.0.27...v0.0.28](https://github.com/ClawDeckX/ClawDeckX/compare/v0.0.27...v0.0.28)
 
 
