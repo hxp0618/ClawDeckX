@@ -927,7 +927,7 @@ export const gwApi = {
     if (params?.limit) qs.set('limit', String(params.limit));
     if (params?.key) qs.set('key', params.key);
     const q = qs.toString();
-    return get(`/api/v1/gw/sessions/usage${q ? '?' + q : ''}`);
+    return getCached(`/api/v1/gw/sessions/usage${q ? '?' + q : ''}`, 15_000);
   },
   usageCost: (params?: { startDate?: string; endDate?: string; days?: number }) => {
     const qs = new URLSearchParams();
@@ -935,7 +935,7 @@ export const gwApi = {
     if (params?.endDate) qs.set('endDate', params.endDate);
     if (params?.days) qs.set('days', String(params.days));
     const q = qs.toString();
-    return get(`/api/v1/gw/usage/cost${q ? '?' + q : ''}`);
+    return getCached(`/api/v1/gw/usage/cost${q ? '?' + q : ''}`, 15_000);
   },
   skillsConfig: () => get('/api/v1/gw/skills/config'),
   skillsConfigure: (data: any) => post('/api/v1/gw/skills/configure', data),
