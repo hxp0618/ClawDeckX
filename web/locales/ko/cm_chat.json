@@ -74,6 +74,7 @@
     "catMedia": "미디어",
     "catDocks": "채널",
     "renameSession": "이름 변경",
+    "editSession": "세션 편집",
     "deleteSession": "세션 삭제",
     "confirmDeleteSession": "이 세션을 삭제하시겠습니까? 되돌릴 수 없습니다.",
     "renaming": "이름 변경 중...",

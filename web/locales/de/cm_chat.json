@@ -74,6 +74,7 @@
     "catMedia": "Medien",
     "catDocks": "Kanäle",
     "renameSession": "Umbenennen",
+    "editSession": "Sitzung bearbeiten",
     "deleteSession": "Sitzung löschen",
     "confirmDeleteSession": "Sind Sie sicher, dass Sie diese Sitzung löschen möchten? Dies kann nicht rückgängig gemacht werden.",
     "confirmDeleteSessionMsg": "{count} inaktive Sitzungen löschen? Dies kann nicht rückgängig gemacht werden.",

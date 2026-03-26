@@ -74,6 +74,7 @@
     "catMedia": "媒体",
     "catDocks": "频道",
     "renameSession": "重命名",
+    "editSession": "编辑会话",
     "deleteSession": "删除会话",
     "confirmDeleteSession": "删除过期会话",
     "confirmDeleteSessionMsg": "确定删除 {count} 个过期会话？删除后无法恢复。",

@@ -74,6 +74,7 @@
     "catMedia": "Média",
     "catDocks": "Canaux",
     "renameSession": "Renommer",
+    "editSession": "Modifier la session",
     "deleteSession": "Supprimer la session",
     "confirmDeleteSession": "Êtes-vous sûr de vouloir supprimer cette session ? Cette action est irréversible.",
     "confirmDeleteSessionMsg": "Supprimer {count} sessions inactives ? Cette action est irréversible.",

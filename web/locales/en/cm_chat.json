@@ -74,6 +74,7 @@
     "catMedia": "Media",
     "catDocks": "Channels",
     "renameSession": "Rename",
+    "editSession": "Edit Session",
     "deleteSession": "Delete Session",
     "confirmDeleteSession": "Delete Stale Sessions",
     "confirmDeleteSessionMsg": "Delete {count} stale sessions? This cannot be undone.",

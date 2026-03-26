@@ -74,6 +74,7 @@
     "catMedia": "Mídia",
     "catDocks": "Canais",
     "renameSession": "Renomear",
+    "editSession": "Editar Sessão",
     "deleteSession": "Excluir Sessão",
     "confirmDeleteSession": "Tem certeza que deseja excluir esta sessão? Isso não pode ser desfeito.",
     "confirmDeleteSessionMsg": "Excluir {count} sessões inativas? Isso não pode ser desfeito.",

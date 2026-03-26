@@ -74,6 +74,7 @@
     "catMedia": "मीडिया",
     "catDocks": "चैनल",
     "renameSession": "नाम बदलें",
+    "editSession": "सत्र संपादित करें",
     "deleteSession": "सत्र हटाएं",
     "confirmDeleteSession": "पुराने सत्र हटाएं",
     "confirmDeleteSessionMsg": "{count} पुराने सत्र हटाएं? यह पूर्ववत नहीं किया जा सकता।",

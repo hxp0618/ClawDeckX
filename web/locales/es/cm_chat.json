@@ -74,6 +74,7 @@
     "catMedia": "Medios",
     "catDocks": "Canales",
     "renameSession": "Renombrar",
+    "editSession": "Editar sesión",
     "deleteSession": "Eliminar sesión",
     "confirmDeleteSession": "¿Está seguro de que desea eliminar esta sesión? Esta acción no se puede deshacer.",
     "confirmDeleteSessionMsg": "¿Eliminar {count} sesiones inactivas? Esta acción no se puede deshacer.",

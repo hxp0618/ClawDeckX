@@ -74,6 +74,7 @@
     "catMedia": "Media",
     "catDocks": "Channel",
     "renameSession": "Ganti Nama",
+    "editSession": "Edit Sesi",
     "deleteSession": "Hapus Sesi",
     "confirmDeleteSession": "Hapus Sesi Usang",
     "confirmDeleteSessionMsg": "Hapus {count} sesi usang? Tindakan ini tidak dapat dibatalkan.",
