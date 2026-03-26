@@ -591,6 +591,12 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
     return id?.emoji?.trim() || ag.identity?.emoji?.trim() || id?.avatar?.trim() || ag.identity?.avatar?.trim() || '';
   };
 
+  const resolveAgentLabel = (agentId: string): string => {
+    const ag = agents.find((x: any) => x.id === agentId);
+    if (ag) return resolveLabel(ag);
+    return agentId;
+  };
+
   const resolveAgentConfig = (agentId: string) => {
     if (!config) return { model: na, workspace: a.workspaceDefault, skills: null, tools: null };
     const cfg0 = config?.agents || config?.parsed?.agents || config?.config?.agents || {};
@@ -822,7 +828,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
                                   ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-500/20'
                                   : 'bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-200/60 dark:border-violet-500/20'
                               }`}>
-                                {id}
+                                {resolveAgentLabel(id)}
                                 <button onClick={() => { const d = initDraft(); setA2aDraft({ ...d, allow: d.allow.filter(x => x !== id) }); }} disabled={a2aSaving}
                                   className="p-0 opacity-40 hover:opacity-100 transition-opacity">
                                   <span className="material-symbols-outlined text-[9px]">close</span>
@@ -835,11 +841,11 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
 
                       <CustomSelect
                         value=""
-                        onChange={(v: string) => { if (v && !a2aAllow.includes(v)) { const d = initDraft(); setA2aDraft({ ...d, allow: [...d.allow, v] }); } }}
+                        onChange={(v: string) => { if (!v || a2aAllow.includes(v)) return; const d = initDraft(); if (v === '*') { setA2aDraft({ ...d, allow: ['*'] }); } else { setA2aDraft({ ...d, allow: [...d.allow.filter(x => x !== '*'), v] }); } }}
                         options={[
                           { value: '', label: a.a2aAddAgent || 'Add agent…' },
                           { value: '*', label: `* (${a.a2aAllWildcard || 'all agents'})` },
-                          ...agentOpts.map((id: string) => ({ value: id, label: id }))
+                          ...agentOpts.map((id: string) => ({ value: id, label: resolveAgentLabel(id) }))
                         ]}
                         className="w-full h-7 px-2 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-md text-[10px] text-slate-600 dark:text-white/60"
                         disabled={a2aSaving}
@@ -1079,7 +1085,7 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
                                     <span className="material-symbols-outlined text-[11px]">
                                       {isWildcard ? 'select_all' : 'smart_toy'}
                                     </span>
-                                    {id}
+                                    {resolveAgentLabel(id)}
                                     <button
                                       onClick={() => setSubDraft((subDraft ?? [...serverAllow]).filter(x => x !== id))}
                                       disabled={subSaving}
@@ -1096,11 +1102,11 @@ const Agents: React.FC<AgentsProps> = ({ language }) => {
                           <div className="flex items-center gap-2">
                             <CustomSelect
                               value=""
-                              onChange={(v: string) => { if (v && !allowAgents.includes(v)) setSubDraft([...(subDraft ?? [...serverAllow]), v]); }}
+                              onChange={(v: string) => { if (!v || allowAgents.includes(v)) return; if (v === '*') { setSubDraft(['*']); } else { setSubDraft([...(subDraft ?? [...serverAllow]).filter(x => x !== '*'), v]); } }}
                               options={[
                                 { value: '', label: a.subAddAgent || 'Add subagent…' },
                                 { value: '*', label: `* (${a.a2aAllWildcard || 'all agents'})` },
-                                ...otherAgents.map((id: string) => ({ value: id, label: id }))
+                                ...otherAgents.map((id: string) => ({ value: id, label: resolveAgentLabel(id) }))
                               ]}
                               className="flex-1 h-8 px-2.5 bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-lg text-[11px] text-slate-600 dark:text-white/60"
                               disabled={subSaving}

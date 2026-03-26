@@ -383,9 +383,10 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   // Fetch agents list on mount for sidebar filter
   useEffect(() => {
     if (!gwReady) return;
-    gwApi.agents().then((list: any) => {
+    gwApi.agents().then((data: any) => {
+      const list = Array.isArray(data) ? data : data?.agents;
       if (Array.isArray(list)) {
-        setAgentsList(list.map((a: any) => ({ id: a.id || '', label: a.label || a.id || '' })).filter((a: { id: string }) => a.id));
+        setAgentsList(list.map((a: any) => ({ id: a.id || '', label: a.name?.trim() || a.label || a.id || '' })).filter((a: { id: string }) => a.id));
       }
     }).catch(() => {});
   }, [gwReady]);
@@ -473,6 +474,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
   const [bindAgentId, setBindAgentId] = useState('');
   const [bindAgentOriginal, setBindAgentOriginal] = useState('');
   const [agentsList, setAgentsList] = useState<Array<{ id: string; label?: string }>>([]);
+  const [bindAgentsList, setBindAgentsList] = useState<Array<{ id: string; label?: string }>>([]);
   const [agentFilter, setAgentFilter] = useState('');
   const [deleteConfirmKey, setDeleteConfirmKey] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -1951,11 +1953,12 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
     const peer = parseSessionKeyPeer(key);
     if (peer && (peer.peerKind === 'group' || peer.peerKind === 'channel')) {
       Promise.all([
-        gwApi.agents().catch(() => []),
+        gwApi.agents().catch(() => null),
         gwApi.configGet().catch(() => null),
-      ]).then(([agents, cfg]) => {
-        const list = Array.isArray(agents) ? agents.map((a: any) => ({ id: a.id || '', label: a.label || a.id || '' })).filter((a: { id: string }) => a.id) : [];
-        setAgentsList(list);
+      ]).then(([agentsData, cfg]) => {
+        const raw = Array.isArray(agentsData) ? agentsData : agentsData?.agents || [];
+        const list = raw.map((a: any) => ({ id: a.id || '', label: a.name?.trim() || a.label || a.id || '' })).filter((a: { id: string }) => a.id);
+        setBindAgentsList(list);
         // Find existing peer binding
         const parsed = (cfg as any)?.parsed || (cfg as any)?.config || cfg || {};
         const bindings: any[] = Array.isArray(parsed.bindings) ? parsed.bindings : [];
@@ -1969,7 +1972,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
         setBindAgentOriginal(boundId);
       });
     } else {
-      setAgentsList([]);
+      setBindAgentsList([]);
     }
   }, []);
 
@@ -2395,7 +2398,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                     <button
                       onClick={(e) => { e.stopPropagation(); openRenameDialog(s.key, s.label || ''); }}
                       className="p-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 text-slate-400 hover:text-primary transition-all"
-                      title={c.renameSession}>
+                      title={c.editSession || c.renameSession}>
                       <span className="material-symbols-outlined text-[14px]">edit</span>
                     </button>
                     {s.key !== 'main' && (
@@ -3420,7 +3423,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-[18px] text-primary">edit</span>
-              {c.renameSession}
+              {c.editSession || c.renameSession}
             </h3>
 
             <div>
@@ -3440,7 +3443,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
             </div>
 
             {/* Bind Agent — only for group/channel sessions */}
-            {agentsList.length > 0 && parseSessionKeyPeer(renameKey) && (
+            {bindAgentsList.length > 0 && parseSessionKeyPeer(renameKey) && (
               <div className="mt-4">
                 <label className="text-[10px] font-bold text-slate-500 dark:text-white/40 uppercase block mb-1">
                   <span className="material-symbols-outlined text-[12px] align-middle me-0.5">link</span>
@@ -3451,7 +3454,7 @@ const Sessions: React.FC<SessionsProps> = ({ language, pendingSessionKey, onSess
                   onChange={setBindAgentId}
                   options={[
                     { value: '', label: c.bindDefault || 'Default (no override)' },
-                    ...agentsList.map(a => ({ value: a.id, label: a.label || a.id }))
+                    ...bindAgentsList.map(a => ({ value: a.id, label: a.label || a.id }))
                   ]}
                   className="w-full h-9 px-3 bg-slate-50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-xl text-[12px] text-slate-800 dark:text-white/80"
                   disabled={renaming}
