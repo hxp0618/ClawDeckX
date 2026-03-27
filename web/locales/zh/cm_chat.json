@@ -166,6 +166,10 @@
     "lastLatency": "延迟",
     "secToolPolicy": "工具策略",
     "secSandbox": "沙箱",
-    "secExec": "执行"
+    "secExec": "执行",
+    "secProfile_full": "完整",
+    "secProfile_minimal": "最小",
+    "secProfile_coding": "编程",
+    "secProfile_messaging": "消息"
   }
 }

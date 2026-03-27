@@ -166,6 +166,10 @@
     "lastLatency": "التأخير",
     "secToolPolicy": "سياسة الأدوات",
     "secSandbox": "صندوق الرمل",
-    "secExec": "التنفيذ"
+    "secExec": "التنفيذ",
+    "secProfile_full": "كامل",
+    "secProfile_minimal": "أدنى",
+    "secProfile_coding": "برمجة",
+    "secProfile_messaging": "مراسلة"
   }
 }

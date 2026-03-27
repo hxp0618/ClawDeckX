@@ -166,6 +166,10 @@
     "lastLatency": "지연",
     "secToolPolicy": "도구 정책",
     "secSandbox": "샌드박스",
-    "secExec": "실행"
+    "secExec": "실행",
+    "secProfile_full": "전체",
+    "secProfile_minimal": "최소",
+    "secProfile_coding": "코딩",
+    "secProfile_messaging": "메시징"
   }
 }

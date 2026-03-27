@@ -166,6 +166,10 @@
     "lastLatency": "Latensi",
     "secToolPolicy": "Kebijakan Alat",
     "secSandbox": "Sandbox",
-    "secExec": "Eksekusi"
+    "secExec": "Eksekusi",
+    "secProfile_full": "Penuh",
+    "secProfile_minimal": "Minimal",
+    "secProfile_coding": "Coding",
+    "secProfile_messaging": "Pesan"
   }
 }

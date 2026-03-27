@@ -166,6 +166,10 @@
     "lastLatency": "Latencia",
     "secToolPolicy": "Política de herramientas",
     "secSandbox": "Sandbox",
-    "secExec": "Ejecución"
+    "secExec": "Ejecución",
+    "secProfile_full": "Completo",
+    "secProfile_minimal": "Mínimo",
+    "secProfile_coding": "Codificación",
+    "secProfile_messaging": "Mensajería"
   }
 }

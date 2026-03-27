@@ -166,6 +166,10 @@
     "lastLatency": "延遲",
     "secToolPolicy": "工具策略",
     "secSandbox": "沙箱",
-    "secExec": "執行"
+    "secExec": "執行",
+    "secProfile_full": "完整",
+    "secProfile_minimal": "最小",
+    "secProfile_coding": "程式開發",
+    "secProfile_messaging": "訊息"
   }
 }

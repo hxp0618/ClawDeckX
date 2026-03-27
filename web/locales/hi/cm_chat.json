@@ -166,6 +166,10 @@
     "lastLatency": "Latency",
     "secToolPolicy": "Tool Policy",
     "secSandbox": "Sandbox",
-    "secExec": "Exec"
+    "secExec": "Exec",
+    "secProfile_full": "पूर्ण",
+    "secProfile_minimal": "न्यूनतम",
+    "secProfile_coding": "कोडिंग",
+    "secProfile_messaging": "मैसेजिंग"
   }
 }

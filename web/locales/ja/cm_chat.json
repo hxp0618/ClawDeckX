@@ -166,6 +166,10 @@
     "lastLatency": "レイテンシ",
     "secToolPolicy": "ツールポリシー",
     "secSandbox": "サンドボックス",
-    "secExec": "実行"
+    "secExec": "実行",
+    "secProfile_full": "フル",
+    "secProfile_minimal": "最小",
+    "secProfile_coding": "コーディング",
+    "secProfile_messaging": "メッセージ"
   }
 }
