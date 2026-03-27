@@ -9,16 +9,11 @@
     "ready": "Ready",
     "needsSetup": "Needs setup",
     "configure": "Configure",
-    "configHint": "Enter required credentials",
     "select": "Select...",
     "cancel": "Cancel",
     "saving": "Saving...",
-    "saveAndEnable": "Save & Enable",
     "configured": "Skill configured",
-    "configFailed": "Failed to configure",
     "enabled": "Skill enabled",
-    "disabled": "Skill disabled",
-    "toggleFailed": "Failed to toggle",
-    "noDescription": "No description available"
+    "disabled": "Skill disabled"
   }
 }

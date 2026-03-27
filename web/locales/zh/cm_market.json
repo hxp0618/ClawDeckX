@@ -9,16 +9,11 @@
     "ready": "就绪",
     "needsSetup": "需要配置",
     "configure": "配置",
-    "configHint": "输入所需凭据",
     "select": "选择...",
     "cancel": "取消",
     "saving": "保存中...",
-    "saveAndEnable": "保存并启用",
     "configured": "技能已配置",
-    "configFailed": "配置失败",
     "enabled": "技能已启用",
-    "disabled": "技能已禁用",
-    "toggleFailed": "切换失败",
-    "noDescription": "暂无描述"
+    "disabled": "技能已禁用"
   }
 }
