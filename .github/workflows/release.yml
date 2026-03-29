@@ -75,7 +75,7 @@ jobs:
           go build -ldflags="${LDFLAGS}" -o dist/${{ matrix.output_name }} ./cmd/clawdeckx
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.output_name }}
           path: dist/${{ matrix.output_name }}
@@ -90,7 +90,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: artifacts
 
@@ -178,13 +178,13 @@ jobs:
           fi
 
       - name: Download linux/amd64 binary
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: clawdeckx-linux-amd64
           path: dist/
 
       - name: Download linux/arm64 binary
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: clawdeckx-linux-arm64
           path: dist/
