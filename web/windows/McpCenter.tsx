@@ -250,6 +250,22 @@ const EditModal: React.FC<{
     }
   };
 
+  // Convert SSE config to mcp-remote stdio bridge
+  const convertToMcpRemote = () => {
+    const resolvedUrl = url.trim();
+    if (!resolvedUrl) { setUrlError(t.urlRequired || '服务器地址不能为空'); return; }
+    const mcpRemoteArgs = ['mcp-remote', resolvedUrl];
+    for (const [k, v] of Object.entries(headers)) {
+      if (k.trim()) mcpRemoteArgs.push('--header', `${k.trim()}: ${v}`);
+    }
+    setServerType('stdio');
+    setCommand('npx');
+    setArgs(mcpRemoteArgs);
+    setHeaders({});
+    setUrl('');
+    setUrlError('');
+  };
+
   const buildFormConfig = (): { name: string; config: McpServerConfig } | null => {
     const trimmed = name.trim();
     let valid = true;
@@ -552,6 +568,17 @@ const EditModal: React.FC<{
                       keyPlaceholder={t.headerKeyPlaceholder || 'Header name'}
                       valuePlaceholder={t.headerValuePlaceholder || 'Value'}
                     />
+                  </div>
+                  <div className="pt-1">
+                    <button
+                      type="button"
+                      onClick={convertToMcpRemote}
+                      className="flex items-center gap-1.5 px-3 h-7 rounded-lg text-[11px] font-medium border theme-border theme-text-secondary hover:border-primary hover:text-primary transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[14px]">swap_horiz</span>
+                      {t.convertToMcpRemote || 'Convert to mcp-remote (stdio)'}
+                    </button>
+                    <p className="text-[10px] theme-text-muted mt-1">{t.convertToMcpRemoteHint || 'Bridges this HTTP server via mcp-remote so stdio-only runtimes can connect.'}</p>
                   </div>
                 </>
               )}

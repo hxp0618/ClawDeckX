@@ -296,6 +296,8 @@
       "addHeader": "हेडर जोड़ें",
       "headerKeyPlaceholder": "हेडर नाम",
       "headerValuePlaceholder": "मान",
+      "convertToMcpRemote": "mcp-remote (stdio) में बदलें",
+      "convertToMcpRemoteHint": "mcp-remote के जरिए इस HTTP सर्वर को stdio से जोड़ता है, تाकि केवल stdio समर्थिت रनटाइम भी कनेक्ट हो सकें।",
       "extraJson": "अतिरिक्त JSON फ़ील्ड",
       "extraJsonPlaceholder": "{ \"key\": \"value\" }",
       "extraJsonHint": "वैकल्पिक। अतिरिक्त फ़ील्ड सर्वर कॉन्फ़िग में मर्ज होंगे।",

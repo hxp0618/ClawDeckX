@@ -296,6 +296,8 @@
       "addHeader": "Ajouter un en-tête",
       "headerKeyPlaceholder": "Nom de l'en-tête",
       "headerValuePlaceholder": "Valeur",
+      "convertToMcpRemote": "Convertir en mcp-remote (stdio)",
+      "convertToMcpRemoteHint": "Connecte ce serveur HTTP via mcp-remote en stdio pour que les environnements ne supportant que stdio puissent aussi s'y connecter.",
       "extraJson": "Champs JSON supplémentaires",
       "extraJsonPlaceholder": "{ \"key\": \"value\" }",
       "extraJsonHint": "Optionnel. Les champs supplémentaires sont fusionnés dans la configuration du serveur.",

@@ -296,6 +296,8 @@
       "addHeader": "Tambah Header",
       "headerKeyPlaceholder": "Nama header",
       "headerValuePlaceholder": "Nilai",
+      "convertToMcpRemote": "Konversi ke mcp-remote (stdio)",
+      "convertToMcpRemoteHint": "Menjembatani server HTTP ini via mcp-remote sebagai stdio agar runtime yang hanya mendukung stdio juga dapat terhubung.",
       "extraJson": "Kolom JSON Tambahan",
       "extraJsonPlaceholder": "{ \"key\": \"value\" }",
       "extraJsonHint": "Opsional. Kolom tambahan akan digabungkan ke konfigurasi server.",

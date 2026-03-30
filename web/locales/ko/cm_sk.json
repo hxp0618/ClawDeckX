@@ -296,6 +296,8 @@
       "addHeader": "헤더 추가",
       "headerKeyPlaceholder": "헤더 이름",
       "headerValuePlaceholder": "값",
+      "convertToMcpRemote": "mcp-remote (stdio)로 변환",
+      "convertToMcpRemoteHint": "mcp-remote를 통해 이 HTTP 서버를 stdio로 브리지하여 stdio만 지원하는 런타임에서도 연결할 수 있습니다.",
       "extraJson": "추가 JSON 필드",
       "extraJsonPlaceholder": "{ \"key\": \"value\" }",
       "extraJsonHint": "선택 사항. 추가 필드는 서버 설정에 병합됩니다.",

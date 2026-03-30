@@ -296,6 +296,8 @@
       "addHeader": "Header hinzufügen",
       "headerKeyPlaceholder": "Header-Name",
       "headerValuePlaceholder": "Wert",
+      "convertToMcpRemote": "In mcp-remote (stdio) konvertieren",
+      "convertToMcpRemoteHint": "Brückt diesen HTTP-Server über mcp-remote als stdio, damit auch nur stdio-fähige Laufzeiten eine Verbindung herstellen können.",
       "extraJson": "Zusätzliche JSON-Felder",
       "extraJsonPlaceholder": "{ \"key\": \"value\" }",
       "extraJsonHint": "Optional. Zusätzliche Felder werden in die Serverkonfiguration zusammengeführt.",
