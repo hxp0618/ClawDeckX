@@ -28,10 +28,15 @@ const CodeBlock: React.FC<{ code: string; copyLabel?: string }> = ({ code, copyL
 
   return (
     <div className="relative group/code my-2 sci-card rounded-xl overflow-hidden">
-      <div className={`absolute top-1.5 end-1.5 transition z-10 ${copied || copyFailed ? 'opacity-100' : 'opacity-0 group-hover/code:opacity-100'}`}>
+      <div className="absolute top-1.5 end-1.5 transition z-10 opacity-100 pointer-events-none">
         <button
+          type="button"
+          onMouseDown={e => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
           onClick={handleCopy}
-          className="text-[9px] px-1.5 py-0.5 rounded bg-white/10 hover:bg-white/20 text-white/60 transition sci-badge cursor-pointer select-none"
+          className={`text-[9px] px-1.5 py-0.5 rounded transition sci-badge cursor-pointer select-none pointer-events-auto ${copied ? 'bg-emerald-500/30 text-emerald-100' : copyFailed ? 'bg-mac-red/30 text-red-100' : 'bg-white/10 hover:bg-white/20 text-white/80'}`}
         >
           {copied ? '✓' : copyFailed ? '✗' : (copyLabel || 'Copy')}
         </button>
