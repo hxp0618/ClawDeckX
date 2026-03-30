@@ -13,6 +13,11 @@ _2026-03-30_
 - add 3-attempt retry for ClawHub and SkillHub CLI install
 - add git push retry logic with 3 attempts and exit on failure
 
+### 📦 Build & Deploy / 构建部署
+
+- optimize arm64 smoke test for QEMU slowness
+- replace softprops/action-gh-release with gh CLI
+
 ---
 **Full Changelog**: [v0.0.35...v0.0.36](https://ghproxy.com/https://github.com/ClawDeckX/ClawDeckX/compare/v0.0.35...v0.0.36)
 
@@ -816,6 +821,7 @@ _2026-03-15_
 
 
 ---
+
 
 
 
