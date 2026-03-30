@@ -726,10 +726,14 @@ const EditModal: React.FC<{
                 </label>
                 <textarea
                   value={jsonRaw}
-                  onChange={e => { setJsonRaw(e.target.value); setJsonError(''); }}
+                  onChange={e => {
+                    setJsonRaw(e.target.value);
+                    try { JSON.parse(e.target.value); setJsonError(''); }
+                    catch (err: any) { setJsonError(err.message || 'Invalid JSON'); }
+                  }}
                   spellCheck={false}
                   rows={16}
-                  className="w-full px-3 py-2.5 theme-field rounded-xl text-[11px] font-mono outline-none focus:border-primary sci-input resize-none leading-relaxed custom-scrollbar neon-scrollbar"
+                  className={`w-full px-3 py-2.5 theme-field rounded-xl text-[11px] font-mono outline-none sci-input resize-none leading-relaxed custom-scrollbar neon-scrollbar ${jsonError ? 'border-mac-red focus:border-mac-red' : 'focus:border-primary'}`}
                 />
                 {jsonError && (
                   <p className="text-[10px] text-mac-red mt-1 flex items-center gap-1">
