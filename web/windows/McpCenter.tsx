@@ -733,7 +733,8 @@ const EditModal: React.FC<{
                   }}
                   spellCheck={false}
                   rows={16}
-                  className={`w-full px-3 py-2.5 theme-field rounded-xl text-[11px] font-mono outline-none sci-input resize-none leading-relaxed custom-scrollbar neon-scrollbar ${jsonError ? 'border-mac-red focus:border-mac-red' : 'focus:border-primary'}`}
+                  className="w-full px-3 py-2.5 theme-field rounded-xl text-[11px] font-mono outline-none sci-input resize-none leading-relaxed custom-scrollbar neon-scrollbar focus:border-primary"
+                  style={jsonError ? { borderColor: 'var(--color-mac-red, #ff5f57)' } : undefined}
                 />
                 {jsonError && (
                   <p className="text-[10px] text-mac-red mt-1 flex items-center gap-1">
