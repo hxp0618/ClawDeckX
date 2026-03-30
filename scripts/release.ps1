@@ -21,16 +21,23 @@ Set-Location $ProjectRoot
 
 function Invoke-GitPush {
     param([string[]]$Args = @(), [int]$MaxRetries = 3)
-    for ($i = 1; $i -le $MaxRetries; $i++) {
-        git push @Args
-        if ($LASTEXITCODE -eq 0) { return }
-        if ($i -lt $MaxRetries) {
-            Write-Host "推送失败，${i}/${MaxRetries}，3 秒后重试..." -ForegroundColor Yellow
-            Start-Sleep -Seconds 3
+    $proxyKey = "url.https://ghproxy.com/https://github.com/.insteadOf"
+    $proxyVal = git config --global --get $proxyKey 2>$null
+    if ($proxyVal) { git config --global --unset $proxyKey 2>$null }
+    try {
+        for ($i = 1; $i -le $MaxRetries; $i++) {
+            git push @Args
+            if ($LASTEXITCODE -eq 0) { return }
+            if ($i -lt $MaxRetries) {
+                Write-Host "推送失败，${i}/${MaxRetries}，3 秒后重试..." -ForegroundColor Yellow
+                Start-Sleep -Seconds 3
+            }
         }
+        Write-Host "错误: 推送失败（已重试 $MaxRetries 次）" -ForegroundColor Red
+        exit 1
+    } finally {
+        if ($proxyVal) { git config --global $proxyKey $proxyVal 2>$null }
     }
-    Write-Host "错误: 推送失败（已重试 $MaxRetries 次）" -ForegroundColor Red
-    exit 1
 }
 
 # ── Smart Changelog Generation ──
@@ -285,8 +292,8 @@ if ($currentVersion -and -not $Replace) {
 function Invoke-PreReleaseChecks {
     Write-Host "`n=== 发布前验证 ===" -ForegroundColor Cyan
 
-    # 1. Git 工作区必须干净
-    $gitStatus = git status --porcelain 2>$null
+    # 1. Git 工作区必须干净（忽略本地 scripts/ 目录）
+    $gitStatus = git status --porcelain 2>$null | Where-Object { $_ -notmatch '^\s*.{2}\s+scripts/' }
     if ($gitStatus) {
         Write-Host "错误: 工作区不干净，请先提交或 stash 变更。" -ForegroundColor Red
         $gitStatus | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
@@ -431,7 +438,11 @@ function Remove-Tag {
     Write-Host "删除标签 $Tag..." -ForegroundColor Yellow
 
     git tag -d $Tag 2>$null | Out-Null
+    $proxyKey = "url.https://ghproxy.com/https://github.com/.insteadOf"
+    $proxyVal = git config --global --get $proxyKey 2>$null
+    if ($proxyVal) { git config --global --unset $proxyKey 2>$null }
     git push origin --delete $Tag 2>&1 | Out-Null
+    if ($proxyVal) { git config --global $proxyKey $proxyVal 2>$null }
 
     Write-Host "标签已删除" -ForegroundColor Green
 }
