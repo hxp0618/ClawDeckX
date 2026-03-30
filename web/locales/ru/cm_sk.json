@@ -1,4 +1,4 @@
-{
+﻿{
   "sk": {
     "installed": "Установленные",
     "available": "Доступные",
@@ -296,6 +296,8 @@
       "addHeader": "Добавить заголовок",
       "headerKeyPlaceholder": "Имя заголовка",
       "headerValuePlaceholder": "Значение",
+      "jsonTab": "JSON",
+      "jsonTabConfig": "Конфигурация сервера (JSON)",
       "convertToMcpRemote": "Преобразовать в mcp-remote (stdio)",
       "convertToMcpRemoteHint": "Подключает этот HTTP-сервер через mcp-remote как stdio, чтобы среды, поддерживающие только stdio, тоже могли подключиться.",
       "extraJson": "Дополнительные JSON-поля",

@@ -1,4 +1,4 @@
-{
+﻿{
   "sk": {
     "installed": "Terinstal",
     "available": "Tersedia",
@@ -296,6 +296,8 @@
       "addHeader": "Tambah Header",
       "headerKeyPlaceholder": "Nama header",
       "headerValuePlaceholder": "Nilai",
+      "jsonTab": "JSON",
+      "jsonTabConfig": "Konfigurasi Server (JSON)",
       "convertToMcpRemote": "Konversi ke mcp-remote (stdio)",
       "convertToMcpRemoteHint": "Menjembatani server HTTP ini via mcp-remote sebagai stdio agar runtime yang hanya mendukung stdio juga dapat terhubung.",
       "extraJson": "Kolom JSON Tambahan",

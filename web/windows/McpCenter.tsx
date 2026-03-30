@@ -188,7 +188,13 @@ const EditModal: React.FC<{
   const originalName = entry?.name ?? '';
 
   // New servers default to paste mode; editing defaults to form mode
-  const [mode, setMode] = useState<'paste' | 'form'>(isNew ? 'paste' : 'form');
+  const [mode, setMode] = useState<'paste' | 'form' | 'json'>(isNew ? 'paste' : 'form');
+
+  // ── JSON tab state (view/edit current config as raw JSON) ──
+  const [jsonRaw, setJsonRaw] = useState(() =>
+    entry ? JSON.stringify(entry.config, null, 2) : ''
+  );
+  const [jsonError, setJsonError] = useState('');
 
   // ── Paste mode state ──
   const [pasteRaw, setPasteRaw] = useState('');
@@ -300,6 +306,25 @@ const EditModal: React.FC<{
     }
   };
 
+  const handleSaveJson = async () => {
+    const trimmedName = name.trim() || originalName.trim();
+    if (!trimmedName) { return; }
+    let parsed: McpServerConfig;
+    try {
+      parsed = JSON.parse(jsonRaw);
+    } catch (e: any) {
+      setJsonError(e.message || 'Invalid JSON');
+      return;
+    }
+    setJsonError('');
+    setSaving(true);
+    try {
+      await onSave(trimmedName, parsed, isNew ? undefined : originalName);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleTestForm = async () => {
     const built = buildFormConfig();
     if (!built) return;
@@ -354,9 +379,9 @@ const EditModal: React.FC<{
           </button>
         </div>
 
-        {/* Mode tabs — only shown for new servers */}
-        {isNew && (
-          <div className="px-5 pt-3 shrink-0 flex gap-1 border-b border-slate-200 dark:border-white/5">
+        {/* Mode tabs — shown for both new and edit */}
+        <div className="px-5 pt-3 shrink-0 flex gap-1 border-b border-slate-200 dark:border-white/5">
+          {isNew && (
             <button
               onClick={() => setMode('paste')}
               className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-t-lg transition-colors border-b-2 -mb-px ${
@@ -368,19 +393,36 @@ const EditModal: React.FC<{
               <span className="material-symbols-outlined text-[14px]">content_paste</span>
               {t.pasteJson || 'Paste JSON'}
             </button>
-            <button
-              onClick={() => setMode('form')}
-              className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-t-lg transition-colors border-b-2 -mb-px ${
-                mode === 'form'
-                  ? 'border-primary text-primary bg-primary/5'
-                  : 'border-transparent theme-text-muted hover:text-[var(--color-text)] dark:hover:text-white'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[14px]">edit_note</span>
-              {t.manualForm || 'Manual'}
-            </button>
-          </div>
-        )}
+          )}
+          <button
+            onClick={() => setMode('form')}
+            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-t-lg transition-colors border-b-2 -mb-px ${
+              mode === 'form'
+                ? 'border-primary text-primary bg-primary/5'
+                : 'border-transparent theme-text-muted hover:text-[var(--color-text)] dark:hover:text-white'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">edit_note</span>
+            {t.manualForm || 'Manual'}
+          </button>
+          <button
+            onClick={() => {
+              // Sync current form → jsonRaw when switching to JSON tab
+              const built = buildFormConfig();
+              if (built) setJsonRaw(JSON.stringify(built.config, null, 2));
+              setJsonError('');
+              setMode('json');
+            }}
+            className={`flex items-center gap-1.5 px-3 py-2 text-[11px] font-bold rounded-t-lg transition-colors border-b-2 -mb-px ${
+              mode === 'json'
+                ? 'border-primary text-primary bg-primary/5'
+                : 'border-transparent theme-text-muted hover:text-[var(--color-text)] dark:hover:text-white'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[14px]">data_object</span>
+            {t.jsonTab || 'JSON'}
+          </button>
+        </div>
 
         {/* ── PASTE MODE ── */}
         {mode === 'paste' && (
@@ -569,17 +611,6 @@ const EditModal: React.FC<{
                       valuePlaceholder={t.headerValuePlaceholder || 'Value'}
                     />
                   </div>
-                  <div className="pt-1">
-                    <button
-                      type="button"
-                      onClick={convertToMcpRemote}
-                      className="flex items-center gap-1.5 px-3 h-7 rounded-lg text-[11px] font-medium border theme-border theme-text-secondary hover:border-primary hover:text-primary transition-colors"
-                    >
-                      <span className="material-symbols-outlined text-[14px]">swap_horiz</span>
-                      {t.convertToMcpRemote || 'Convert to mcp-remote (stdio)'}
-                    </button>
-                    <p className="text-[10px] theme-text-muted mt-1">{t.convertToMcpRemoteHint || 'Bridges this HTTP server via mcp-remote so stdio-only runtimes can connect.'}</p>
-                  </div>
                 </>
               )}
 
@@ -596,6 +627,21 @@ const EditModal: React.FC<{
                   valuePlaceholder={t.envValuePlaceholder}
                 />
               </div>
+
+              {/* mcp-remote bridge — shown only for SSE servers */}
+              {serverType === 'sse' && (
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={convertToMcpRemote}
+                    className="flex items-center gap-1.5 px-3 h-7 rounded-lg text-[11px] font-medium border theme-border theme-text-secondary hover:border-primary hover:text-primary transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">swap_horiz</span>
+                    {t.convertToMcpRemote || 'Convert to mcp-remote (stdio)'}
+                  </button>
+                  <p className="text-[10px] theme-text-muted mt-1">{t.convertToMcpRemoteHint || 'Bridges this HTTP server via mcp-remote so stdio-only runtimes can connect.'}</p>
+                </div>
+              )}
 
               {/* Extra JSON */}
               <div>
@@ -647,6 +693,60 @@ const EditModal: React.FC<{
               <button
                 onClick={handleSaveForm}
                 disabled={saving || modalTesting}
+                className="h-8 px-5 bg-primary text-white text-xs font-bold rounded-lg disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {saving && <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>}
+                {saving ? t.saving : t.save}
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── JSON MODE ── */}
+        {mode === 'json' && (
+          <>
+            <div className="flex-1 overflow-y-auto p-5 space-y-4 custom-scrollbar neon-scrollbar">
+              {/* Name field (still needed for new servers) */}
+              {isNew && (
+                <div>
+                  <label className="text-[10px] font-bold theme-text-muted uppercase tracking-wider mb-1.5 block">
+                    {t.serverName}
+                  </label>
+                  <input
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                    placeholder={t.serverNamePlaceholder}
+                    className="w-full h-9 px-3 theme-field rounded-lg text-xs font-mono outline-none focus:border-primary sci-input"
+                  />
+                </div>
+              )}
+              <div>
+                <label className="text-[10px] font-bold theme-text-muted uppercase tracking-wider mb-1.5 block">
+                  {t.jsonTabConfig || 'Server Config (JSON)'}
+                </label>
+                <textarea
+                  value={jsonRaw}
+                  onChange={e => { setJsonRaw(e.target.value); setJsonError(''); }}
+                  spellCheck={false}
+                  rows={16}
+                  className="w-full px-3 py-2.5 theme-field rounded-xl text-[11px] font-mono outline-none focus:border-primary sci-input resize-none leading-relaxed custom-scrollbar neon-scrollbar"
+                />
+                {jsonError && (
+                  <p className="text-[10px] text-mac-red mt-1 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[12px]">error</span>
+                    {jsonError}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="px-5 py-3 border-t border-slate-200 dark:border-white/5 flex items-center gap-2 shrink-0">
+              <button onClick={onClose} className="h-8 px-4 text-xs font-bold theme-text-secondary hover:text-[var(--color-text)] dark:hover:text-white">
+                {t.cancel}
+              </button>
+              <div className="flex-1" />
+              <button
+                onClick={handleSaveJson}
+                disabled={saving}
                 className="h-8 px-5 bg-primary text-white text-xs font-bold rounded-lg disabled:opacity-50 flex items-center gap-1.5"
               >
                 {saving && <span className="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>}

@@ -1,4 +1,4 @@
-{
+﻿{
   "sk": {
     "installed": "已安装",
     "available": "可用",
@@ -296,6 +296,8 @@
       "addHeader": "添加请求头",
       "headerKeyPlaceholder": "请求头名称",
       "headerValuePlaceholder": "值",
+      "jsonTab": "JSON",
+      "jsonTabConfig": "服务器配置 (JSON)",
       "convertToMcpRemote": "转换为 mcp-remote (stdio)",
       "convertToMcpRemoteHint": "通过 mcp-remote 将此 HTTP 服务器桥接为 stdio，以便仅支持 stdio 的运行时也能连接。",
       "extraJson": "额外 JSON 字段",

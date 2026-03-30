@@ -1,4 +1,4 @@
-{
+﻿{
   "sk": {
     "installed": "インストール済み",
     "available": "利用可能",
@@ -296,6 +296,8 @@
       "addHeader": "ヘッダーを追加",
       "headerKeyPlaceholder": "ヘッダー名",
       "headerValuePlaceholder": "値",
+      "jsonTab": "JSON",
+      "jsonTabConfig": "サーバー設定 (JSON)",
       "convertToMcpRemote": "mcp-remote (stdio) に変換",
       "convertToMcpRemoteHint": "mcp-remote を使ってこの HTTP サーバーを stdio にブリッジし、stdio のみ対応のランタイムからも接続できます。",
       "extraJson": "追加JSONフィールド",

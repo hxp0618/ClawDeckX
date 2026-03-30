@@ -1,4 +1,4 @@
-{
+﻿{
   "sk": {
     "installed": "مثبتة",
     "available": "متاحة",
@@ -296,6 +296,8 @@
       "addHeader": "إضافة رأس",
       "headerKeyPlaceholder": "اسم الرأس",
       "headerValuePlaceholder": "القيمة",
+      "jsonTab": "JSON",
+      "jsonTabConfig": "إعداد الخادم (JSON)",
       "convertToMcpRemote": "تحويل إلى mcp-remote (stdio)",
       "convertToMcpRemoteHint": "يعمل كجسر عبر mcp-remote لهذا الخادم HTTP إلى stdio حتى تتمكن بيئات التشغيل التي تدعم stdio فقط من الاتصال.",
       "extraJson": "حقول JSON إضافية",

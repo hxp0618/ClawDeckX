@@ -1,4 +1,4 @@
-{
+﻿{
   "sk": {
     "installed": "इंस्टॉल किए गए",
     "available": "उपलब्ध",
@@ -296,6 +296,8 @@
       "addHeader": "हेडर जोड़ें",
       "headerKeyPlaceholder": "हेडर नाम",
       "headerValuePlaceholder": "मान",
+      "jsonTab": "JSON",
+      "jsonTabConfig": "सर्वर कॉन्फ़िग (JSON)",
       "convertToMcpRemote": "mcp-remote (stdio) में बदलें",
       "convertToMcpRemoteHint": "mcp-remote के जरिए इस HTTP सर्वर को stdio से जोड़ता है, تाकि केवल stdio समर्थिت रनटाइम भी कनेक्ट हो सकें।",
       "extraJson": "अतिरिक्त JSON फ़ील्ड",

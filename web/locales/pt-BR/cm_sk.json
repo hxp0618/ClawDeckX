@@ -1,4 +1,4 @@
-{
+﻿{
   "sk": {
     "installed": "Instalados",
     "available": "Disponíveis",
@@ -296,6 +296,8 @@
       "addHeader": "Adicionar cabeçalho",
       "headerKeyPlaceholder": "Nome do cabeçalho",
       "headerValuePlaceholder": "Valor",
+      "jsonTab": "JSON",
+      "jsonTabConfig": "Configuração do servidor (JSON)",
       "convertToMcpRemote": "Converter para mcp-remote (stdio)",
       "convertToMcpRemoteHint": "Conecta este servidor HTTP via mcp-remote como stdio para que ambientes que suportam apenas stdio também possam se conectar.",
       "extraJson": "Campos JSON extras",
