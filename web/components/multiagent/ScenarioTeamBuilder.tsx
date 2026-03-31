@@ -166,13 +166,23 @@ const ScenarioTeamBuilder: React.FC<ScenarioTeamBuilderProps> = ({
     if (step !== 'generating') return;
     const unsub = subscribeManagerWS((msg: any) => {
       if (msg?.type === 'gen_task') {
-        const { taskId, elapsed, phase, sessionKey: sk, status, result, errorCode, errorMsg } = msg.data ?? {};
+        const { taskId, elapsed, phase, sessionKey: sk, status, result, errorCode, errorMsg, streamToken } = msg.data ?? {};
         // Only handle events for our task
         if (genTaskId && taskId && taskId !== genTaskId) return;
         if (typeof sk === 'string' && sk) genSessionKeyRef.current = sk;
         if (typeof elapsed === 'number') {
           setGenServerElapsed(elapsed);
           genServerActiveRef.current = true;
+        }
+        // Accumulate streaming tokens from direct LLM call into the preview buffer
+        if (typeof streamToken === 'string' && streamToken) {
+          genStreamBufRef.current += streamToken;
+          if (genStreamRafRef.current === null) {
+            genStreamRafRef.current = window.setTimeout(() => {
+              setGenStreamText(genStreamBufRef.current);
+              genStreamRafRef.current = null;
+            }, 60);
+          }
         }
         if (phase === 'sending') setGenPhase('sending');
         if (phase === 'thinking') setGenPhase('thinking');

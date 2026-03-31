@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"ClawDeckX/internal/i18n"
+	"ClawDeckX/internal/llmdirect"
 	"ClawDeckX/internal/logger"
 	"ClawDeckX/internal/openclaw"
 	"ClawDeckX/internal/web"
@@ -85,9 +87,10 @@ func (s *genTaskStore) evictLoop() {
 
 // MultiAgentHandler handles multi-agent deployment operations.
 type MultiAgentHandler struct {
-	client    *openclaw.GWClient
-	taskStore *genTaskStore
-	wsHub     interface {
+	client     *openclaw.GWClient
+	configPath string // path to ~/.openclaw directory for direct LLM calls
+	taskStore  *genTaskStore
+	wsHub      interface {
 		Broadcast(channel, msgType string, data interface{})
 	}
 }
@@ -97,6 +100,11 @@ func NewMultiAgentHandler(client *openclaw.GWClient) *MultiAgentHandler {
 		client:    client,
 		taskStore: newGenTaskStore(),
 	}
+}
+
+// SetOpenClawConfigPath sets the openclaw config directory used for direct LLM calls.
+func (h *MultiAgentHandler) SetOpenClawConfigPath(p string) {
+	h.configPath = p
 }
 
 // SetWSHub injects the WSHub for broadcasting generation progress events.
@@ -650,131 +658,73 @@ Respond ONLY with a JSON object in this exact structure (no markdown, no explana
   }
 }`, req.ScenarioName, req.Description, agentCountHint, req.WorkflowType, langHint, agentCountHint, req.WorkflowType)
 
-	// Create a temporary session
-	sessionParams := map[string]interface{}{
-		"agentId": "main",
-		"label":   fmt.Sprintf("__gen_team_%s", task.ID),
-	}
-	if req.ModelID != "" {
-		sessionParams["model"] = req.ModelID
-	}
-	sessionData, err := h.client.RequestWithTimeout("sessions.create", sessionParams, 10*time.Second)
-	if err != nil {
-		broadcast(genTaskFailed, "error", elapsed(), nil, "SESSION_CREATE_FAILED", err.Error())
-		return
-	}
-
-	var sessionResp struct {
-		SessionKey string `json:"sessionKey"`
-		Key        string `json:"key"`
-	}
-	if err := json.Unmarshal(sessionData, &sessionResp); err != nil {
-		broadcast(genTaskFailed, "error", elapsed(), nil, "SESSION_PARSE_FAILED", "failed to parse session response")
-		return
-	}
-	sessionKey := sessionResp.SessionKey
-	if sessionKey == "" {
-		sessionKey = sessionResp.Key
-	}
-	if sessionKey == "" {
-		broadcast(genTaskFailed, "error", elapsed(), nil, "SESSION_KEY_MISSING", "no session key returned")
-		return
-	}
-
 	broadcast(genTaskRunning, "sending", elapsed(), nil, "", "")
 
-	// Broadcast sessionKey so frontend can subscribe to streaming deltas.
-	if h.wsHub != nil {
-		h.wsHub.Broadcast("gw_event", "gen_task", map[string]interface{}{
-			"taskId":     task.ID,
-			"status":     string(genTaskRunning),
-			"phase":      "thinking",
-			"elapsed":    elapsed(),
-			"sessionKey": sessionKey,
-		})
+	// Resolve LLM provider from openclaw.json for direct streaming call.
+	// This bypasses the agent session machinery (which triggers tool execution).
+	providerCfg, err := llmdirect.ResolveProvider(h.configPath, req.ModelID)
+	if err != nil {
+		broadcast(genTaskFailed, "error", elapsed(), nil, "LLM_PROVIDER_FAILED", err.Error())
+		return
 	}
 
-	// Keepalive ticker: push progress every 5s so frontend elapsed counter stays in sync.
-	progDone := make(chan struct{})
+	broadcast(genTaskRunning, "thinking", elapsed(), nil, "", "")
+
+	// Stream the LLM response, accumulating tokens and pushing incremental WS updates.
+	ctx, cancelCtx := context.WithTimeout(context.Background(), 600*time.Second)
+	defer cancelCtx()
+
+	// Watch for task cancellation.
 	go func() {
-		ticker := time.NewTicker(5 * time.Second)
-		defer ticker.Stop()
-		for {
-			select {
-			case <-progDone:
-				return
-			case <-task.cancelCh:
-				return
-			case <-ticker.C:
-				if h.wsHub != nil {
-					h.wsHub.Broadcast("gw_event", "gen_task", map[string]interface{}{
-						"taskId":  task.ID,
-						"status":  string(genTaskRunning),
-						"phase":   "thinking",
-						"elapsed": elapsed(),
-					})
-				}
+		select {
+		case <-task.cancelCh:
+			cancelCtx()
+		case <-ctx.Done():
+		}
+	}()
+
+	messages := []llmdirect.Message{
+		{Role: "user", Content: prompt},
+	}
+
+	var tokenBuf strings.Builder
+	tokenCount := 0
+	lastProgress := time.Now()
+
+	for chunk := range llmdirect.StreamCompletion(ctx, providerCfg, messages, 8192) {
+		if chunk.Error != nil {
+			errMsg := chunk.Error.Error()
+			errCode := "LLM_STREAM_FAILED"
+			if strings.Contains(errMsg, "context canceled") || strings.Contains(errMsg, "context deadline") {
+				errCode = "TIMEOUT"
+				errMsg = "Generation timed out or was canceled"
+			}
+			broadcast(genTaskFailed, "error", elapsed(), nil, errCode, errMsg)
+			return
+		}
+		if chunk.Done {
+			break
+		}
+		tokenBuf.WriteString(chunk.Token)
+		tokenCount++
+		// Push streaming token via WS every ~50 tokens or 2s, whichever comes first.
+		if tokenCount%50 == 0 || time.Since(lastProgress) > 2*time.Second {
+			lastProgress = time.Now()
+			if h.wsHub != nil {
+				h.wsHub.Broadcast("gw_event", "gen_task", map[string]interface{}{
+					"taskId":      task.ID,
+					"status":      string(genTaskRunning),
+					"phase":       "thinking",
+					"elapsed":     elapsed(),
+					"streamToken": chunk.Token,
+				})
 			}
 		}
-	}()
-
-	msgData, err := h.client.RequestWithTimeout("sessions.send", map[string]interface{}{
-		"sessionKey": sessionKey,
-		"message":    prompt,
-	}, 600*time.Second)
-	close(progDone)
-
-	// Clean up session asynchronously.
-	go func() {
-		h.client.Request("sessions.delete", map[string]interface{}{"key": sessionKey, "deleteTranscript": true}) //nolint:errcheck
-	}()
-
-	if err != nil {
-		errCode := "LLM_SEND_FAILED"
-		errMsg := err.Error()
-		switch {
-		case strings.Contains(errMsg, "not connected") ||
-			strings.Contains(errMsg, "connection closed") ||
-			strings.Contains(errMsg, "use of closed") ||
-			strings.Contains(errMsg, "broken pipe") ||
-			strings.Contains(errMsg, "EOF"):
-			errCode = "GATEWAY_DISCONNECTED"
-			errMsg = "Gateway connection lost during generation"
-		case strings.Contains(errMsg, "timeout") ||
-			strings.Contains(errMsg, "deadline") ||
-			strings.Contains(errMsg, "timed out"):
-			errCode = "TIMEOUT"
-			errMsg = "Generation timed out"
-		}
-		broadcast(genTaskFailed, "error", elapsed(), nil, errCode, errMsg)
-		return
 	}
 
 	broadcast(genTaskRunning, "parsing", elapsed(), nil, "", "")
 
-	var msgResp struct {
-		Content string `json:"content"`
-		Text    string `json:"text"`
-		Message struct {
-			Content string `json:"content"`
-			Text    string `json:"text"`
-		} `json:"message"`
-	}
-	if err := json.Unmarshal(msgData, &msgResp); err != nil {
-		broadcast(genTaskFailed, "error", elapsed(), nil, "LLM_PARSE_FAILED", "failed to parse LLM response")
-		return
-	}
-
-	rawContent := msgResp.Content
-	if rawContent == "" {
-		rawContent = msgResp.Text
-	}
-	if rawContent == "" {
-		rawContent = msgResp.Message.Content
-	}
-	if rawContent == "" {
-		rawContent = msgResp.Message.Text
-	}
+	rawContent := tokenBuf.String()
 	if rawContent == "" {
 		broadcast(genTaskFailed, "error", elapsed(), nil, "LLM_EMPTY_RESPONSE", "LLM returned empty response")
 		return

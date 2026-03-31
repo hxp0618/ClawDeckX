@@ -726,6 +726,7 @@ func RunServe(args []string) int {
 
 	multiAgentHandler := handlers.NewMultiAgentHandler(gwClient)
 	multiAgentHandler.SetWSHub(wsHub)
+	multiAgentHandler.SetOpenClawConfigPath(cfg.OpenClaw.ConfigPath)
 	router.POST("/api/v1/multi-agent/generate", web.RequireAdmin(multiAgentHandler.Generate))
 	router.POST("/api/v1/multi-agent/generate-async", web.RequireAdmin(multiAgentHandler.GenerateAsync))
 	router.GET("/api/v1/multi-agent/generate-task", multiAgentHandler.GetGenerateTask)
